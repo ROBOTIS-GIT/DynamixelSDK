@@ -36,7 +36,7 @@
 
 #include "dynamixel_sdk/port_handler.h"
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
   #include "dynamixel_sdk_linux/port_handler_linux.h"
 #endif
 
@@ -48,7 +48,7 @@ using namespace dynamixel;
 
 PortHandler *PortHandler::getPortHandler(const char *port_name)
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
   return (PortHandler *)(new PortHandlerLinux(port_name));
 #endif
 

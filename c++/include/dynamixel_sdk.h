@@ -41,7 +41,7 @@
 #include "dynamixel_sdk/protocol1_packet_handler.h"
 #include "dynamixel_sdk/protocol2_packet_handler.h"
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
   #include "dynamixel_sdk_linux/port_handler_linux.h"
 #endif
 

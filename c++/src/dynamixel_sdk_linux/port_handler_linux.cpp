@@ -38,7 +38,10 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
-#include <linux/serial.h>
+
+#ifndef __APPLE__
+    #include <linux/serial.h>
+#endif
 
 #include "dynamixel_sdk_linux/port_handler_linux.h"
 
@@ -196,32 +199,37 @@ bool PortHandlerLinux::setupPort(int cflag_baud)
 
 bool PortHandlerLinux::setCustomBaudrate(int speed)
 {
-  // try to set a custom divisor
-  struct serial_struct ss;
-  if(ioctl(socket_fd_, TIOCGSERIAL, &ss) != 0)
-  {
-    printf("[PortHandlerLinux::SetCustomBaudrate] TIOCGSERIAL failed!\n");
+#ifdef __APPLE__
+    printf("[PortHandlerLinux::SetCustomBaudrate] not supported on OS X!\n");
     return false;
-  }
+#else
+    // try to set a custom divisor
+    struct serial_struct ss;
+    if(ioctl(socket_fd_, TIOCGSERIAL, &ss) != 0)
+    {
+	printf("[PortHandlerLinux::SetCustomBaudrate] TIOCGSERIAL failed!\n");
+	return false;
+    }
 
-  ss.flags = (ss.flags & ~ASYNC_SPD_MASK) | ASYNC_SPD_CUST;
-  ss.custom_divisor = (ss.baud_base + (speed / 2)) / speed;
-  int closest_speed = ss.baud_base / ss.custom_divisor;
+    ss.flags = (ss.flags & ~ASYNC_SPD_MASK) | ASYNC_SPD_CUST;
+    ss.custom_divisor = (ss.baud_base + (speed / 2)) / speed;
+    int closest_speed = ss.baud_base / ss.custom_divisor;
 
-  if(closest_speed < speed * 98 / 100 || closest_speed > speed * 102 / 100)
-  {
-    printf("[PortHandlerLinux::SetCustomBaudrate] Cannot set speed to %d, closest is %d \n", speed, closest_speed);
-    return false;
-  }
+    if(closest_speed < speed * 98 / 100 || closest_speed > speed * 102 / 100)
+    {
+	printf("[PortHandlerLinux::SetCustomBaudrate] Cannot set speed to %d, closest is %d \n", speed, closest_speed);
+	return false;
+    }
 
-  if(ioctl(socket_fd_, TIOCSSERIAL, &ss) < 0)
-  {
-    printf("[PortHandlerLinux::SetCustomBaudrate] TIOCSSERIAL failed!\n");
-    return false;
-  }
+    if(ioctl(socket_fd_, TIOCSSERIAL, &ss) < 0)
+    {
+	printf("[PortHandlerLinux::SetCustomBaudrate] TIOCSSERIAL failed!\n");
+	return false;
+    }
 
-  tx_time_per_byte = (1000.0 / (double)speed) * 10.0;
-  return true;
+    tx_time_per_byte = (1000.0 / (double)speed) * 10.0;
+    return true;
+#endif
 }
 
 int PortHandlerLinux::getCFlagBaud(int baudrate)
@@ -240,6 +248,7 @@ int PortHandlerLinux::getCFlagBaud(int baudrate)
       return B115200;
     case 230400:
       return B230400;
+#ifndef __APPLE__
     case 460800:
       return B460800;
     case 500000:
@@ -264,6 +273,7 @@ int PortHandlerLinux::getCFlagBaud(int baudrate)
       return B3500000;
     case 4000000:
       return B4000000;
+#endif
     default:
       return -1;
   }

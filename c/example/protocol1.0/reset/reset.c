@@ -44,7 +44,7 @@
 // This example resets all properties of Dynamixel to default values, such as %% ID : 1 / Baudnum : 34 (Baudrate : 57600)
 //
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -73,7 +73,7 @@
 
 int getch()
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
   struct termios oldt, newt;
   int ch;
   tcgetattr(STDIN_FILENO, &oldt);
@@ -90,7 +90,7 @@ int getch()
 
 int kbhit(void)
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
   struct termios oldt, newt;
   int ch;
   int oldf;
@@ -121,7 +121,7 @@ int kbhit(void)
 
 void msecSleep(int waitTime)
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     usleep(waitTime * 1000);
 #elif defined(_WIN32) || defined(_WIN64)
     Sleep(waitTime);
