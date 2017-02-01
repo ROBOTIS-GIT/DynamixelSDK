@@ -51,7 +51,7 @@ namespace dynamixel
 class WINDECLSPEC PortHandler
 {
  public:
-  static const int DEFAULT_BAUDRATE_ = 1000000;
+  static const int DEFAULT_BAUDRATE_ = 57600;
 
   static PortHandler *getPortHandler(const char *port_name);
 
