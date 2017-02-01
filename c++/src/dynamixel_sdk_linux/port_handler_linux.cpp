@@ -182,12 +182,14 @@ bool PortHandlerLinux::setupPort(int cflag_baud)
 
   bzero(&newtio, sizeof(newtio)); // clear struct for new port settings
 
-  newtio.c_cflag = cflag_baud | CS8 | CLOCAL | CREAD;
+  newtio.c_cflag = CS8 | CLOCAL | CREAD;
   newtio.c_iflag = IGNPAR;
   newtio.c_oflag      = 0;
   newtio.c_lflag      = 0;
   newtio.c_cc[VTIME]  = 0;
   newtio.c_cc[VMIN]   = 0;
+  cfsetispeed(&newtio, cflag_baud);                // set baud rate to something
+  cfsetospeed(&newtio, cflag_baud); 		     // otherwise tcsetattr complains on Mac OS
 
   // clean the buffer and activate the settings for the port
   tcflush(socket_fd_, TCIFLUSH);
