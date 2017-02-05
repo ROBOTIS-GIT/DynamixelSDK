@@ -39,7 +39,7 @@
 // Be sure that properties of Dynamixel MX and PRO are already set as %% MX - ID : 1 / Baudnum : 1 (Baudrate : 1000000) , PRO - ID : 1 / Baudnum : 3 (Baudrate : 1000000)
 //
 
-#ifdef __linux__
+#if defined(__linux__) || defined(defined(__APPLE__))
 #include <unistd.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -63,7 +63,7 @@
 
 int getch()
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(defined(__APPLE__))
   struct termios oldt, newt;
   int ch;
   tcgetattr(STDIN_FILENO, &oldt);
@@ -80,7 +80,7 @@ int getch()
 
 int kbhit(void)
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(defined(__APPLE__))
   struct termios oldt, newt;
   int ch;
   int oldf;
@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
 
   char *dev_name = (char*)DEVICENAME;
 
-#ifdef __linux__
+#if defined(__linux__) || defined(defined(__APPLE__))
   /* parameter parsing */
   while(1)
   {

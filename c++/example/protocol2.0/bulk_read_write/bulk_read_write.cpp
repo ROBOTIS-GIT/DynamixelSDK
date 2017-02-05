@@ -39,7 +39,7 @@
 // Be sure that Dynamixel PRO properties are already set as %% ID : 1 and 2 / Baudnum : 3 (Baudrate : 1000000)
 //
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -83,7 +83,7 @@
 
 int getch()
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
   struct termios oldt, newt;
   int ch;
   tcgetattr(STDIN_FILENO, &oldt);
@@ -100,7 +100,7 @@ int getch()
 
 int kbhit(void)
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
   struct termios oldt, newt;
   int ch;
   int oldf;

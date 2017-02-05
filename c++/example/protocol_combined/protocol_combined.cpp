@@ -43,7 +43,7 @@
 // This example configures two different control tables (especially, if it uses Dynamixel and Dynamixel PRO). It may modify critical Dynamixel parameter on the control table, if Dynamixels have wrong ID.
 //
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -90,7 +90,7 @@
 
 int getch()
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
   struct termios oldt, newt;
   int ch;
   tcgetattr(STDIN_FILENO, &oldt);
@@ -107,7 +107,7 @@ int getch()
 
 int kbhit(void)
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
   struct termios oldt, newt;
   int ch;
   int oldf;

@@ -36,7 +36,7 @@
 
 #include "dynamixel_sdk/port_handler.h"
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 #include "dynamixel_sdk_linux/port_handler_linux.h"
 #endif
 
@@ -44,7 +44,7 @@
 #include "dynamixel_sdk_windows/port_handler_windows.h"
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 int     portHandler         (const char *port_name) { return portHandlerLinux(port_name); };
 
 uint8_t openPort            (int port_num) { return openPortLinux(port_num); };

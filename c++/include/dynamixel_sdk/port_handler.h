@@ -33,7 +33,7 @@
 #ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_PORTHANDLER_H_
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_PORTHANDLER_H_
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 #define WINDECLSPEC
 #elif defined(_WIN32) || defined(_WIN64)
 #ifdef WINDLLEXPORT
@@ -51,7 +51,7 @@ namespace dynamixel
 class WINDECLSPEC PortHandler
 {
  public:
-  static const int DEFAULT_BAUDRATE_ = 1000000;
+  static const int DEFAULT_BAUDRATE_ = 57600;
 
   static PortHandler *getPortHandler(const char *port_name);
 
