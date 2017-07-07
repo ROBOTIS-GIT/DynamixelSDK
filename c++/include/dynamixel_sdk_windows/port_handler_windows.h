@@ -35,7 +35,7 @@
 
 #include <Windows.h>
 
-#include "dynamixel_sdk/port_handler.h"
+#include "../dynamixel_sdk/port_handler.h"
 
 namespace dynamixel
 {

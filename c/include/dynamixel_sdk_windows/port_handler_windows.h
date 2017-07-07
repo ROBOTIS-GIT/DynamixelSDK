@@ -34,7 +34,7 @@
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_WINDOWS_PORTHANDLERWINDOWS_C_H_
 
 #include <Windows.h>
-#include "dynamixel_sdk/port_handler.h"
+#include "../dynamixel_sdk/port_handler.h"
 
 WINDECLSPEC uint8_t setupPortWindows            (int port_num, const int baudrate);
 

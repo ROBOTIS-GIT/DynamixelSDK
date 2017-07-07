@@ -34,7 +34,7 @@
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_LINUX_PORTHANDLERLINUX_C_H_
 
 
-#include "dynamixel_sdk/port_handler.h"
+#include "../dynamixel_sdk/port_handler.h"
 
 int portHandlerLinux            (const char *port_name);
 
