@@ -14,10 +14,11 @@ MAJ_VERSION = 2
 MIN_VERSION = 0
 REV_VERSION = 0
 
-TARGET      = libdxl_sbc_c.so
-TARGET1     = $(TARGET).$(MAJ_VERSION)
-TARGET2     = $(TARGET).$(MAJ_VERSION).$(MIN_VERSION)
-TARGET3     = $(TARGET).$(MAJ_VERSION).$(MIN_VERSION).$(REV_VERSION)
+LIBRARY_NAME = libdxl_sbc_c.so
+TARGET       = $(LIBRARY_NAME).$(MAJ_VERSION).$(MIN_VERSION).$(REV_VERSION)
+TARGET1      = $(LIBRARY_NAME).$(MAJ_VERSION).$(MIN_VERSION)
+TARGET2      = $(LIBRARY_NAME).$(MAJ_VERSION)
+TARGET3      = $(LIBRARY_NAME)
 
 CHK_DIR_EXISTS = test -d
 PRINT       = echo
@@ -77,9 +78,9 @@ install: $(TARGET)
     # copy the binaries into the lib directory
 	@$(CHK_DIR_EXISTS) $(INSTALL_ROOT)/lib || $(MKDIR) $(INSTALL_ROOT)/lib
 	-$(CP) "./$(TARGET)" "$(INSTALL_ROOT)/lib/$(TARGET)"
-	-$(SYMLINK) "$(INSTALL_ROOT)/lib/$(TARGET)" "$(INSTALL_ROOT)/lib/$(TARGET1)"
-	-$(SYMLINK) "$(INSTALL_ROOT)/lib/$(TARGET)" "$(INSTALL_ROOT)/lib/$(TARGET2)"
-	-$(SYMLINK) "$(INSTALL_ROOT)/lib/$(TARGET)" "$(INSTALL_ROOT)/lib/$(TARGET3)"
+	-$(SYMLINK) "$(TARGET)" "$(INSTALL_ROOT)/lib/$(TARGET1)"
+	-$(SYMLINK) "$(TARGET)" "$(INSTALL_ROOT)/lib/$(TARGET2)"
+	-$(SYMLINK) "$(TARGET)" "$(INSTALL_ROOT)/lib/$(TARGET3)"
 
     # copy the headers into the include directory
 	@$(CHK_DIR_EXISTS) $(INSTALL_ROOT)/include/dynamixel_sdk || $(MKDIR) $(INSTALL_ROOT)/include/dynamixel_sdk
