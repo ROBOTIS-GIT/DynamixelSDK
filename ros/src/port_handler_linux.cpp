@@ -42,7 +42,7 @@
 
 #include "dynamixel_sdk/port_handler_linux.h"
 
-#define LATENCY_TIMER   8  // msec (USB latency timer) [was changed from 4 due to the Ubuntu update 16.04.2]
+#define LATENCY_TIMER   4
 
 using namespace dynamixel;
 
@@ -189,6 +189,12 @@ bool PortHandlerLinux::setupPort(int cflag_baud)
   // clean the buffer and activate the settings for the port
   tcflush(socket_fd_, TCIFLUSH);
   tcsetattr(socket_fd_, TCSANOW, &newtio);
+
+  // Linux-specific: enable low latency mode (FTDI "nagling off")
+  struct serial_struct ser_info;
+  ioctl(socket_fd_, TIOCGSERIAL, &ser_info);
+  ser_info.flags |= ASYNC_LOW_LATENCY;
+  ioctl(socket_fd_, TIOCSSERIAL, &ser_info);
 
   tx_time_per_byte = (1000.0 / (double)baudrate_) * 10.0;
   return true;
