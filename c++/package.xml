@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package>
   <name>dynamixel_sdk</name>
-  <version>3.5.2</version>
+  <version>3.5.3</version>
   <description>This package is wrapping version of ROBOTIS Dynamxel SDK for ROS. The ROBOTIS Dynamixel SDK, or SDK, is a software development library that provides Dynamixel control functions for packet communication. The API is designed for Dynamixel actuators and Dynamixel-based platforms.</description>
-  <license>BSD</license>
+  <license>Apache-2.0</license>
   <author email="zerom@robotis.com">Zerom</author>
   <author email="rwjung@robotis.com">Leon</author>
   <maintainer email="pyo@robotis.com">Pyo</maintainer>

@@ -2,6 +2,11 @@
 Changelog for package dynamixel_sdk
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.5.3 (2017-10-30)
+-----------
+* Fixes : DynamixelSDK ROS Kinetic Issue - ARM - Debian Jessie solved by replacing target_sources func in CMake to set_property #136
+* Contributors: Leon
+
 3.5.2 (2017-09-18)
 -----------
 * Recover : Check if the id of rxpacket is the same as the id of txpacket #82

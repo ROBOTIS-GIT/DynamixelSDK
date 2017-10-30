@@ -1,4 +1,12 @@
 ==============================================
+    Dynamixel SDK 3.5.3 (Protocol 1.0/2.0)
+==============================================
+
+- 10.30.2017
+
+* Fixes : DynamixelSDK ROS Kinetic Issue - ARM - Debian Jessie solved by replacing target_sources func in CMake to set_property #136
+
+==============================================
     Dynamixel SDK 3.5.2 (Protocol 1.0/2.0)
 ==============================================
 
