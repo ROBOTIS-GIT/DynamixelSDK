@@ -8,7 +8,7 @@ so the work was very hard to be carried out so far.
 Hence, I will update some GUIDELINES that is very necessary to get your ideas be MERGED.
 
 1. After every release, there is a 'develop' branch. To make your idea be accepted on the next release,
-YOU SHOULD GET PULL REQUEST BASED ON 'DEVELOP' BRANCH, NOT 'MASTER' BRANCH!!
+YOU SHOULD GET PULL REQUEST BASED ON 'DEVELOP' BRANCH, NOT 'MASTER' BRANCH!!!
 All pull requests based on 'master' branch will be 'suspended' or 'won't fix', so make sure before the pull request.
 
 2. I'm hoping that many users can list up on the [CONTRIBUTORS](https://github.com/ROBOTIS-GIT/DynamixelSDK/graphs/contributors).
