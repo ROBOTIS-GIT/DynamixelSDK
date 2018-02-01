@@ -155,6 +155,16 @@ class WINDECLSPEC GroupSyncRead
   uint32_t    getData     (uint8_t id, uint16_t address, uint16_t data_length);
 
   ////////////////////////////////////////////////////////////////////////////////
+  /// @brief The function that gets multiple bytes of the data which might be received by GroupSyncRead::rxPacket or GroupSyncRead::txRxPacket
+  /// @param id Dynamixel ID
+  /// @param address start address of the data for read
+  /// @data_length Length of the data for read
+  /// @data vector of bytes where the read bytes are saved into
+  /// @return true if success
+  ////////////////////////////////////////////////////////////////////////////////
+  bool getMultipleWordsData(uint8_t id, uint16_t address, uint16_t data_length, std::vector<uint8_t> *data);
+
+  ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that gets the error which might be received by GroupSyncRead::rxPacket or GroupSyncRead::txRxPacket
   /// @param id Dynamixel ID
   /// @error error of Dynamixel

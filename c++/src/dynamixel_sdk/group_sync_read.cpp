@@ -196,6 +196,19 @@ uint32_t GroupSyncRead::getData(uint8_t id, uint16_t address, uint16_t data_leng
   }
 }
 
+bool GroupSyncRead::getMultipleWordsData(uint8_t id, uint16_t address, uint16_t data_length, std::vector<uint8_t> *data){
+    if (isAvailable(id, address, data_length) == false)
+        return false;
+
+    data->clear();
+    for(int i = 0; i < data_length;i++){ //todo maybe memcpy for performance
+        data->push_back(data_list_[id][address - start_address_ + i]);
+    }
+
+    return true;
+}
+
+
 bool GroupSyncRead::getError(uint8_t id, uint8_t* error)
 {
   // TODO : check protocol version, last_result_, data_list
