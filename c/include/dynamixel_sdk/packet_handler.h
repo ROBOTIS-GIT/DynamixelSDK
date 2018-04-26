@@ -88,9 +88,15 @@ WINDECLSPEC uint8_t     getLastRxPacketError    (int port_num, int protocol_vers
 WINDECLSPEC void        setDataWrite        (int port_num, int protocol_version, uint16_t data_length, uint16_t data_pos, uint32_t data);
 WINDECLSPEC uint32_t    getDataRead         (int port_num, int protocol_version, uint16_t data_length, uint16_t data_pos);
 
+WINDECLSPEC void        _txPacket            (int port_num, int protocol_version, uint8_t *tx_packet);
+
 WINDECLSPEC void        txPacket            (int port_num, int protocol_version);
 
+WINDECLSPEC void        _rxPacket            (int port_num, int protocol_version, uint8_t *rx_packet);
+
 WINDECLSPEC void        rxPacket            (int port_num, int protocol_version);
+
+WINDECLSPEC void        _txRxPacket            (int port_num, int protocol_version, uint8_t *tx_packet, uint8_t *rx_packet);
 
 WINDECLSPEC void        txRxPacket          (int port_num, int protocol_version);
 
@@ -101,6 +107,8 @@ WINDECLSPEC uint16_t    pingGetModelNum     (int port_num, int protocol_version,
 // broadcastPing
 WINDECLSPEC void        broadcastPing       (int port_num, int protocol_version);
 WINDECLSPEC uint8_t     getBroadcastPingResult  (int port_num, int protocol_version, int id);
+
+WINDECLSPEC void        action              (int port_num, int protocol_version, uint8_t id);
 
 WINDECLSPEC void        reboot              (int port_num, int protocol_version, uint8_t id);
 

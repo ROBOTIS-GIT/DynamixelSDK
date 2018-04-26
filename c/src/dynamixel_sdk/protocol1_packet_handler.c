@@ -169,12 +169,12 @@ uint32_t getDataRead1(int port_num, uint16_t data_length, uint16_t data_pos)
   }
 }
 
-void txPacket1(int port_num)
+void _txPacket1(int port_num, uint8_t *tx_packet)
 {
   uint16_t idx;
 
   uint8_t checksum = 0;
-  uint8_t total_packet_length = packetData[port_num].tx_packet[PKT_LENGTH] + 4; // 4: HEADER0 HEADER1 ID LENGTH
+  uint8_t total_packet_length = tx_packet[PKT_LENGTH] + 4; // 4: HEADER0 HEADER1 ID LENGTH
   uint8_t written_packet_length = 0;
 
   if (g_is_using[port_num])
@@ -193,19 +193,19 @@ void txPacket1(int port_num)
   }
 
   // make packet header
-  packetData[port_num].tx_packet[PKT_HEADER0] = 0xFF;
-  packetData[port_num].tx_packet[PKT_HEADER1] = 0xFF;
+  tx_packet[PKT_HEADER0] = 0xFF;
+  tx_packet[PKT_HEADER1] = 0xFF;
 
   // add a checksum to the packet
   for (idx = 2; idx < total_packet_length - 1; idx++)   // except header, checksum
   {
-    checksum += packetData[port_num].tx_packet[idx];
+    checksum += tx_packet[idx];
   }
-  packetData[port_num].tx_packet[total_packet_length - 1] = ~checksum;
+  tx_packet[total_packet_length - 1] = ~checksum;
 
   // tx packet
   clearPort(port_num);
-  written_packet_length = writePort(port_num, packetData[port_num].tx_packet, total_packet_length);
+  written_packet_length = writePort(port_num, tx_packet, total_packet_length);
   if (total_packet_length != written_packet_length)
   {
     g_is_using[port_num] = False;
@@ -216,7 +216,12 @@ void txPacket1(int port_num)
   packetData[port_num].communication_result = COMM_SUCCESS;
 }
 
-void rxPacket1(int port_num)
+void txPacket1(int port_num)
+{
+  _txPacket1(port_num, packetData[port_num].tx_packet);
+}
+
+void _rxPacket1(int port_num, uint8_t * rx_packet)
 {
   uint16_t idx, s;
   int i;
@@ -232,7 +237,7 @@ void rxPacket1(int port_num)
 
   while (True)
   {
-    rx_length += readPort(port_num, &packetData[port_num].rx_packet[rx_length], wait_length - rx_length);
+    rx_length += readPort(port_num, &rx_packet[rx_length], wait_length - rx_length);
     if (rx_length >= wait_length)
     {
       idx = 0;
@@ -240,20 +245,20 @@ void rxPacket1(int port_num)
       // find packet header
       for (idx = 0; idx < (rx_length - 1); idx++)
       {
-        if (packetData[port_num].rx_packet[idx] == 0xFF && packetData[port_num].rx_packet[idx + 1] == 0xFF)
+        if (rx_packet[idx] == 0xFF && rx_packet[idx + 1] == 0xFF)
           break;
       }
 
       if (idx == 0)   // found at the beginning of the packet
       {
-        if (packetData[port_num].rx_packet[PKT_ID] > 0xFD ||                   // unavailable ID
-            packetData[port_num].rx_packet[PKT_LENGTH] > RXPACKET_MAX_LEN ||   // unavailable Length
-            packetData[port_num].rx_packet[PKT_ERROR] > 0x7F)                  // unavailable Error
+        if (rx_packet[PKT_ID] > 0xFD ||                   // unavailable ID
+            rx_packet[PKT_LENGTH] > RXPACKET_MAX_LEN ||   // unavailable Length
+            rx_packet[PKT_ERROR] > 0x7F)                  // unavailable Error
         {
           // remove the first byte in the packet
           for (s = 0; s < rx_length - 1; s++)
           {
-            packetData[port_num].rx_packet[s] = packetData[port_num].rx_packet[1 + s];
+            rx_packet[s] = rx_packet[1 + s];
           }
 
           rx_length -= 1;
@@ -261,7 +266,7 @@ void rxPacket1(int port_num)
         }
 
         // re-calculate the exact length of the rx packet
-        wait_length = packetData[port_num].rx_packet[PKT_LENGTH] + PKT_LENGTH + 1;
+        wait_length = rx_packet[PKT_LENGTH] + PKT_LENGTH + 1;
         if (rx_length < wait_length)
         {
           // check timeout
@@ -282,12 +287,12 @@ void rxPacket1(int port_num)
         // calculate checksum
         for (i = 2; i < wait_length - 1; i++)   // except header, checksum
         {
-          checksum += packetData[port_num].rx_packet[i];
+          checksum += rx_packet[i];
         }
         checksum = ~checksum;
 
         // verify checksum
-        if (packetData[port_num].rx_packet[wait_length - 1] == checksum)
+        if (rx_packet[wait_length - 1] == checksum)
         {
           packetData[port_num].communication_result = COMM_SUCCESS;
         }
@@ -302,7 +307,7 @@ void rxPacket1(int port_num)
         // remove unnecessary packets
         for (s = 0; s < rx_length - idx; s++)
         {
-          packetData[port_num].rx_packet[s] = packetData[port_num].rx_packet[idx + s];
+          rx_packet[s] = rx_packet[idx + s];
         }
         rx_length -= idx;
       }
@@ -327,30 +332,35 @@ void rxPacket1(int port_num)
   g_is_using[port_num] = False;
 }
 
+void rxPacket1(int port_num)
+{
+    _rxPacket1(port_num, packetData[port_num].rx_packet);
+}
+
 // NOT for BulkRead instruction
-void txRxPacket1(int port_num)
+void _txRxPacket1(int port_num, uint8_t *tx_packet, uint8_t *rx_packet)
 {
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
   // tx packet
-  txPacket1(port_num);
+  _txPacket1(port_num, tx_packet);
 
   if (packetData[port_num].communication_result != COMM_SUCCESS)
     return;
 
   // (ID == Broadcast ID && NOT BulkRead) == no need to wait for status packet
   // (Instruction == Action) == no need to wait for status packet
-  if ((packetData[port_num].tx_packet[PKT_ID] == BROADCAST_ID && packetData[port_num].tx_packet[PKT_INSTRUCTION] != INST_BULK_READ) ||
-    (packetData[port_num].tx_packet[PKT_INSTRUCTION] == INST_ACTION))
+  if ((tx_packet[PKT_ID] == BROADCAST_ID && tx_packet[PKT_INSTRUCTION] != INST_BULK_READ) ||
+    (tx_packet[PKT_INSTRUCTION] == INST_ACTION))
   {
     g_is_using[port_num] = False;
     return;
   }
 
   // set packet timeout
-  if (packetData[port_num].tx_packet[PKT_INSTRUCTION] == INST_READ)
+  if (tx_packet[PKT_INSTRUCTION] == INST_READ)
   {
-    setPacketTimeout(port_num, (uint16_t)(packetData[port_num].tx_packet[PKT_PARAMETER0 + 1] + 6));
+    setPacketTimeout(port_num, (uint16_t)(tx_packet[PKT_PARAMETER0 + 1] + 6));
   }
   else
   {
@@ -358,16 +368,21 @@ void txRxPacket1(int port_num)
   }
 
   // rx packet
-  rxPacket1(port_num);
+  _rxPacket1(port_num, rx_packet);
   // check txpacket ID == rxpacket ID
-  if (packetData[port_num].tx_packet[PKT_ID] != packetData[port_num].rx_packet[PKT_ID])
-    rxPacket1(port_num);
+  if (tx_packet[PKT_ID] != rx_packet[PKT_ID])
+    _rxPacket1(port_num, rx_packet);
 
-  if (packetData[port_num].communication_result == COMM_SUCCESS && packetData[port_num].tx_packet[PKT_ID] != BROADCAST_ID)
+  if (packetData[port_num].communication_result == COMM_SUCCESS && tx_packet[PKT_ID] != BROADCAST_ID)
   {
     if (packetData[port_num].error != 0)
-      packetData[port_num].error = (uint8_t)packetData[port_num].rx_packet[PKT_ERROR];
+      packetData[port_num].error = (uint8_t)rx_packet[PKT_ERROR];
   }
+}
+
+void txRxPacket1(int port_num)
+{
+    _txRxPacket1(port_num, packetData[port_num].tx_packet, packetData[port_num].rx_packet);
 }
 
 void ping1(int port_num, uint8_t id)
