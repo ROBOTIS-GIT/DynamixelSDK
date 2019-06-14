@@ -518,8 +518,8 @@ int Protocol2PacketHandler::broadcastPing(PortHandler *port, std::vector<uint8_t
     return result;
   }
 
-  // set rx timeout
-  port->setPacketTimeout((uint16_t)(wait_length * 30));
+  // set rx timeout (NOTE: Please do not overflow 16 bits!)
+  port->setPacketTimeout((uint16_t)(wait_length * 18));
 
   while(1)
   {
