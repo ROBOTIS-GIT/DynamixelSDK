@@ -674,7 +674,9 @@ int Protocol2PacketHandler::readTx(PortHandler *port, uint8_t id, uint16_t addre
 int Protocol2PacketHandler::readRx(PortHandler *port, uint8_t id, uint16_t length, uint8_t *data, uint8_t *error)
 {
   int result                  = COMM_TX_FAIL;
-  uint8_t *rxpacket           = (uint8_t *)malloc(length + 11 + (length / 3));
+  // This buffer has to be max length, even if we know the anticipated size of the packet, a bit error in
+  // the length field of the header will cause us to read over the end before it's caught by the crc.
+  uint8_t *rxpacket           = (uint8_t *)malloc(RXPACKET_MAX_LEN);
   //(length + 11 + (length/3));  // (length/3): consider stuffing
   
   if (rxpacket == NULL)
@@ -706,7 +708,9 @@ int Protocol2PacketHandler::readTxRx(PortHandler *port, uint8_t id, uint16_t add
   int result                  = COMM_TX_FAIL;
 
   uint8_t txpacket[14]        = {0};
-  uint8_t *rxpacket           = (uint8_t *)malloc(length + 11 + (length / 3));
+  // This buffer has to be max length, even if we know the anticipated size of the packet, a bit error in
+  // the length field of the header will cause us to read over the end before it's caught by the crc.
+  uint8_t *rxpacket           = (uint8_t *)malloc(RXPACKET_MAX_LEN);
   //(length + 11 + (length/3));  // (length/3): consider stuffing
 
   if (rxpacket == NULL)
