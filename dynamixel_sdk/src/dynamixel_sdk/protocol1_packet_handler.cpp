@@ -441,8 +441,13 @@ int Protocol1PacketHandler::readTxRx(PortHandler *port, uint8_t id, uint16_t add
   uint8_t txpacket[8]         = {0};
   uint8_t *rxpacket           = (uint8_t *)malloc(RXPACKET_MAX_LEN);//(length+6);
 
-  if (id >= BROADCAST_ID)
+  if (rxpacket == NULL)
+    return result;
+
+  if (id >= BROADCAST_ID) {
+    free(rxpacket);
     return COMM_NOT_AVAILABLE;
+  }
 
   txpacket[PKT_ID]            = id;
   txpacket[PKT_LENGTH]        = 4;
