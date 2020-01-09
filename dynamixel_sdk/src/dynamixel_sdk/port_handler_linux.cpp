@@ -129,7 +129,41 @@ int PortHandlerLinux::getBytesAvailable()
 
 int PortHandlerLinux::readPort(uint8_t *packet, int length)
 {
-  return read(socket_fd_, packet, length);
+  if (packet_timeout_ != 0)
+  {
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(socket_fd_, &readfds);
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    // packet_timeout_ is in milliseconds
+    timeout.tv_usec = packet_timeout_ * 1000;
+    int select_ret = ::select(socket_fd_ + 1, &readfds, nullptr, nullptr, &timeout);
+    if (select_ret < 0)
+    {
+      // Some kind of error happened; just return 0
+      return 0;
+    }
+    else if (select_ret == 0)
+    {
+      // timeout happened; return 0
+      return 0;
+    }
+    else
+    {
+      if (!FD_ISSET(socket_fd_, &readfds))
+      {
+        // We didn't see the file descriptor we expected; just return 0
+        return 0;
+      }
+
+      return read(socket_fd_, packet, length);
+    }
+  }
+  else
+  {
+    return read(socket_fd_, packet, length);
+  }
 }
 
 int PortHandlerLinux::writePort(uint8_t *packet, int length)
