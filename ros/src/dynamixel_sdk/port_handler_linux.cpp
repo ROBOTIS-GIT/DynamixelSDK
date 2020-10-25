@@ -280,4 +280,16 @@ int PortHandlerLinux::getCFlagBaud(int baudrate)
   }
 }
 
+
+bool PortHandlerLinux::setRS485(struct serial_rs485 *rs485conf)
+{
+  if (ioctl(socket_fd_, TIOCSRS485, rs485conf) < 0)
+  {
+    printf("[PortHandlerLinux::setRS485] TIOCSRS485 failed!\n");
+    return false;
+  }
+  return true;
+}
+
+
 #endif

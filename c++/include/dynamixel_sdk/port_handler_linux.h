@@ -22,7 +22,7 @@
 #ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_LINUX_PORTHANDLERLINUX_H_
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_LINUX_PORTHANDLERLINUX_H_
 
-
+#include <linux/serial.h>
 #include "port_handler.h"
 
 namespace dynamixel
@@ -163,6 +163,14 @@ class PortHandlerLinux : public PortHandler
   /// @description The function checks whether current time is passed by the time of packet timeout from the time set by PortHandlerLinux::setPacketTimeout().
   ////////////////////////////////////////////////////////////////////////////////
   bool    isPacketTimeout();
+
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// @brief The function configures the current port in RS485 mode
+  /// @description The function tries to configure the current port in RS485 mode.
+  ////////////////////////////////////////////////////////////////////////////////
+  bool    setRS485(struct serial_rs485 *rs485conf);
+
 };
 
 }
