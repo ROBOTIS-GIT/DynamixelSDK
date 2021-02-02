@@ -14,16 +14,19 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Ryu Woon Jung (Leon) */
-
-//
-// *********     Read and Write Example      *********
-//
-//
-// Available Dynamixel model on this example : All models using Protocol 2.0
-// This example is tested with a Dynamixel PRO 54-200, and an USB2DYNAMIXEL
-// Be sure that Dynamixel PRO properties are already set as %% ID : 1 / Baudnum : 1 (Baudrate : 57600)
-//
+/*******************************************************************************
+************************     Read and Write Example      ***********************
+* Required Environment to run this example :
+*   - Protocol 2.0 supported DYNAMIXEL(X, P, PRO/PRO(A), MX 2.0 series)
+*   - DYNAMIXEL Starter Set (U2D2, U2D2 PHB, 12V SMPS)
+* How to use the example :
+*   - Use proper DYNAMIXEL Model definition from line #44
+*   - Build and Run from proper architecture subdirectory.
+*   - For ARM based SBCs such as Raspberry Pi, use linux_sbc subdirectory to build and run.
+*   - https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_sdk/overview/
+* Author: Ryu Woon Jung (Leon)
+* Maintainer : Zerom, Will Son
+*******************************************************************************/
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <fcntl.h>
@@ -36,32 +39,65 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "dynamixel_sdk.h"                                  // Uses Dynamixel SDK library
+#include "dynamixel_sdk.h"  // Uses DYNAMIXEL SDK library
+
+/********* DYNAMIXEL Model definition *********
+***** (Use only one definition at a time) *****/
+#define X_SERIES // X330, X430, X540, 2X430
+// #define PRO_SERIES // H54, H42, M54, M42, L54, L42
+// #define PRO_A_SERIES // PRO series with (A) firmware update.
+// #define P_SERIES  // PH54, PH42, PM54
+// #define XL320  // [WARNING] Operating Voltage : 7.4V
+// #define MX_SERIES // MX series with 2.0 firmware update.
 
 // Control table address
-#define ADDR_PRO_TORQUE_ENABLE          562                 // Control table address is different in Dynamixel model
-#define ADDR_PRO_GOAL_POSITION          596
-#define ADDR_PRO_PRESENT_POSITION       611
+#if defined(X_SERIES) || defined(MX_SERIES)
+  #define ADDR_TORQUE_ENABLE          64
+  #define ADDR_GOAL_POSITION          116
+  #define ADDR_PRESENT_POSITION       132
+  #define MINIMUM_POSITION_LIMIT      0  // Refer to the Minimum Position Limit of product eManual
+  #define MAXIMUM_POSITION_LIMIT      4095  // Refer to the Maximum Position Limit of product eManual
+  #define BAUDRATE                    57600
+#elif defined(PRO_SERIES)
+  #define ADDR_TORQUE_ENABLE          562  // Control table address is different in DYNAMIXEL model
+  #define ADDR_GOAL_POSITION          596
+  #define ADDR_PRESENT_POSITION       611
+  #define MINIMUM_POSITION_LIMIT      -150000  // Refer to the Minimum Position Limit of product eManual
+  #define MAXIMUM_POSITION_LIMIT      150000  // Refer to the Maximum Position Limit of product eManual
+  #define BAUDRATE                    57600
+#elif defined(P_SERIES) ||defined(PRO_A_SERIES)
+  #define ADDR_TORQUE_ENABLE          512  // Control table address is different in DYNAMIXEL model
+  #define ADDR_GOAL_POSITION          564
+  #define ADDR_PRESENT_POSITION       580
+  #define MINIMUM_POSITION_LIMIT      -150000  // Refer to the Minimum Position Limit of product eManual
+  #define MAXIMUM_POSITION_LIMIT      150000  // Refer to the Maximum Position Limit of product eManual
+  #define BAUDRATE                    57600
+#elif defined(XL320)
+  #define ADDR_TORQUE_ENABLE          24
+  #define ADDR_GOAL_POSITION          30
+  #define ADDR_PRESENT_POSITION       37
+  #define MINIMUM_POSITION_LIMIT      0  // Refer to the CW Angle Limit of product eManual
+  #define MAXIMUM_POSITION_LIMIT      1023  // Refer to the CCW Angle Limit of product eManual
+  #define BAUDRATE                    1000000  // Default Baudrate of XL-320 is 1Mbps
+#endif
 
-// Protocol version
-#define PROTOCOL_VERSION                2.0                 // See which protocol version is used in the Dynamixel
+// DYNAMIXEL Protocol Version (1.0 / 2.0)
+// https://emanual.robotis.com/docs/en/dxl/protocol2/
+#define PROTOCOL_VERSION  2.0
 
-// Default setting
-#define DXL_ID                          1                   // Dynamixel ID: 1
-#define BAUDRATE                        57600
-#define DEVICENAME                      "/dev/ttyUSB0"      // Check which port is being used on your controller
-                                                            // ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
+// Factory default ID of all DYNAMIXEL is 1
+#define DXL_ID  1
 
-#define TORQUE_ENABLE                   1                   // Value for enabling the torque
-#define TORQUE_DISABLE                  0                   // Value for disabling the torque
-#define DXL_MINIMUM_POSITION_VALUE      -150000             // Dynamixel will rotate between this value
-#define DXL_MAXIMUM_POSITION_VALUE      150000              // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
-#define DXL_MOVING_STATUS_THRESHOLD     20                  // Dynamixel moving status threshold
+// Use the actual port assigned to the U2D2.
+// ex) Windows: "COM*", Linux: "/dev/ttyUSB*", Mac: "/dev/tty.usbserial-*"
+#define DEVICENAME  "/dev/ttyUSB0"
 
+#define TORQUE_ENABLE                   1
+#define TORQUE_DISABLE                  0
+#define DXL_MOVING_STATUS_THRESHOLD     20  // DYNAMIXEL moving status threshold
 #define ESC_ASCII_VALUE                 0x1b
 
-int getch()
-{
+int getch() {
 #if defined(__linux__) || defined(__APPLE__)
   struct termios oldt, newt;
   int ch;
@@ -77,8 +113,7 @@ int getch()
 #endif
 }
 
-int kbhit(void)
-{
+int kbhit(void) {
 #if defined(__linux__) || defined(__APPLE__)
   struct termios oldt, newt;
   int ch;
@@ -96,8 +131,7 @@ int kbhit(void)
   tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
   fcntl(STDIN_FILENO, F_SETFL, oldf);
 
-  if (ch != EOF)
-  {
+  if (ch != EOF) {
     ungetc(ch, stdin);
     return 1;
   }
@@ -108,8 +142,7 @@ int kbhit(void)
 #endif
 }
 
-int main()
-{
+int main() {
   // Initialize PortHandler instance
   // Set the port path
   // Get methods and members of PortHandlerLinux or PortHandlerWindows
@@ -122,18 +155,20 @@ int main()
 
   int index = 0;
   int dxl_comm_result = COMM_TX_FAIL;             // Communication result
-  int dxl_goal_position[2] = {DXL_MINIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VALUE};         // Goal position
+  int dxl_goal_position[2] = {MINIMUM_POSITION_LIMIT, MAXIMUM_POSITION_LIMIT};         // Goal position
 
-  uint8_t dxl_error = 0;                          // Dynamixel error
-  int32_t dxl_present_position = 0;               // Present position
+  uint8_t dxl_error = 0;                          // DYNAMIXEL error
+  #if defined(XL320)
+  int16_t dxl_present_position = 0;  // XL-320 uses 2 byte Position data
+  #else
+  int32_t dxl_present_position = 0;  // Read 4 byte Position data
+  #endif
 
   // Open port
-  if (portHandler->openPort())
-  {
+  if (portHandler->openPort()) {
     printf("Succeeded to open the port!\n");
   }
-  else
-  {
+  else {
     printf("Failed to open the port!\n");
     printf("Press any key to terminate...\n");
     getch();
@@ -141,93 +176,86 @@ int main()
   }
 
   // Set port baudrate
-  if (portHandler->setBaudRate(BAUDRATE))
-  {
+  if (portHandler->setBaudRate(BAUDRATE)) {
     printf("Succeeded to change the baudrate!\n");
   }
-  else
-  {
+  else {
     printf("Failed to change the baudrate!\n");
     printf("Press any key to terminate...\n");
     getch();
     return 0;
   }
 
-  // Enable Dynamixel Torque
-  dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL_ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
-  if (dxl_comm_result != COMM_SUCCESS)
-  {
-    // printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+  // Enable DYNAMIXEL Torque
+  dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL_ID, ADDR_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
+  if (dxl_comm_result != COMM_SUCCESS) {
     printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
   }
-  else if (dxl_error != 0)
-  {
-    // printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+  else if (dxl_error != 0) {
     printf("%s\n", packetHandler->getRxPacketError(dxl_error));
   }
-  else
-  {
-    printf("Dynamixel has been successfully connected \n");
+  else {
+    printf("Succeeded enabling DYNAMIXEL Torque.\n");
   }
 
-  while(1)
-  {
-    printf("Press any key to continue! (or press ESC to quit!)\n");
+  while(1) {
+    printf("Press any key to continue. (Press [ESC] to exit)\n");
     if (getch() == ESC_ASCII_VALUE)
       break;
 
     // Write goal position
-    dxl_comm_result = packetHandler->write4ByteTxRx(portHandler, DXL_ID, ADDR_PRO_GOAL_POSITION, dxl_goal_position[index], &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS)
-    {
+    #if defined(XL320)  // XL-320 uses 2 byte Position data
+    dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DXL_ID, ADDR_GOAL_POSITION, dxl_goal_position[index], &dxl_error);
+    #else
+    dxl_comm_result = packetHandler->write4ByteTxRx(portHandler, DXL_ID, ADDR_GOAL_POSITION, dxl_goal_position[index], &dxl_error);
+    #endif
+    if (dxl_comm_result != COMM_SUCCESS) {
       printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
     }
-    else if (dxl_error != 0)
-    {
+    else if (dxl_error != 0) {
       printf("%s\n", packetHandler->getRxPacketError(dxl_error));
     }
 
-    do
-    {
-      // Read present position
-      dxl_comm_result = packetHandler->read4ByteTxRx(portHandler, DXL_ID, ADDR_PRO_PRESENT_POSITION, (uint32_t*)&dxl_present_position, &dxl_error);
-      if (dxl_comm_result != COMM_SUCCESS)
-      {
+    do {
+      // Read the Present Position
+      #if defined(XL320)  // XL-320 uses 2 byte Position data
+      dxl_comm_result = packetHandler->read2ByteTxRx(portHandler, DXL_ID, ADDR_PRESENT_POSITION, (uint16_t*)&dxl_present_position, &dxl_error);
+      #else
+      dxl_comm_result = packetHandler->read4ByteTxRx(portHandler, DXL_ID, ADDR_PRESENT_POSITION, (uint32_t*)&dxl_present_position, &dxl_error);
+      #endif
+      if (dxl_comm_result != COMM_SUCCESS) {
         printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
       }
-      else if (dxl_error != 0)
-      {
+      else if (dxl_error != 0) {
         printf("%s\n", packetHandler->getRxPacketError(dxl_error));
       }
 
-      printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", DXL_ID, dxl_goal_position[index], dxl_present_position);
+      printf("[ID:%03d] Goal Position:%03d  Present Position:%03d\n", DXL_ID, dxl_goal_position[index], dxl_present_position);
 
-    }while((abs(dxl_goal_position[index] - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD));
+    } while((abs(dxl_goal_position[index] - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD));
 
-    // Change goal position
-    if (index == 0)
-    {
+    // Switch the Goal Position
+    if (index == 0) {
       index = 1;
     }
-    else
-    {
+    else {
       index = 0;
     }
   }
 
-  // Disable Dynamixel Torque
-  dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL_ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
-  if (dxl_comm_result != COMM_SUCCESS)
-  {
+  // Disable DYNAMIXEL Torque
+  dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL_ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
+  if (dxl_comm_result != COMM_SUCCESS) {
     printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
   }
-  else if (dxl_error != 0)
-  {
+  else if (dxl_error != 0) {
     printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+  }
+  else {
+    printf("Succeeded disabling DYNAMIXEL Torque.\n");
   }
 
   // Close port
   portHandler->closePort();
-
   return 0;
 }
