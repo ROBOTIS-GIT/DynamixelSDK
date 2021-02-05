@@ -20,10 +20,10 @@
 % *********     Multi Port Example      *********
 %
 %
-% Available Dynamixel model on this example : All models using Protocol 1.0
-% This example is designed for using two Dynamixel MX-28, and two USB2DYNAMIXEL.
-% To use another Dynamixel model, such as X series, see their details in E-Manual(emanual.robotis.com) and edit below variables yourself.
-% Be sure that Dynamixel MX properties are already set as %% ID : 1 / Baudnum : 34 (Baudrate : 57600)
+% Available DYNAMIXEL model on this example : All models using Protocol 1.0
+% This example is designed for using two DYNAMIXEL MX-28, and two USB2DYNAMIXEL.
+% To use another DYNAMIXEL model, such as X series, see their details in E-Manual(emanual.robotis.com) and edit below variables yourself.
+% Be sure that DYNAMIXEL MX properties are already set as %% ID : 1 / Baudnum : 34 (Baudrate : 57600)
 %
 
 clc;
@@ -48,31 +48,67 @@ if ~libisloaded(lib_name)
   [notfound, warnings] = loadlibrary(lib_name, 'dynamixel_sdk.h', 'addheader', 'port_handler.h', 'addheader', 'packet_handler.h');
 end
 
-% Control table address
-ADDR_MX_TORQUE_ENABLE       = 24;           % Control table address is different in Dynamixel model
-ADDR_MX_GOAL_POSITION       = 30;
-ADDR_MX_PRESENT_POSITION    = 36;
+%{
+********* DYNAMIXEL Model *********
+***** (Use only ONE definition at a time) ***** 
+%}
+
+ MY_DXL = 'X_SERIES'; % X430, X540, 2X430  
+% MY_DXL = 'AX_SERIES'; % AX Series
+% MY_DXL = 'MX_SERIES'; % MX series with 2.0 firmware update.
+
+% Control table address and data to Read/Write for my DYNAMIXEL, MY_DXL, in use. 
+switch (MY_DXL)
+
+    case {'X_SERIES'}
+        ADDR_MX_TORQUE_ENABLE       = 64;    
+        ADDR_MX_GOAL_POSITION       = 116;
+        ADDR_MX_PRESENT_POSITION    = 132;
+        LEN_MX_GOAL_POSITION        = 4;
+        LEN_MX_PRESENT_POSITION     = 4;
+        DXL_MINIMUM_POSITION_VALUE  = 0;        
+        DXL_MAXIMUM_POSITION_VALUE  = 4095;
+        BAUDRATE                    = 57600;
+       
+    case {'AX_SERIES'}
+        ADDR_MX_TORQUE_ENABLE       = 24;    
+        ADDR_MX_GOAL_POSITION       = 30;
+        ADDR_MX_PRESENT_POSITION    = 36;
+        LEN_MX_GOAL_POSITION        = 2;
+        LEN_MX_PRESENT_POSITION     = 2;
+        DXL_MINIMUM_POSITION_VALUE  = 0;        
+        DXL_MAXIMUM_POSITION_VALUE  = 1023;
+        BAUDRATE                    = 1000000;
+        
+    case {'MX_SERIES'}
+        ADDR_MX_TORQUE_ENABLE       = 24;    
+        ADDR_MX_GOAL_POSITION       = 30;
+        ADDR_MX_PRESENT_POSITION    = 36;
+        LEN_MX_GOAL_POSITION        = 2;
+        LEN_MX_PRESENT_POSITION     = 2;
+        DXL_MINIMUM_POSITION_VALUE  = 0; % DYNAMIXEL will rotate between this value
+        DXL_MAXIMUM_POSITION_VALUE  = 4095; % and this value (note that the DYNAMIXEL would not move when the position value is out of movable range. Check e-manual about the range of the DYNAMIXEL you use.)
+        BAUDRATE                    = 57600;
+       
+end
 
 % Protocol version
-PROTOCOL_VERSION            = 1.0;          % See which protocol version is used in the Dynamixel
+PROTOCOL_VERSION            = 1.0; % See which protocol version is used in the DYNAMIXEL
 
 % Default setting
-DXL1_ID                     = 1;            % Dynamixel#1 ID: 1
-DXL2_ID                     = 2;            % Dynamixel#2 ID: 2
-BAUDRATE                    = 57600;
-DEVICENAME1                 = 'COM1';       % Check which port is being used on your controller
-DEVICENAME2                 = 'COM2';       % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0' Mac: '/dev/tty.usbserial-*'
+DXL1_ID                     = 1; % DYNAMIXEL#1 ID: 1
+DXL2_ID                     = 2; % DYNAMIXEL#2 ID: 2
+DEVICENAME1                 = '/dev/ttyUSB0'; % Check which port is being used on your controller
+DEVICENAME2                 = '/dev/ttyUSB1'; % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0' Mac: '/dev/tty.usbserial-*'
 
-TORQUE_ENABLE               = 1;            % Value for enabling the torque
-TORQUE_DISABLE              = 0;            % Value for disabling the torque
-DXL_MINIMUM_POSITION_VALUE  = 100;          % Dynamixel will rotate between this value
-DXL_MAXIMUM_POSITION_VALUE  = 4000;         % and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
-DXL_MOVING_STATUS_THRESHOLD = 10;           % Dynamixel moving status threshold
+TORQUE_ENABLE               = 1; % Value for enabling the torque
+TORQUE_DISABLE              = 0; % Value for disabling the torque
+DXL_MOVING_STATUS_THRESHOLD = 10; % DYNAMIXEL moving status threshold
 
-ESC_CHARACTER               = 'e';          % Key for escaping loop
+ESC_CHARACTER               = 'e'; % Key for escaping loop
 
-COMM_SUCCESS                = 0;            % Communication Success result value
-COMM_TX_FAIL                = -1001;        % Communication Tx Failed
+COMM_SUCCESS                = 0; % Communication Success result value
+COMM_TX_FAIL                = -1001; % Communication Tx Failed
 
 % Initialize PortHandler Structs
 % Set the port path
@@ -84,11 +120,11 @@ port_num2 = portHandler(DEVICENAME2);
 packetHandler();
 
 index = 1;
-dxl_comm_result = COMM_TX_FAIL;             % Communication result
-dxl_goal_position = [DXL_MINIMUM_POSITION_VALUE DXL_MAXIMUM_POSITION_VALUE];         % Goal position
+dxl_comm_result = COMM_TX_FAIL; % Communication result
+dxl_goal_position = [DXL_MINIMUM_POSITION_VALUE DXL_MAXIMUM_POSITION_VALUE]; % Goal position
 
-dxl_error = 0;                              % Dynamixel error
-dxl1_present_position = 0;                  % Present position
+dxl_error = 0; % DYNAMIXEL error
+dxl1_present_position = 0; % Present position
 dxl2_present_position = 0;
 
 % Open port1
@@ -133,7 +169,7 @@ else
 end
 
 
-% Enable Dynamixel#1 Torque
+% Enable DYNAMIXEL#1 Torque
 write1ByteTxRx(port_num1, PROTOCOL_VERSION, DXL1_ID, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
 dxl_comm_result = getLastTxRxResult(port_num1, PROTOCOL_VERSION);
 dxl_error = getLastRxPacketError(port_num1, PROTOCOL_VERSION);
@@ -142,10 +178,10 @@ if dxl_comm_result ~= COMM_SUCCESS
 elseif dxl_error ~= 0
     fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
 else
-    fprintf('Dynamixel has been successfully connected \n');
+    fprintf('DYNAMIXEL has been successfully connected \n');
 end
 
-% Enable Dynamixel#2 Torque
+% Enable DYNAMIXEL#2 Torque
 write1ByteTxRx(port_num2, PROTOCOL_VERSION, DXL2_ID, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
 dxl_comm_result = getLastTxRxResult(port_num2, PROTOCOL_VERSION);
 dxl_error = getLastRxPacketError(port_num2, PROTOCOL_VERSION);
@@ -154,7 +190,7 @@ if dxl_comm_result ~= COMM_SUCCESS
 elseif dxl_error ~= 0
     fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
 else
-    fprintf('Dynamixel has been successfully connected \n');
+    fprintf('DYNAMIXEL has been successfully connected \n');
 end
 
 
@@ -163,8 +199,12 @@ while 1
         break;
     end
 
-    % Write Dynamixel#1 goal position
-    write2ByteTxRx(port_num1, PROTOCOL_VERSION, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position(index));
+    % Write DYNAMIXEL#1 goal position
+    if strcmp(MY_DXL,'X_SERIES')
+        write4ByteTxRx(port_num1, PROTOCOL_VERSION, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position(index));
+    else
+        write2ByteTxRx(port_num1, PROTOCOL_VERSION, DXL1_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position(index));
+    end
     dxl_comm_result = getLastTxRxResult(port_num1, PROTOCOL_VERSION);
     dxl_error = getLastRxPacketError(port_num1, PROTOCOL_VERSION);
     if dxl_comm_result ~= COMM_SUCCESS
@@ -173,8 +213,12 @@ while 1
         fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
     end
 
-    % Write Dynamixel#2 goal position
-    write2ByteTxRx(port_num2, PROTOCOL_VERSION, DXL2_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position(index));
+    % Write DYNAMIXEL#2 goal position
+    if strcmp(MY_DXL,'X_SERIES')
+        write4ByteTxRx(port_num2, PROTOCOL_VERSION, DXL2_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position(index));
+    else
+        write2ByteTxRx(port_num2, PROTOCOL_VERSION, DXL2_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position(index));
+    end
     dxl_comm_result = getLastTxRxResult(port_num2, PROTOCOL_VERSION);
     dxl_error = getLastRxPacketError(port_num2, PROTOCOL_VERSION);
     if dxl_comm_result ~= COMM_SUCCESS
@@ -184,8 +228,12 @@ while 1
     end
 
     while 1
-      % Read Dynamixel#1 present position
-      dxl1_present_position = read2ByteTxRx(port_num1, PROTOCOL_VERSION, DXL1_ID, ADDR_MX_PRESENT_POSITION);
+      % Read DYNAMIXEL#1 present position
+      if strcmp(MY_DXL,'X_SERIES')
+          dxl1_present_position = read4ByteTxRx(port_num1, PROTOCOL_VERSION, DXL1_ID, ADDR_MX_PRESENT_POSITION);
+      else
+          dxl1_present_position = read2ByteTxRx(port_num1, PROTOCOL_VERSION, DXL1_ID, ADDR_MX_PRESENT_POSITION);
+      end
       dxl_comm_result = getLastTxRxResult(port_num1, PROTOCOL_VERSION);
       dxl_error = getLastRxPacketError(port_num1, PROTOCOL_VERSION);
       if dxl_comm_result ~= COMM_SUCCESS
@@ -194,8 +242,12 @@ while 1
           fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
       end
 
-      % Read Dynamixel#2 present position
-      dxl2_present_position = read2ByteTxRx(port_num2, PROTOCOL_VERSION, DXL2_ID, ADDR_MX_PRESENT_POSITION);
+      % Read DYNAMIXEL#2 present position
+      if strcmp(MY_DXL,'X_SERIES')
+          dxl2_present_position = read4ByteTxRx(port_num2, PROTOCOL_VERSION, DXL2_ID, ADDR_MX_PRESENT_POSITION);
+      else
+          dxl2_present_position = read2ByteTxRx(port_num2, PROTOCOL_VERSION, DXL2_ID, ADDR_MX_PRESENT_POSITION);
+      end
       dxl_comm_result = getLastTxRxResult(port_num2, PROTOCOL_VERSION);
       dxl_error = getLastRxPacketError(port_num2, PROTOCOL_VERSION);
       if dxl_comm_result ~= COMM_SUCCESS
@@ -219,18 +271,17 @@ while 1
     end
 end
 
-
-% Disable Dynamixel#1 Torque
+% Disable DYNAMIXEL#1 Torque
 write1ByteTxRx(port_num1, PROTOCOL_VERSION, DXL1_ID, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
 dxl_comm_result = getLastTxRxResult(port_num1, PROTOCOL_VERSION);
 dxl_error = getLastRxPacketError(port_num1, PROTOCOL_VERSION);
 if dxl_comm_result ~= COMM_SUCCESS
     fprintf('%s\n', getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
 elseif dxl_error ~= 0
-    fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
+    fprintf('%s\n', getRxPacketError(PROTOCOL_DYNAMIXELVERSION, dxl_error));
 end
 
-% Disable Dynamixel#2 Torque
+% Disable DYNAMIXEL#2 Torque
 write1ByteTxRx(port_num2, PROTOCOL_VERSION, DXL2_ID, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
 dxl_comm_result = getLastTxRxResult(port_num2, PROTOCOL_VERSION);
 dxl_error = getLastRxPacketError(port_num2, PROTOCOL_VERSION);

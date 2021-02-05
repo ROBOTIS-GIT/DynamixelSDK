@@ -20,10 +20,10 @@
 % *********     Clear Multi-Turn Example      *********
 %
 %
-% Available Dynamixel model on this example : Dynamixel X-series (firmware v42 or above)
-% This example is designed for using a Dynamixel XM430-W350-R, and an U2D2.
-% To use another Dynamixel model, such as MX series, see their details in E-Manual(emanual.robotis.com) and edit below "#define"d variables yourself.
-% Be sure that Dynamixel properties are already set as %% ID : 1 / Baudnum : 1 (Baudrate : 57600)
+% Available DYNAMIXEL model on this example : DYNAMIXEL X-series (firmware v42 or above)
+% This example is designed for using a DYNAMIXEL XM430-W350-R, and an U2D2.
+% To use another DYNAMIXEL model, such as MX series, see their details in E-Manual(emanual.robotis.com) and edit below "#define"d variables yourself.
+% Be sure that DYNAMIXEL properties are already set as %% ID : 1 / Baudnum : 1 (Baudrate : 57600)
 %
 
 clc;
@@ -48,32 +48,64 @@ if ~libisloaded(lib_name)
     [notfound, warnings] = loadlibrary(lib_name, 'dynamixel_sdk.h', 'addheader', 'port_handler.h', 'addheader', 'packet_handler.h');
 end
 
+%{
+********* DYNAMIXEL Model *********
+***** (Use only one definition at a time) ***** 
+%}
+
+  MY_DXL = 'X_SERIES'; % X330, X430, X540, 2X430  
+% MY_DXL = 'PRO_SERIES'; % H54, H42, M54, M42, L54, L42
+% MY_DXL = 'PRO_A_SERIES'; % PRO series with (A) firmware update.
+% MY_DXL = 'P_SERIES'; % PH54, PH42, PM54
+% MY_DXL = 'XL320';  % [WARNING] Operating Voltage : 7.4V, multi-turn X
+% MY_DXL = 'MX_SERIES'; % MX series with 2.0 firmware update.
+
+% Control table address and data to Read/Write for my DYNAMIXEL, MY_DXL, in use. 
+switch (MY_DXL)
+    
+    case {'X_SERIES','MX_SERIES'}
+        ADDR_TORQUE_ENABLE          = 64;
+        ADDR_GOAL_POSITION          = 116;
+        ADDR_PRESENT_POSITION       = 132;
+        BAUDRATE                    = 57600;
+        MAX_POSITION_VALUE          = 10000;
+
+    case ('PRO_SERIES')
+        ADDR_TORQUE_ENABLE          = 562;  % Control table address is different in DYNAMIXEL model
+        ADDR_GOAL_POSITION          = 596;
+        ADDR_PRESENT_POSITION       = 611;
+        BAUDRATE                    = 57600;
+        MAX_POSITION_VALUE          = 1000000;
+    
+    case {'P_SERIES','PRO_A_SERIES'}
+        ADDR_TORQUE_ENABLE          = 512;  % Control table address is different in DYNAMIXEL model
+        ADDR_GOAL_POSITION          = 564;
+        ADDR_PRESENT_POSITION       = 580;
+        BAUDRATE                    = 57600;
+        MAX_POSITION_VALUE          = 1000000;
+end
+
 % Control table address
-ADDR_OPERATING_MODE          = 11;           % Control table address is different in Dynamixel model
-ADDR_TORQUE_ENABLE           = 64;         
-ADDR_GOAL_POSITION           = 116;
-ADDR_PRESENT_POSITION        = 132;
+ADDR_OPERATING_MODE          = 11; % Control table address is different in DYNAMIXEL model
 
 % Protocol version
-PROTOCOL_VERSION             = 2.0;          % See which protocol version is used in the Dynamixel
+PROTOCOL_VERSION             = 2.0; % See which protocol version is used in the DYNAMIXEL
 
 % Default setting
-DXL_ID                       = 1;            % Dynamixel ID: 1
-BAUDRATE                     = 57600;
-DEVICENAME                   = 'COM1';       % Check which port is being used on your controller
-                                             % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0' Mac: '/dev/tty.usbserial-*'
+DXL_ID                       = 1; % DYNAMIXEL ID: 1
+DEVICENAME                   = '/dev/ttyUSB0'; % Check which port is being used on your controller
+                                               % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0' Mac: '/dev/tty.usbserial-*'
 
-TORQUE_ENABLE                = 1;            % Value for enabling the torque
-TORQUE_DISABLE               = 0;            % Value for disabling the torque
-MAX_POSITION_VALUE           = 1048575;      
-DXL_MOVING_STATUS_THRESHOLD  = 20;           % Dynamixel moving status threshold
-EXT_POSITION_CONTROL_MODE    = 4;            % Value for extended position control mode (operating mode)
+TORQUE_ENABLE                = 1; % Value for enabling the torque
+TORQUE_DISABLE               = 0; % Value for disabling the torque     
+DXL_MOVING_STATUS_THRESHOLD  = 20; % DYNAMIXEL moving status threshold
+EXT_POSITION_CONTROL_MODE    = 4; % Value for extended position control mode (operating mode)
 
-ESC_CHARACTER                = 'e';          % Key for escaping loop
+ESC_CHARACTER                = 'e'; % Key for escaping loop
 SPACE_ASCII_VALUE            = ' ';
 
-COMM_SUCCESS                 = 0;            % Communication Success result value
-COMM_TX_FAIL                 = -1001;        % Communication Tx Failed
+COMM_SUCCESS                 = 0; % Communication Success result value
+COMM_TX_FAIL                 = -1001; % Communication Tx Failed
 
 % Initialize PortHandler Structs
 % Set the port path
@@ -83,10 +115,10 @@ port_num = portHandler(DEVICENAME);
 % Initialize PacketHandler Structs
 packetHandler();
 
-dxl_comm_result = COMM_TX_FAIL;              % Communication result
+dxl_comm_result = COMM_TX_FAIL; % Communication result
        
-dxl_error = 0;                              % Dynamixel error
-dxl_present_position = 0;                   % Present position
+dxl_error = 0; % DYNAMIXEL error
+dxl_present_position = 0; % Present position
 
 % Open port
 if (openPort(port_num))
@@ -120,7 +152,7 @@ else
     fprintf('Operating mode changed to extended position control mode. \n');
 end
 
-% Enable Dynamixel Torque
+% Enable DYNAMIXEL Torque
 write1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
 dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
 dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION);
@@ -129,9 +161,10 @@ if dxl_comm_result ~= COMM_SUCCESS
 elseif dxl_error ~= 0
     fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
 else
-    fprintf('Dynamixel has been successfully connected \n');
+    fprintf('DYNAMIXEL has been successfully connected \n');
 end
 
+%Turns multiple time until it reaches Goal Position
 while 1
     if input('\nPress any key to continue! (or input e to quit!)', 's') == ESC_CHARACTER
         break;
@@ -139,7 +172,7 @@ while 1
 
     fprintf('  Press SPACE key to clear multi-turn information! (or press e to stop!)');
     
-    % Write goal position
+    % Write Goal Position
     write4ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_GOAL_POSITION, MAX_POSITION_VALUE);
     dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
     dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION);
@@ -150,8 +183,7 @@ while 1
     end
 
     while 1
-        ch = -1;
-        % Read present position
+        % Read Present Position
         dxl_present_position = read4ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_PRESENT_POSITION);
         dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
         dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION);
@@ -188,7 +220,7 @@ while 1
                 fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
             end
             
-            % Read present position
+            % Read Present Position
             dxl_present_position = read4ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_PRESENT_POSITION);
             dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
             dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION);
@@ -223,7 +255,7 @@ while 1
 end    
 
 
-% Disable Dynamixel Torque
+% Disable DYNAMIXEL Torque
 write1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
 dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION);
@@ -266,7 +298,7 @@ function ch = kbhit(m)
 %                  still exists (after comment on GETKEY on FEX by Andrew). 
 % check input argument
     narginchk(1,1) ;
-    if numel(m)~=1 || ~isnumeric(m) || ~isfinite(m) || m <= 0,    
+    if numel(m)~=1 || ~isnumeric(m) || ~isfinite(m) || m <= 0    
         error('Argument should be a single positive number.') ;
     end
     % set up the timer
@@ -288,7 +320,7 @@ function ch = kbhit(m)
         start(tt) ;    
         uiwait ;
         ch = get(fh,'Userdata') ;
-        if isempty(ch), % a non-ascii key was pressed, return a NaN
+        if isempty(ch) % a non-ascii key was pressed, return a NaN
             ch = NaN ;
         end
     catch
