@@ -20,14 +20,14 @@
 % *********     Factory Reset Example      *********
 %
 %
-% Available Dynamixel model on this example : All models using Protocol 1.0
-% This example is designed for using a Dynamixel MX-28, and an USB2DYNAMIXEL.
-% To use another Dynamixel model, such as X series, see their details in E-Manual(emanual.robotis.com) and edit below variables yourself.
-% Be sure that Dynamixel PRO properties are already set as %% ID : 1 / Baudnum : 34 (Baudrate : 57600)
+% Available DYNAMIXEL model on this example : All models using Protocol 1.0
+% This example is designed for using a DYNAMIXEL MX-28, and an USB2DYNAMIXEL.
+% To use another DYNAMIXEL model, such as X series, see their details in E-Manual(emanual.robotis.com) and edit below variables yourself.
+% Be sure that DYNAMIXEL PRO properties are already set as %% ID : 1 / Baudnum : 34 (Baudrate : 57600)
 %
 
 % Be aware that:
-% This example resets all properties of Dynamixel to default values, such as %% ID : 1 / Baudnum : 34 (Baudrate : 57600)
+% This example resets all properties of DYNAMIXEL to default values, such as %% ID : 1 / Baudnum : 34 (Baudrate : 57600)
 %
 
 clc;
@@ -52,24 +52,52 @@ if ~libisloaded(lib_name)
   [notfound, warnings] = loadlibrary(lib_name, 'dynamixel_sdk.h', 'addheader', 'port_handler.h', 'addheader', 'packet_handler.h');
 end
 
-% Control table address
-ADDR_MX_BAUDRATE                = 4;            % Control table address is different in Dynamixel model
+%{
+********* DYNAMIXEL Model *********
+***** (Use only ONE definition at a time) ***** 
+%}
+
+% MY_DXL = 'X_SERIES'; % X430, X540, 2X430  
+ MY_DXL = 'AX_SERIES'; % AX Series
+% MY_DXL = 'MX_SERIES'; % MX series with 2.0 firmware update.
+
+% Control table address and data to Read/Write for my DYNAMIXEL, MY_DXL, in use. 
+switch (MY_DXL)
+
+    case {'X_SERIES'}
+        ADDR_BAUDRATE                = 8;
+        BAUDRATE                    = 57600;
+        FACTORYRST_DEFAULTBAUDRATE  = 57600; % DYNAMIXEL baudrate set by factoryreset
+        NEW_BAUDNUM                 = 1; % New baudnum to recover DYNAMIXEL baudrate as it was
+
+       
+    case {'AX_SERIES'}
+        ADDR_BAUDRATE               = 4;
+        BAUDRATE                    = 1000000;
+        FACTORYRST_DEFAULTBAUDRATE  = 1000000;
+        NEW_BAUDNUM                 = 1;
+
+        
+    case {'MX_SERIES'}
+        ADDR_BAUDRATE               = 4;
+        BAUDRATE                    = 57600;
+        FACTORYRST_DEFAULTBAUDRATE  = 57600;
+        NEW_BAUDNUM                 = 34;       
+
+       
+end
 
 % Protocol version
-PROTOCOL_VERSION                = 1.0;          % See which protocol version is used in the Dynamixel
+PROTOCOL_VERSION                = 1.0; % See which protocol version is used in the DYNAMIXEL
 
 % Default setting
-DXL_ID                          = 1;            % Dynamixel ID: 1
-BAUDRATE                        = 57600;
-DEVICENAME                      = 'COM1';       % Check which port is being used on your controller
-                                                % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0' Mac: '/dev/tty.usbserial-*'
+DXL_ID                          = 1; % DYNAMIXEL ID: 1
+DEVICENAME                      = '/dev/ttyUSB0'; % Check which port is being used on your controller
+                                                  % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0' Mac: '/dev/tty.usbserial-*'
 
-FACTORYRST_DEFAULTBAUDRATE      = 57600;        % Dynamixel baudrate set by factoryreset
-NEW_BAUDNUM                     = 1;            % New baudnum to recover Dynamixel baudrate as it was
-OPERATION_MODE                  = 0;            % Mode is unavailable in Protocol 1.0 Reset
-
-COMM_SUCCESS                    = 0;            % Communication Success result value
-COMM_TX_FAIL                    = -1001;        % Communication Tx Failed
+OPERATION_MODE                  = 0; % Mode is unavailable in Protocol 1.0 Reset
+COMM_SUCCESS                    = 0; % Communication Success result value
+COMM_TX_FAIL                    = -1001; % Communication Tx Failed
 
 % Initialize PortHandler Structs
 % Set the port path
@@ -79,10 +107,10 @@ port_num = portHandler(DEVICENAME);
 % Initialize PacketHandler Structs
 packetHandler();
 
-dxl_comm_result = COMM_TX_FAIL;                 % Communication result
+dxl_comm_result = COMM_TX_FAIL; % Communication result
 
-dxl_error = 0;                                  % Dynamixel error
-dxl_baudnum_read = 0;                           % Read baudnum
+dxl_error = 0; % DYNAMIXEL error
+dxl_baudnum_read = 0; % Read baudnum
 
 % Open port
 if (openPort(port_num))
@@ -136,8 +164,8 @@ else
   return;
 end
 
-% Read Dynamixel baudnum
-dxl_baudnum_read = read1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_BAUDRATE);
+% Read DYNAMIXEL baudnum
+dxl_baudnum_read = read1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_BAUDRATE);
 dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
 dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION);
 if dxl_comm_result ~= COMM_SUCCESS
@@ -145,11 +173,11 @@ if dxl_comm_result ~= COMM_SUCCESS
 elseif dxl_error ~= 0
     fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
 else
-  fprintf('[ID:%03d] Dynamixel baudnum is now : %d\n', DXL_ID, dxl_baudnum_read);
+  fprintf('[ID:%03d] DYNAMIXEL baudnum is now : %d\n', DXL_ID, dxl_baudnum_read);
 end
 
 % Write new baudnum
-write1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_BAUDRATE, NEW_BAUDNUM);
+write1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_BAUDRATE, NEW_BAUDNUM);
 dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
 dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION);
 if dxl_comm_result ~= COMM_SUCCESS
@@ -157,7 +185,7 @@ if dxl_comm_result ~= COMM_SUCCESS
 elseif dxl_error ~= 0
     fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
 else
-  fprintf('[ID:%03d] Set Dynamixel baudnum to : %d\n', DXL_ID, NEW_BAUDNUM);
+  fprintf('[ID:%03d] Set DYNAMIXEL baudnum to : %d\n', DXL_ID, NEW_BAUDNUM);
 end
 
 % Set port baudrate to BAUDRATE
@@ -171,8 +199,8 @@ end
 
 pause(0.2);
 
-% Read Dynamixel baudnum
-dxl_baudnum_read = read1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_BAUDRATE);
+% Read DYNAMIXEL baudnum
+dxl_baudnum_read = read1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_BAUDRATE);
 dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
 dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION);
 if dxl_comm_result ~= COMM_SUCCESS
@@ -180,7 +208,7 @@ if dxl_comm_result ~= COMM_SUCCESS
 elseif dxl_error ~= 0
     fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
 else
-  fprintf('[ID:%03d] Dynamixel baudnum is now : %d\n', DXL_ID, dxl_baudnum_read);
+  fprintf('[ID:%03d] DYNAMIXEL baudnum is now : %d\n', DXL_ID, dxl_baudnum_read);
 end
 
 % Close port

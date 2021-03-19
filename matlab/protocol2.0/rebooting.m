@@ -20,10 +20,10 @@
 % *********     Reboot Example      *********
 %
 %
-% Available Dynamixel model on this example : All models using Protocol 2.0
-% This example is designed for using a Dynamixel PRO 54-200, and an USB2DYNAMIXEL.
-% To use another Dynamixel model, such as X series, see their details in E-Manual(emanual.robotis.com) and edit below variables yourself.
-% Be sure that Dynamixel PRO properties are already set as %% ID : 1 / Baudnum : 1 (Baudrate : 57600)
+% Available DYNAMIXEL model on this example : All models using Protocol 2.0
+% This example is designed for using a DYNAMIXEL PRO 54-200, and an USB2DYNAMIXEL.
+% To use another DYNAMIXEL model, such as X series, see their details in E-Manual(emanual.robotis.com) and edit below variables yourself.
+% Be sure that DYNAMIXEL PRO properties are already set as %% ID : 1 / Baudnum : 1 (Baudrate : 57600)
 %
 
 clc;
@@ -49,16 +49,16 @@ if ~libisloaded(lib_name)
 end
 
 % Protocol version
-PROTOCOL_VERSION                = 2.0;          % See which protocol version is used in the Dynamixel
+PROTOCOL_VERSION                = 2.0; % See which protocol version is used in the DYNAMIXEL
 
 % Default setting
-DXL_ID                          = 1;            % Dynamixel ID: 1
+DXL_ID                          = 1; % DYNAMIXEL ID: 1
 BAUDRATE                        = 57600;
-DEVICENAME                      = 'COM1';       % Check which port is being used on your controller
-                                                % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0'
+DEVICENAME                      = '/dev/ttyUSB0'; % Check which port is being used on your controller
+                                                  % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0'
 
-COMM_SUCCESS                    = 0;            % Communication Success result value
-COMM_TX_FAIL                    = -1001;        % Communication Tx Failed
+COMM_SUCCESS                    = 0; % Communication Success result value
+COMM_TX_FAIL                    = -1001; % Communication Tx Failed
 
 % Initialize PortHandler Structs
 % Set the port path
@@ -68,7 +68,7 @@ port_num = portHandler(DEVICENAME);
 % Initialize PacketHandler Structs
 packetHandler();
 
-dxl_comm_result = COMM_TX_FAIL;                 % Communication result
+dxl_comm_result = COMM_TX_FAIL; % Communication result
 
 % Open port
 if (openPort(port_num))
@@ -95,9 +95,9 @@ end
 % Trigger
 input('Press any key to reboot\n');
 
-fprintf('See the Dynamixel LED flickering\n');
+fprintf('See the DYNAMIXEL LED flickering\n');
 % Try reboot
-% Dynamixel LED will flicker while it reboots
+% DYNAMIXEL LED will flicker while it reboots
 reboot(port_num, PROTOCOL_VERSION, DXL_ID);
 dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
 dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION);

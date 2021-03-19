@@ -20,10 +20,10 @@
 % *********     ping Example      *********
 %
 %
-% Available Dynamixel model on this example : All models using Protocol 2.0
-% This example is designed for using a Dynamixel PRO 54-200, and an USB2DYNAMIXEL.
-% To use another Dynamixel model, such as X series, see their details in E-Manual(emanual.robotis.com) and edit below variables yourself.
-% Be sure that Dynamixel PRO properties are already set as %% ID : 1 / Baudnum : 1 (Baudrate : 57600)
+% Available DYNAMIXEL model on this example : All models using Protocol 2.0
+% This example is designed for using a DYNAMIXEL PRO 54-200, and an USB2DYNAMIXEL.
+% To use another DYNAMIXEL model, such as X series, see their details in E-Manual(emanual.robotis.com) and edit below variables yourself.
+% Be sure that DYNAMIXEL PRO properties are already set as %% ID : 1 / Baudnum : 1 (Baudrate : 57600)
 %
 
 clc;
@@ -49,12 +49,12 @@ if ~libisloaded(lib_name)
 end
 
 % Protocol version
-PROTOCOL_VERSION                = 2.0;          % See which protocol version is used in the Dynamixel
+PROTOCOL_VERSION                = 2.0;          % See which protocol version is used in the DYNAMIXEL
 
 % Default setting
-DXL_ID                          = 1;            % Dynamixel ID: 1
+DXL_ID                          = 1;            % DYNAMIXEL ID: 1
 BAUDRATE                        = 57600;
-DEVICENAME                      = 'COM1';       % Check which port is being used on your controller
+DEVICENAME                      = '/dev/ttyUSB0';       % Check which port is being used on your controller
                                                 % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0' Mac: '/dev/tty.usbserial-*'
 
 COMM_SUCCESS                    = 0;            % Communication Success result value
@@ -92,8 +92,8 @@ else
 end
 
 
-% Try to ping the Dynamixel
-% Get Dynamixel model number
+% Try to ping the DYNAMIXEL
+% Get DYNAMIXEL model number
 dxl_model_number = pingGetModelNum(port_num, PROTOCOL_VERSION, DXL_ID);
 dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
 dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION);
@@ -102,7 +102,7 @@ if dxl_comm_result ~= COMM_SUCCESS
 elseif dxl_error ~= 0
     fprintf('%s\n', getRxPacketError(PROTOCOL_VERSION, dxl_error));
 else
-    fprintf('[ID:%03d] ping Succeeded. Dynamixel model number : %d\n', DXL_ID, dxl_model_number);
+    fprintf('[ID:%03d] ping Succeeded. DYNAMIXEL model number : %d\n', DXL_ID, dxl_model_number);
 end
 
 % Close port

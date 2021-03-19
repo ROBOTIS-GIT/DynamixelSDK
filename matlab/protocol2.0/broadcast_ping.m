@@ -20,10 +20,10 @@
 % *********     BroadcastPing Example      *********
 %
 %
-% Available Dynamixel model on this example : All models using Protocol 2.0
-% This example is designed for using a Dynamixel PRO 54-200, and an USB2DYNAMIXEL.
-% To use another Dynamixel model, such as X series, see their details in E-Manual(emanual.robotis.com) and edit below variables yourself.
-% Be sure that Dynamixel PRO properties are already set as %% ID : 1 / Baudnum : 1 (Baudrate : 57600)
+% Available DYNAMIXEL model on this example : All models using Protocol 2.0
+% This example is designed for using a DYNAMIXEL PRO 54-200, and an USB2DYNAMIXEL.
+% To use another DYNAMIXEL model, such as X series, see their details in E-Manual(emanual.robotis.com) and edit below variables yourself.
+% Be sure that DYNAMIXEL PRO properties are already set as %% ID : 1 / Baudnum : 1 (Baudrate : 57600)
 %
 
 clc;
@@ -49,16 +49,16 @@ if ~libisloaded(lib_name)
 end
 
 % Protocol version
-PROTOCOL_VERSION                = 2.0;          % See which protocol version is used in the Dynamixel
+PROTOCOL_VERSION                = 2.0; % See which protocol version is used in the DYNAMIXEL
 
 % Default setting
 BAUDRATE                        = 57600;
-DEVICENAME                      = 'COM1';       % Check which port is being used on your controller
-                                                % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0'
+DEVICENAME                      = '/dev/ttyUSB0'; % Check which port is being used on your controller
+                                                  % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0'
 
-MAX_ID                          = 252;          % Maximum ID value
-COMM_SUCCESS                    = 0;            % Communication Success result value
-COMM_TX_FAIL                    = -1001;        % Communication Tx Failed
+MAX_ID                          = 252; % Maximum ID value
+COMM_SUCCESS                    = 0; % Communication Success result value
+COMM_TX_FAIL                    = -1001; % Communication Tx Failed
 
 % Initialize PortHandler Structs
 % Set the port path
@@ -68,7 +68,7 @@ port_num = portHandler(DEVICENAME);
 % Initialize PacketHandler Structs
 packetHandler();
 
-dxl_comm_result = COMM_TX_FAIL;                 % Communication result
+dxl_comm_result = COMM_TX_FAIL; % Communication result
 
 % Open port
 if (openPort(port_num))
@@ -92,14 +92,14 @@ else
 end
 
 
-% Try to broadcast ping the Dynamixel
+% Try to broadcast ping the DYNAMIXEL
 broadcastPing(port_num, PROTOCOL_VERSION);
 dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
 if dxl_comm_result ~= COMM_SUCCESS
     fprintf('%s\n', getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
 end
 
-fprintf('Detected Dynamixel : \n');
+fprintf('Detected DYNAMIXEL : \n');
 for id = 0 : MAX_ID
   if getBroadcastPingResult(port_num, PROTOCOL_VERSION, id)
     fprintf('[ID:%03d]\n', id);
