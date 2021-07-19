@@ -30,30 +30,7 @@
 
 #include "port_handler_linux.h"
 
-#define LATENCY_TIMER  16  // msec (USB latency timer)
-                           // You should adjust the latency timer value. From the version Ubuntu 16.04.2, the default latency timer of the usb serial is '16 msec'.
-                           // When you are going to use sync / bulk read, the latency timer should be loosen.
-                           // the lower latency timer value, the faster communication speed.
-
-                           // Note:
-                           // You can check its value by:
-                           // $ cat /sys/bus/usb-serial/devices/ttyUSB0/latency_timer
-                           //
-                           // If you think that the communication is too slow, type following after plugging the usb in to change the latency timer
-                           //
-                           // Method 1. Type following (you should do this everytime when the usb once was plugged out or the connection was dropped)
-                           // $ echo 1 | sudo tee /sys/bus/usb-serial/devices/ttyUSB0/latency_timer
-                           // $ cat /sys/bus/usb-serial/devices/ttyUSB0/latency_timer
-                           //
-                           // Method 2. If you want to set it as be done automatically, and don't want to do above everytime, make rules file in /etc/udev/rules.d/. For example,
-                           // $ echo ACTION==\"add\", SUBSYSTEM==\"usb-serial\", DRIVER==\"ftdi_sio\", ATTR{latency_timer}=\"1\" > 99-dynamixelsdk-usb.rules
-                           // $ sudo cp ./99-dynamixelsdk-usb.rules /etc/udev/rules.d/
-                           // $ sudo udevadm control --reload-rules
-                           // $ sudo udevadm trigger --action=add
-                           // $ cat /sys/bus/usb-serial/devices/ttyUSB0/latency_timer
-                           //
-                           // or if you have another good idea that can be an alternatives,
-                           // please give us advice via github issue https://github.com/ROBOTIS-GIT/DynamixelSDK/issues
+#define LATENCY_TIMER  16  // now USB latency timer is always set to 1 on this application; the name should be renamed
 
 struct termios2 {
   tcflag_t c_iflag;       /* input mode flags */
@@ -223,6 +200,21 @@ bool PortHandlerLinux::setupPort(int cflag_baud)
   tcsetattr(socket_fd_, TCSANOW, &newtio);
 
   tx_time_per_byte = (1000.0 / (double)baudrate_) * 10.0;
+
+  // set `/sys/bus/usb-serial/devices/{port_name_}/latency_timer` to 1 ms
+  struct serial_struct ss;
+  if(ioctl(socket_fd_, TIOCGSERIAL, &ss) != 0)
+  {
+    printf("[PortHandlerLinux::SetupPort] TIOCGSERIAL failed!\n");
+    return false;
+  }
+  ss.flags |= ASYNC_LOW_LATENCY;
+  if(ioctl(socket_fd_, TIOCSSERIAL, &ss) != 0)
+  {
+    printf("[PortHandlerLinux::SetupPort] TIOCSSERIAL failed!\n");
+    return false;
+  }
+
   return true;
 }
 
