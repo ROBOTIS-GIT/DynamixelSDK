@@ -1,15 +1,19 @@
 ﻿<?xml version='1.0' encoding='UTF-8'?>
-<Library LVVersion="16008000">
-	<Property Name="NI.Lib.Icon" Type="Bin">&amp;A#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!-S!!!*Q(C=\:;R4F2"&amp;)909-37.T"%K\5\RN&lt;%5#]6;U6\(I"#FML&amp;E!#VC=F*&amp;CH!G)"7**=#5")+ATEGC-%/@1-?A/&lt;[T?QMUCS3K)G&amp;-`&gt;=:PZ`ZMRXZQYX+Z,,,:%&lt;5P_KS&amp;7FA8^H='E=*\];7,L*PV@88X?LP82RSS6XKM`VJ_1X["R6V5&amp;V708^X(GX7WU70RH&lt;2\M``&gt;4"8\PE\XW]Z+=/_5]OZ4]E[97@/A?\V8LS7`"VO_P&gt;\ML;S^[7H01\G?_+ZW^GPTGQ&gt;)P@;K&gt;?\Z\+Z(+^VGQ_KT]-]"_P4-\0N/;;_@HP,N?&lt;\@/:6LPHJR&lt;_8(0[&lt;7`_YX:TONW=@^K@4YP]*T/)LS\]S5\@4[XT.F?L_/2`U_[Q8'NO+TV\;GX".UH_,^&gt;\PP`_&lt;`C.\O##XTC_KFTHX\PTSU&amp;`O9A-3@I1%5%Y992+MOJ!$`2!$`2!$X2(&gt;X2(&gt;X2(&gt;X2$.X2$.X2$.X2&amp;6X2&amp;6X2&amp;6`2=U16&gt;U!7&gt;81E7$R9+EA9*AM'A3(!,?!+?A#@AI3M"4]!4]!1]!1^$*/!*?!+?A#@A9:I%0!&amp;0Q"0Q"$SESC32+TI]!1`JR?&amp;R?"Q?B]@B95FR?"Q!:T%HM:-%$(&amp;-J_(Q/$Q/$UVR?"Q?B]@B=8CQR?&amp;R?"Q?B]@B95L?&amp;=]UK;,$1RIR?!Q?A]@A-8B),1;0Q70Q'$Q'$]O*Q70Q'"$'AE:S%-39:!QQ/A;0Q=-@-8A-(I0(Y$&amp;YM0)&lt;MLQTC3:6&gt;(A5(I6(Y6&amp;Y&amp;"Z3C-+D]#A]#I`#1VJ2?"1?B5@B58B93B1?B5@B55#526F?F'4+2'71)CA]80GU;(Z,HEEU6Z&amp;S?+5=3CG(4=IBEH)YJ,RU+3^4SEO3MPF3.F8+:EH:"#E0*Q6;#IS52;2-4A0FD0MJM5.M%%P%,$&amp;&amp;4"$DR&amp;C;_I=(HJW&gt;S?HJK?TM\-D'RI9M,3X*\/SM4%V.S=4%B)S0D]P9W.D&amp;TYH&lt;V&amp;Y:[H_8/L3*%7,UZ&lt;?&lt;XV_UBL?@0RD;@PZE:$7V6XNDMN_2E&gt;7/$#_OS+/(#`P[?G(``O,+[-&amp;KT\N?J(TP,\Z,`]+X59;FPP1TD$X[!4@]FTY!!!!!</Property>
-	<Property Name="NI.Lib.SourceVersion" Type="Int">369131520</Property>
+<Library LVVersion="21008000">
+	<Property Name="NI.Lib.Icon" Type="Bin">)1#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!-S!!!*Q(C=\:;R4F2"&amp;)909-37.T"%K\5\RN&lt;%5#]6;U6\(I"#FML&amp;E!#VC=F*&amp;CH!G)"7**=#5")+ATEGC-%/@1-?A/&lt;[T?QMUCS3K)G&amp;-`&gt;=:PZ`ZMRXZQYX+Z,,,:%&lt;5P_KS&amp;7FA8^H='E=*\];7,L*PV@88X?LP82RSS6XKM`VJ_1X["R6V5&amp;V708^X(GX7WU70RH&lt;2\M``&gt;4"8\PE\XW]Z+=/_5]OZ4]E[97@/A?\V8LS7`"VO_P&gt;\ML;S^[7H01\G?_+ZW^GPTGQ&gt;)P@;K&gt;?\Z\+Z(+^VGQ_KT]-]"_P4-\0N/;;_@HP,N?&lt;\@/:6LPHJR&lt;_8(0[&lt;7`_YX:TONW=@^K@4YP]*T/)LS\]S5\@4[XT.F?L_/2`U_[Q8'NO+TV\;GX".UH_,^&gt;\PP`_&lt;`C.\O##XTC_KFTHX\PTSU&amp;`O9A-3@I1%5%Y992+MOJ!$`2!$`2!$X2(&gt;X2(&gt;X2(&gt;X2$.X2$.X2$.X2&amp;6X2&amp;6X2&amp;6`2=U16&gt;U!7&gt;81E7$R9+EA9*AM'A3(!,?!+?A#@AI3M"4]!4]!1]!1^$*/!*?!+?A#@A9:I%0!&amp;0Q"0Q"$SESC32+TI]!1`JR?&amp;R?"Q?B]@B95FR?"Q!:T%HM:-%$(&amp;-J_(Q/$Q/$UVR?"Q?B]@B=8CQR?&amp;R?"Q?B]@B95L?&amp;=]UK;,$1RIR?!Q?A]@A-8B),1;0Q70Q'$Q'$]O*Q70Q'"$'AE:S%-39:!QQ/A;0Q=-@-8A-(I0(Y$&amp;YM0)&lt;MLQTC3:6&gt;(A5(I6(Y6&amp;Y&amp;"Z3C-+D]#A]#I`#1VJ2?"1?B5@B58B93B1?B5@B55#526F?F'4+2'71)CA]80GU;(Z,HEEU6Z&amp;S?+5=3CG(4=IBEH)YJ,RU+3^4SEO3MPF3.F8+:EH:"#E0*Q6;#IS52;2-4A0FD0MJM5.M%%P%,$&amp;&amp;4"$DR&amp;C;_I=(HJW&gt;S?HJK?TM\-D'RI9M,3X*\/SM4%V.S=4%B)S0D]P9W.D&amp;TYH&lt;V&amp;Y:[H_8/L3*%7,UZ&lt;?&lt;XV_UBL?@0RD;@PZE:$7V6XNDMN_2E&gt;7/$#_OS+/(#`P[?G(``O,+[-&amp;KT\N?J(TP,\Z,`]+X59;FPP1TD$X[!4@]FTY!!!!!</Property>
+	<Property Name="NI.Lib.SourceVersion" Type="Int">553680896</Property>
 	<Property Name="NI.Lib.Version" Type="Str">1.0.0.0</Property>
 	<Item Name="broadcast Ping.vi" Type="VI" URL="../VIs/broadcast Ping.vi"/>
 	<Item Name="bulk Read Tx.vi" Type="VI" URL="../VIs/bulk Read Tx.vi"/>
 	<Item Name="bulk Write Tx Only.vi" Type="VI" URL="../VIs/bulk Write Tx Only.vi"/>
+	<Item Name="clear Multi Turn.vi" Type="VI" URL="../VIs/clear Multi Turn.vi"/>
 	<Item Name="clear Port.vi" Type="VI" URL="../VIs/clear Port.vi"/>
 	<Item Name="close Port.vi" Type="VI" URL="../VIs/close Port.vi"/>
 	<Item Name="dxl_x86_c.dll" Type="Document" URL="../dxl_x86_c.dll"/>
 	<Item Name="factory Reset.vi" Type="VI" URL="../VIs/factory Reset.vi"/>
+	<Item Name="fast Read Rx Packet.vi" Type="VI" URL="../VIs/fast Read Rx Packet.vi"/>
+	<Item Name="fast Sync Read Rx.vi" Type="VI" URL="../VIs/fast Sync Read Rx.vi"/>
+	<Item Name="fast Sync Read Tx.vi" Type="VI" URL="../VIs/fast Sync Read Tx.vi"/>
 	<Item Name="get Baud Rate.vi" Type="VI" URL="../VIs/get Baud Rate.vi"/>
 	<Item Name="get Broadcast Ping Result.vi" Type="VI" URL="../VIs/get Broadcast Ping Result.vi"/>
 	<Item Name="get Data Read.vi" Type="VI" URL="../VIs/get Data Read.vi"/>
@@ -33,6 +37,9 @@
 	<Item Name="group Bulk Write Remove Param.vi" Type="VI" URL="../VIs/group Bulk Write Remove Param.vi"/>
 	<Item Name="group Bulk Write Tx Packet.vi" Type="VI" URL="../VIs/group Bulk Write Tx Packet.vi"/>
 	<Item Name="group Bulk Write.vi" Type="VI" URL="../VIs/group Bulk Write.vi"/>
+	<Item Name="group Fast Sync Read Rx Packet.vi" Type="VI" URL="../VIs/group Fast Sync Read Rx Packet.vi"/>
+	<Item Name="group Fast Sync Read Tx Packet.vi" Type="VI" URL="../VIs/group Fast Sync Read Tx Packet.vi"/>
+	<Item Name="group Fast Sync Read Tx Rx Packet.vi" Type="VI" URL="../VIs/group Fast Sync Read Tx Rx Packet.vi"/>
 	<Item Name="group Sync Read Add Param.vi" Type="VI" URL="../VIs/group Sync Read Add Param.vi"/>
 	<Item Name="group Sync Read Clear Param.vi" Type="VI" URL="../VIs/group Sync Read Clear Param.vi"/>
 	<Item Name="group Sync Read Get Data.vi" Type="VI" URL="../VIs/group Sync Read Get Data.vi"/>
@@ -54,8 +61,6 @@
 	<Item Name="ping Get Model Num.vi" Type="VI" URL="../VIs/ping Get Model Num.vi"/>
 	<Item Name="ping.vi" Type="VI" URL="../VIs/ping.vi"/>
 	<Item Name="port Handler.vi" Type="VI" URL="../VIs/port Handler.vi"/>
-	<Item Name="print Rx Packet Error.vi" Type="VI" URL="../VIs/print Rx Packet Error.vi"/>
-	<Item Name="print Tx Rx Result.vi" Type="VI" URL="../VIs/print Tx Rx Result.vi"/>
 	<Item Name="read Port.vi" Type="VI" URL="../VIs/read Port.vi"/>
 	<Item Name="read Rx.vi" Type="VI" URL="../VIs/read Rx.vi"/>
 	<Item Name="read Tx Rx.vi" Type="VI" URL="../VIs/read Tx Rx.vi"/>
