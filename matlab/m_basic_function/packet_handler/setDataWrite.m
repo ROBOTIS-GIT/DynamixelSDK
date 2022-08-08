@@ -14,6 +14,8 @@
 % limitations under the License.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+function [] = setDataWrite( port_num, protocol_version, data_length, data_pos, data)
+
 lib_name = '';
 
 if strcmp(computer, 'PCWIN')
