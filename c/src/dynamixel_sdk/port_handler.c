@@ -16,6 +16,12 @@
 
 /* Author: Ryu Woon Jung (Leon) */
 
+#include <stdint.h>
+
+// Globals
+int     g_used_port_num;
+uint8_t    *g_is_using;
+
 #if defined(__linux__)
 #include "port_handler.h"
 #include "port_handler_linux.h"
