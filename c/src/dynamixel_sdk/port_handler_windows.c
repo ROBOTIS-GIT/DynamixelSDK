@@ -48,6 +48,8 @@ typedef struct
 }PortData;
 
 static PortData *portData;
+int     g_used_port_num;
+uint8_t    *g_is_using;
 
 int portHandlerWindows(const char *port_name)
 {
