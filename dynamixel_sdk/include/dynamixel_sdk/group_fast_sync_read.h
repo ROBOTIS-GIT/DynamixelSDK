@@ -15,22 +15,31 @@
 *******************************************************************************/
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @file The file that includes whole Dynamixel SDK libraries
-/// @author Zerom, Leon (RyuWoon Jung)
+/// @file The file for Dynamixel Fast Sync Read
+/// @author Honghyun Kim
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_
-#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPFASTSYNCREAD_H
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPFASTSYNCREAD_H
 
 
-#include "group_bulk_read.h"
-#include "group_bulk_write.h"
 #include "group_sync_read.h"
-#include "group_sync_write.h"
-#include "group_fast_sync_read.h"
-#include "group_fast_bulk_read.h"
-#include "packet_handler.h"
-#include "port_handler.h"
+
+namespace dynamixel
+{
+
+class WINDECLSPEC GroupFastSyncRead : public GroupSyncRead
+{
+public:
+    GroupFastSyncRead(PortHandler *port, PacketHandler *ph, uint16_t start_address, uint16_t data_length);
+    ~GroupFastSyncRead() { clearParam(); }
+
+    int txPacket();
+    int rxPacket();
+    int txRxPacket();
+};
+
+}
 
 
-#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_ */
+#endif // DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPFASTSYNCREAD_H
