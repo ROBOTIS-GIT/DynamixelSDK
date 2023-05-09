@@ -49,10 +49,9 @@ if ~libisloaded(lib_name)
 end
 
 % Control table address
-ADDR_PRO_TORQUE_ENABLE          = 562;          % Control table address is different in Dynamixel model
-ADDR_PRO_LED_RED                = 563;
-ADDR_PRO_GOAL_POSITION          = 596;
-ADDR_PRO_PRESENT_POSITION       = 611;
+ADDR_PRO_TORQUE_ENABLE       = 64;         % Control table address is different in Dynamixel model
+ADDR_PRO_GOAL_POSITION       = 116;
+ADDR_PRO_PRESENT_POSITION    = 132;
 
 % Data Byte Length
 LEN_PRO_LED_RED                 = 1;
@@ -63,16 +62,15 @@ LEN_PRO_PRESENT_POSITION        = 4;
 PROTOCOL_VERSION                = 2.0;          % See which protocol version is used in the Dynamixel
 
 % Default setting
-DXL1_ID                         = 1;            % Dynamixel#1 ID: 1
-DXL2_ID                         = 2;            % Dynamixel#2 ID: 2
-BAUDRATE                        = 57600;
-DEVICENAME                      = 'COM1';       % Check which port is being used on your controller
-                                                % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0' Mac: '/dev/tty.usbserial-*'
+DXL1_ID                         = 3;            % Dynamixel#1 ID: 1
+DXL2_ID                         = 4;            % Dynamixel#2 ID: 2
+BAUDRATE                    = 1000000;
+DEVICENAME                  = 'COM3';            % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0' Mac: '/dev/tty.usbserial-*'
 
-TORQUE_ENABLE                   = 1;            % Value for enabling the torque
-TORQUE_DISABLE                  = 0;            % Value for disabling the torque
-DXL_MINIMUM_POSITION_VALUE      = -150000;      % Dynamixel will rotate between this value
-DXL_MAXIMUM_POSITION_VALUE      = 150000;       % and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
+TORQUE_ENABLE               = 1;            % Value for enabling the torque
+TORQUE_DISABLE              = 0;            % Value for disabling the torque
+DXL_MINIMUM_POSITION_VALUE  = 0;
+DXL_MAXIMUM_POSITION_VALUE  = 4095;      % and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
 DXL_MOVING_STATUS_THRESHOLD     = 20;           % Dynamixel moving status threshold
 
 ESC_CHARACTER                   = 'e';          % Key for escaping loop
@@ -126,6 +124,7 @@ else
     return;
 end
 
+ADDR_PRO_LED_RED = 25;
 
 % Enable Dynamixel#1 Torque
 write1ByteTxRx(port_num, PROTOCOL_VERSION, DXL1_ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE);
@@ -177,10 +176,10 @@ while 1
       return;
     end
 
-    % Add parameter storage for Dynamixel#2 LED value
-    dxl_addparam_result = groupBulkWriteAddParam(groupwrite_num, DXL2_ID, ADDR_PRO_LED_RED, LEN_PRO_LED_RED, dxl_led_value(index), LEN_PRO_LED_RED);
+    % Add parameter storage for Dynamixel#2 goal position
+    dxl_addparam_result = groupBulkWriteAddParam(groupwrite_num, DXL2_ID, ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION, typecast(int32(dxl_goal_position(index)), 'uint32'), LEN_PRO_GOAL_POSITION);
     if dxl_addparam_result ~= true
-      fprintf(stderr, '[ID:%03d] groupBulkWrite addparam failed', DXL1_ID);
+      fprintf(stderr, '[ID:%03d] groupBulkWrite addparam failed', DXL2_ID);
       return;
     end
 
@@ -219,8 +218,8 @@ while 1
         % Get Dynamixel#1 present position value
         dxl1_present_position = groupBulkReadGetData(groupread_num, DXL1_ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
 
-        % Get LED value
-        dxl2_led_value_read = groupBulkReadGetData(groupread_num, DXL2_ID, ADDR_PRO_LED_RED, LEN_PRO_LED_RED);
+        % Get Dynamixel#2 present position value
+        dxl2_present_position = groupBulkReadGetData(groupread_num, DXL2_ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
 
         fprintf('[ID:%03d] Present Position : %d \t [ID:%03d] LED Value: %d\n', DXL1_ID, typecast(uint32(dxl1_present_position), 'int32'), DXL2_ID, dxl2_led_value_read);
 
