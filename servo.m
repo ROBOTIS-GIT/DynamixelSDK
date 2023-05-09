@@ -30,37 +30,82 @@ classdef servo < handle
             % Load Libraries
             if ~libisloaded(obj.lib_name)
                 [notfound, warnings] = loadlibrary(obj.lib_name, 'dynamixel_sdk.h', 'addheader', 'port_handler.h', 'addheader', 'packet_handler.h', 'addheader', 'group_bulk_read.h', 'addheader', 'group_bulk_write.h');
-                if(notfound)
-                    error(warnings)
-                else
-                    disp("lib loaded")
-                end
             end
 
             % Open port
-            obj.port_num = portHandler('COM3'); %%%
+            obj.port_num = calllib(obj.lib_name, 'portHandler', 'COM3'); %%%
 
             if (openPort(obj.port_num))
                 fprintf('Succeeded to open the port!\n');
             else
                 unloadlibrary(obj.lib_name);
-                fprintf('Failed to open the port!\n');
-                input('Press any key to terminate...\n');
-                return;
+                delete(obj)
+                error('Failed to open the port!\n');
             end
+
+            % Set port baudrate
+            if (setBaudRate(obj.port_num, 1000000))
+                fprintf('Succeeded to change the baudrate!\n');
+            else
+                delete(obj)
+                error('Failed to change the baudrate!\n');
+
+            end
+
+            % Initialize PacketHandler Structs
+            calllib(obj.lib_name, 'packetHandler');
+
+
+
+
         end
 
         function delete(obj)
                 disp("destructor has been called")
+                calllib(obj.lib_name, 'closePort', obj.port_num);
                 unloadlibrary(obj.lib_name);
-                closePort(obj.port_num);
 
         end
         
-        function outputArg = method1(obj,inputArg)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
+        function enableTorque(obj,ID)
+            
+            PROTOCOL_VERSION = 2;
+            ADDR_PRO_TORQUE_ENABLE       = 64;         % Control table address is different in Dynamixel model
+            ADDR_PRO_PRESENT_POSITION    = 132;
+            TORQUE_ENABLE               = 1;            % Value for enabling the torque
+            COMM_SUCCESS                    = 0;            % Communication Success result value
+            LEN_PRO_PRESENT_POSITION        = 4;
+
+
+
+            % Initialize groupBulkWrite Struct
+            groupwrite_num = calllib(obj.lib_name, 'groupBulkWrite', obj.port_num, PROTOCOL_VERSION);
+
+            
+            % Initialize Groupbulkread Structs
+            groupread_num = calllib(obj.lib_name, 'groupBulkRead', obj.port_num, PROTOCOL_VERSION);
+
+            %Enable torque
+            calllib(obj.lib_name, 'write1ByteTxRx', obj.port_num, PROTOCOL_VERSION, ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE);
+            dxl_comm_result = calllib(obj.lib_name, 'getLastTxRxResult', obj.port_num, PROTOCOL_VERSION);
+            dxl_error = calllib(obj.lib_name, 'getLastRxPacketError', obj.port_num, PROTOCOL_VERSION);
+            if dxl_comm_result ~= COMM_SUCCESS
+                fprintf('%s\n', calllib(obj.lib_name, 'getTxRxResult', PROTOCOL_VERSION, dxl_comm_result));
+            elseif dxl_error ~= 0
+                fprintf('%s\n', calllib(obj.lib_name, 'getRxPacketError', protocol_version, dxl_error));
+            else
+                fprintf('Torque of ID %d has been successfully enabled \n', ID);
+            end
+
+            % Add parameter storage for Dynamixel#1 present position value
+            dxl_addparam_result = calllib(obj.lib_name, 'groupBulkReadAddParam', groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+            if dxl_addparam_result ~= true
+                fprintf('[ID:%d] groupBulkRead addparam failed', ID);
+                return;
+            else
+                fprintf('[ID:%d] groupBulkRead addparam succeeded', ID);
+            end
+
         end
     end
 end
