@@ -29,6 +29,9 @@
 clc;
 clear all;
 
+addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\include\dynamixel_sdk\'))
+addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\win64'))
+addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\matlab\m_basic_function'))
 lib_name = '';
 
 if strcmp(computer, 'PCWIN')
@@ -164,13 +167,20 @@ if dxl_addparam_result ~= true
     return;
 end
 
+opposite_direction = 0;
 while 1
     if input('Press any key to continue! (or input e to quit!)\n', 's') == ESC_CHARACTER
         break;
     end
 
+    if(opposite_direction)
+        if(index==1) index2=2; end
+        if(index==2) index2=1; end
+    else
+        index2 = index;
+    end
     % Add parameter storage for Dynamixel#1 goal position
-    dxl_addparam_result = groupBulkWriteAddParam(groupwrite_num, DXL1_ID, ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION, typecast(int32(dxl_goal_position(index)), 'uint32'), LEN_PRO_GOAL_POSITION);
+    dxl_addparam_result = groupBulkWriteAddParam(groupwrite_num, DXL1_ID, ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION, typecast(int32(dxl_goal_position(index2)), 'uint32'), LEN_PRO_GOAL_POSITION);
     if dxl_addparam_result ~= true
       fprintf(stderr, '[ID:%03d] groupBulkWrite addparam failed', DXL1_ID);
       return;
