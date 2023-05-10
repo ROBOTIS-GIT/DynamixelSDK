@@ -1,4 +1,4 @@
-classdef servos < handle
+classdef Servos < handle
 
     
     properties
@@ -10,7 +10,7 @@ classdef servos < handle
     end
     
     methods
-        function obj = servos(PORT)
+        function obj = Servos(PORT)
 
             %Definitions
             PROTOCOL_VERSION = 2;
@@ -166,6 +166,7 @@ classdef servos < handle
                     angle = angle + 2*pi;
                 end
                 
+
                 angle = rem(angle, 2*pi);
                 dxl_goal_position = (angle/(2*pi)) * DXL_MAXIMUM_POSITION_VALUE + DXL_MINIMUM_POSITION_VALUE;
 
