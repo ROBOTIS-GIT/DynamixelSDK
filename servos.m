@@ -188,7 +188,7 @@ classdef Servos < handle
                 if dxl_comm_result ~= COMM_SUCCESS
                     fprintf('%s\n', calllib(obj.lib_name, 'getTxRxResult', PROTOCOL_VERSION, dxl_comm_result));
                 else
-                    fprintf('[ID:%03d] Successfully wrote goal position \n', ID);
+                    % fprintf('[ID:%03d] Successfully wrote goal position \n', ID);
                 end
 
                 % Clear bulkwrite parameter storage
@@ -218,7 +218,7 @@ classdef Servos < handle
                 success = 0;
                 return;
             else
-                fprintf('[ID:%03d] groupBulkRead addparam succeeded \n', ID);
+                % fprintf('[ID:%03d] groupBulkRead addparam succeeded \n', ID);
             end
                         
             % Bulkread present position
@@ -240,13 +240,13 @@ classdef Servos < handle
                 success = 0;
                 return;
             else
-                fprintf('[ID:%03d] groupBulkRead getdata succeeded \n', ID);
+                % fprintf('[ID:%03d] groupBulkRead getdata succeeded \n', ID);
             end
 
               % Get Dynamixel#1 present position value
               dxl1_present_position = calllib(obj.lib_name, 'groupBulkReadGetData', groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
               angle = ((dxl1_present_position-DXL_MINIMUM_POSITION_VALUE)/DXL_MAXIMUM_POSITION_VALUE)  * (2*pi);
-              fprintf('[ID:%03d] Current Angle : %d \n', ID, angle);
+              % fprintf('[ID:%03d] Current Angle : %d \n', ID, angle);
               success = 1;
         end
     end

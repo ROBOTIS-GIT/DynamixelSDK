@@ -3,6 +3,8 @@ classdef BevelGear < handle
     properties
         ServosObject = [];
         composingServos = [];
+        rotationAroundY = 0;
+        rotationAroundX = 0;
     end
     
     methods
@@ -23,23 +25,53 @@ classdef BevelGear < handle
         end
 
         function pointStraightUp(obj)
-            %Torque must be enabled
-
             obj.ServosObject.setAngle(obj.composingServos(1),pi);
             obj.ServosObject.setAngle(obj.composingServos(2),pi);
+            obj.rotationAroundY = 0;
+            obj.rotationAroundX = 0;
         end
 
-        function tiltRightLeft(obj, angle)
-            angle = max(min(angle,2),-2);
-            obj.ServosObject.setAngle(obj.composingServos(1),pi + angle);
-            obj.ServosObject.setAngle(obj.composingServos(2),pi - angle);
+        %Tilt back front
+        function rotateAroundX(obj, angle)
+
+
+            angle = min(max(angle,-pi/2 + 0.01),pi/2 - 0.01);
+
+            obj.rotationAroundX = angle;
+           
+
+            obj.ServosObject.setAngle(obj.composingServos(1), pi - angle - obj.rotationAroundY);
+            obj.ServosObject.setAngle(obj.composingServos(2), pi - angle + obj.rotationAroundY);
+           
         end
 
-        function tiltFrontBack(obj, angle)
-            angle = max(min(angle,2),-2);
-            obj.ServosObject.setAngle(obj.composingServos(1),pi + angle);
-            obj.ServosObject.setAngle(obj.composingServos(2),pi + angle);
+        %Tilt right left
+        function rotateAroundY(obj, angle)
+
+            angle = min(max(angle,-pi/2 + 0.01),pi/2 - 0.01);
+
+            obj.rotationAroundY = angle;
+
+            obj.ServosObject.setAngle(obj.composingServos(1), pi - angle);
+            obj.ServosObject.setAngle(obj.composingServos(2), pi + angle);
+           
         end
+
+    end
+        methods(Static)
+
+            function [roty, rotx] = getRotations(vec)
+                %The goal is to find a function that calculates the euler rotation angles around y
+                %and subsequent rotation around x' from a rotated vector vec.
+                %The unrotated original vector is assumed to be [0,0,1]
+                %pointing straight up with sceme [x,y,z]. 
+    
+                %E.g. getRotations([-1,0,0]) should give [pi/2, 0];
+                %     getRotations([0, 1,0]) should give [0, pi/2];
+                %     getRotations([0, 0, 1]) should give [0,0];
+            
+            
+            end
     end
 end
 
