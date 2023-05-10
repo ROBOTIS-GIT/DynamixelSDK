@@ -9,8 +9,10 @@ classdef servo < handle
     end
     
     methods
-        function obj = servo(inputArg1,inputArg2)
+        function obj = servo(PORT)
 
+            %%% Probably can remove stuff here by replacing all matlab
+            %%% calls by calllib()...
             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\include\dynamixel_sdk\'))
             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\win64'))
             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\matlab\m_basic_function'))
@@ -33,7 +35,7 @@ classdef servo < handle
             end
 
             % Open port
-            obj.port_num = calllib(obj.lib_name, 'portHandler', 'COM3'); %%%
+            obj.port_num = calllib(obj.lib_name, 'portHandler', PORT);
 
             if (openPort(obj.port_num))
                 fprintf('Succeeded to open the port!\n');
@@ -67,16 +69,14 @@ classdef servo < handle
 
         end
         
-        function enableOrDisableTorque(obj,ID,enable_bool)
+        function torqueEnableDisable(obj,ID,enable_bool)
             % Enable the Torque on servo with ID.
 
             %Definitions
             PROTOCOL_VERSION = 2;
             ADDR_PRO_TORQUE_ENABLE       = 64;         % Control table address is different in Dynamixel model
-            ADDR_PRO_PRESENT_POSITION    = 132;
             TORQUE_ENABLE               = 1;            % Value for enabling the torque
             COMM_SUCCESS                    = 0;            % Communication Success result value
-            LEN_PRO_PRESENT_POSITION        = 4;
             TORQUE_DISABLE              = 0;            % Value for disabling the torque
 
             if(enable_bool)
@@ -128,7 +128,6 @@ classdef servo < handle
                 dxl_goal_position = (angle/(2*pi)) * DXL_MAXIMUM_POSITION_VALUE + DXL_MINIMUM_POSITION_VALUE;
             
                 % Add parameter storage for Dynamixel#1 goal position
-                % dxl_addparam_result = groupBulkWriteAddParam(groupwrite_num, DXL1_ID, ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION, typecast(int32(dxl_goal_position(index2)), 'uint32'), LEN_PRO_GOAL_POSITION);
                 dxl_addparam_result = calllib(obj.lib_name, 'groupBulkWriteAddParam', groupwrite_num, ID, ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION,  typecast(int32(dxl_goal_position), 'uint32'), LEN_PRO_GOAL_POSITION);
                 if dxl_addparam_result ~= true
                   fprintf(stderr, '[ID:%03d] groupBulkWrite addparam failed \n', ID);
@@ -137,23 +136,86 @@ classdef servo < handle
                 end
 
                 % Bulkwrite goal position
-                % groupBulkWriteTxPacket(groupwrite_num);
                 calllib(obj.lib_name, 'groupBulkWriteTxPacket', groupwrite_num);
-                % dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
                 dxl_comm_result = calllib(obj.lib_name, 'getLastTxRxResult', obj.port_num, PROTOCOL_VERSION);
                 if dxl_comm_result ~= COMM_SUCCESS
-                    % STRING = getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
                     fprintf('%s\n', calllib(obj.lib_name, 'getTxRxResult', PROTOCOL_VERSION, dxl_comm_result));
                 else
                     fprintf('[ID:%03d] Successfully wrote goal position \n', ID);
                 end
 
                 % Clear bulkwrite parameter storage
-                groupBulkWriteClearParam(groupwrite_num);
+                calllib(obj.lib_name, 'groupBulkWriteClearParam', groupwrite_num);
+
 
         end
 
-        
+        function [angle, success] = getAngle(obj,ID)
+            %Receive the current Position of a servo in RAD
+
+            %Definitions
+            PROTOCOL_VERSION = 2;
+            COMM_SUCCESS = 0;
+            ADDR_PRO_PRESENT_POSITION    = 132;
+            LEN_PRO_PRESENT_POSITION        = 4;
+            DXL_MINIMUM_POSITION_VALUE  = 0;
+            DXL_MAXIMUM_POSITION_VALUE  = 4095;
+
+
+
+            % Initialize Groupbulkread Structs
+            % groupread_num = groupBulkRead(port_num, PROTOCOL_VERSION);
+            groupread_num = calllib(obj.lib_name, 'groupBulkRead', obj.port_num, PROTOCOL_VERSION);
+
+
+            % Add parameter storage for Dynamixel present position value
+            % dxl_addparam_result = groupBulkReadAddParam(groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+            dxl_addparam_result = calllib(obj.lib_name, 'groupBulkReadAddParam', groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+            if dxl_addparam_result ~= true
+                fprintf('[ID:%03d] groupBulkRead addparam failed \n', ID);
+                success = 0;
+                return;
+            else
+                fprintf('[ID:%03d] groupBulkRead addparam succeeded \n', ID);
+            end
+
+                        
+            % Bulkread present position
+            % groupBulkReadTxRxPacket(groupread_num);
+            calllib(obj.lib_name, 'groupBulkReadTxRxPacket', groupread_num);
+            % dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
+            dxl_comm_result = calllib(obj.lib_name, 'getLastTxRxResult', obj.port_num, PROTOCOL_VERSION);
+            if dxl_comm_result ~= COMM_SUCCESS
+                % fprintf('%s\n', getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
+                fprintf('%s\n', calllib(obj.lib_name, 'getTxRxResult', PROTOCOL_VERSION, dxl_comm_result));
+                success = 0;
+                return
+            end
+
+            % Check if groupbulkread data of Dynamixel is available
+            % dxl_getdata_result = groupBulkReadIsAvailable(groupread_num, DXL1_ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+            dxl_getdata_result = calllib(obj.lib_name, 'groupBulkReadIsAvailable', groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+            if dxl_getdata_result ~= true
+                fprintf('[ID:%03d] groupBulkRead getdata failed \n', ID);
+                success = 0;
+                return;
+            else
+                fprintf('[ID:%03d] groupBulkRead getdata succeeded \n', ID);
+            end
+
+              % Get Dynamixel#1 present position value
+              % dxl1_present_position = groupBulkReadGetData(groupread_num, DXL1_ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+              dxl1_present_position = calllib(obj.lib_name, 'groupBulkReadGetData', groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+               
+                
+              angle = ((dxl1_present_position-DXL_MINIMUM_POSITION_VALUE)/DXL_MAXIMUM_POSITION_VALUE)  * (2*pi);
+                
+              fprintf('[ID:%03d] Current Angle : %d \n', ID, angle);
+              success = 1;
+             
+        end
+
+
     end
 end
 
