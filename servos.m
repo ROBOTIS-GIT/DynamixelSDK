@@ -1,3 +1,13 @@
+% This is the class definition of the Servos class. It will connect to a
+% given Port and print all the available Servos at this port. Use this to
+% set and get the angles of the connected servos. Also enable and disable
+% the torque for each servo.
+
+% This class uses the DynamixelSDK library that has been built in c. You
+% will find may calllibrary() functions that require that the path to the
+% library is correct. Configure the correct absolut path in the
+% constructor.
+
 classdef Servos < handle
 
     
@@ -11,34 +21,40 @@ classdef Servos < handle
     
     methods
         function obj = Servos(PORT)
+            % Hint: Get the correct Port string in your device manager e.g.
+            % 'COM3', 'COM4'
+
+            %% Modify the following string to your absolute path to the DynamixelSDK
+            absolute_path = 'C:\Users\samue\Documents\Git\DynamixelSDK\c\';
+            %%
 
             %Definitions
             PROTOCOL_VERSION = 2;
             COMM_SUCCESS = 0;
             MAX_ID = 10;
-
-            %Add library include directory path
-            addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\include\dynamixel_sdk\'))
-
+            
+            addpath(genpath([absolute_path, 'include\dynamixel_sdk\']))
+            
             %Checks your OS and adds the correct built library
             %Pre-built for windows, you need to build yourself on Linux and
             %Mac. There is a Makefile in the linked folder.
             if strcmp(computer, 'PCWIN')
               obj.lib_name = 'dxl_x86_c';
-              addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\win32'))
+              addpath(genpath([absolute_path, 'build\win32']))
             elseif strcmp(computer, 'PCWIN64')
-             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\win64'))
+              addpath(genpath([absolute_path, 'build\win64']))
               obj.lib_name = 'dxl_x64_c';
             elseif strcmp(computer, 'GLNX86')
-             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\linux32'))
+              addpath(genpath([absolute_path, 'build\linux32']))
               obj.lib_name = 'libdxl_x86_c';
             elseif strcmp(computer, 'GLNXA64')
-             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\linux64'))
+              addpath(genpath([absolute_path, 'build\linux64']))
               obj.lib_name = 'libdxl_x64_c';
             elseif strcmp(computer, 'MACI64')
-              addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\mac'))
+              addpath(genpath([absolute_path, 'build\mac']))
               obj.lib_name = 'libdxl_mac_c';
             end
+
 
             % Load Libraries
             if ~libisloaded(obj.lib_name)
@@ -68,7 +84,6 @@ classdef Servos < handle
             % Initialize PacketHandler Structs
             calllib(obj.lib_name, 'packetHandler');
 
-
             %Scan available IDs
             % Try to broadcast ping the Dynamixel
             calllib(obj.lib_name, 'broadcastPing', obj.port_num, PROTOCOL_VERSION);
@@ -83,15 +98,12 @@ classdef Servos < handle
                 obj.availableIDs = [obj.availableIDs, id];
               end
             end
-
-
         end
 
         function delete(obj)
                 disp("closing port, unloading library")
                 calllib(obj.lib_name, 'closePort', obj.port_num);
                 unloadlibrary(obj.lib_name);
-
         end
 
         function ID = checkIdAvailable(obj, id)
@@ -101,13 +113,11 @@ classdef Servos < handle
                 error('ID %d is not available', id);
             end
         end
-
         
         function torqueEnableDisable(obj,ID,enable_bool)
+            % Enable the Torque on servo with ID.
 
             ID = checkIdAvailable(obj, ID);
-
-            % Enable the Torque on servo with ID.
 
             %Definitions
             PROTOCOL_VERSION = 2;
@@ -145,11 +155,10 @@ classdef Servos < handle
         end
 
         function success = setAngle(obj, ID, angle)
-
-                ID = checkIdAvailable(obj, ID);
-
                 %Set the angle of servo with ID to an angle between 0 and 2
                 %pi in RADIANT. Torque has to be enabled.
+
+                ID = checkIdAvailable(obj, ID);
 
                 % Definitions
                 PROTOCOL_VERSION = 2;
@@ -165,7 +174,6 @@ classdef Servos < handle
                 while angle < 0
                     angle = angle + 2*pi;
                 end
-                
 
                 angle = rem(angle, 2*pi);
                 dxl_goal_position = (angle/(2*pi)) * DXL_MAXIMUM_POSITION_VALUE + DXL_MINIMUM_POSITION_VALUE;
@@ -189,15 +197,12 @@ classdef Servos < handle
 
                 % Clear bulkwrite parameter storage
                 calllib(obj.lib_name, 'groupBulkWriteClearParam', groupwrite_num);
-
-
         end
 
         function [angle, success] = getAngle(obj,ID)
+            %Receive the current Position of a servo in RAD
 
             ID = checkIdAvailable(obj, ID);
-
-            %Receive the current Position of a servo in RAD
 
             %Definitions
             PROTOCOL_VERSION = 2;
@@ -207,15 +212,10 @@ classdef Servos < handle
             DXL_MINIMUM_POSITION_VALUE  = 0;
             DXL_MAXIMUM_POSITION_VALUE  = 4095;
 
-
-
             % Initialize Groupbulkread Structs
-            % groupread_num = groupBulkRead(port_num, PROTOCOL_VERSION);
             groupread_num = calllib(obj.lib_name, 'groupBulkRead', obj.port_num, PROTOCOL_VERSION);
 
-
             % Add parameter storage for Dynamixel present position value
-            % dxl_addparam_result = groupBulkReadAddParam(groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
             dxl_addparam_result = calllib(obj.lib_name, 'groupBulkReadAddParam', groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
             if dxl_addparam_result ~= true
                 fprintf('[ID:%03d] groupBulkRead addparam failed \n', ID);
@@ -224,7 +224,6 @@ classdef Servos < handle
             else
                 fprintf('[ID:%03d] groupBulkRead addparam succeeded \n', ID);
             end
-
                         
             % Bulkread present position
             % groupBulkReadTxRxPacket(groupread_num);
@@ -239,7 +238,6 @@ classdef Servos < handle
             end
 
             % Check if groupbulkread data of Dynamixel is available
-            % dxl_getdata_result = groupBulkReadIsAvailable(groupread_num, DXL1_ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
             dxl_getdata_result = calllib(obj.lib_name, 'groupBulkReadIsAvailable', groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
             if dxl_getdata_result ~= true
                 fprintf('[ID:%03d] groupBulkRead getdata failed \n', ID);
@@ -250,18 +248,11 @@ classdef Servos < handle
             end
 
               % Get Dynamixel#1 present position value
-              % dxl1_present_position = groupBulkReadGetData(groupread_num, DXL1_ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
               dxl1_present_position = calllib(obj.lib_name, 'groupBulkReadGetData', groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
-               
-                
               angle = ((dxl1_present_position-DXL_MINIMUM_POSITION_VALUE)/DXL_MAXIMUM_POSITION_VALUE)  * (2*pi);
-                
               fprintf('[ID:%03d] Current Angle : %d \n', ID, angle);
               success = 1;
-             
         end
-
-
     end
 end
 
