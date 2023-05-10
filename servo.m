@@ -5,17 +5,20 @@ classdef servo < handle
         
         lib_name;
         port_num;
+        availableIDs = [];
         
     end
     
     methods
         function obj = servo(PORT)
 
-            %%% Probably can remove stuff here by replacing all matlab
-            %%% calls by calllib()...
+            %Definitions
+            PROTOCOL_VERSION = 2;
+            COMM_SUCCESS = 0;
+            MAX_ID = 100;
+
             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\include\dynamixel_sdk\'))
             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\win64'))
-            addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\matlab\m_basic_function'))
 
             if strcmp(computer, 'PCWIN')
               obj.lib_name = 'dxl_x86_c';
@@ -58,6 +61,20 @@ classdef servo < handle
             calllib(obj.lib_name, 'packetHandler');
 
 
+            %Scan available IDs
+            % Try to broadcast ping the Dynamixel
+            calllib(obj.lib_name, 'broadcastPing', obj.port_num, PROTOCOL_VERSION);
+            dxl_comm_result = calllib(obj.lib_name, 'getLastTxRxResult', obj.port_num, PROTOCOL_VERSION);
+            if dxl_comm_result ~= COMM_SUCCESS
+                fprintf('%s\n', calllib(obj.lib_name, 'getTxRxResult', PROTOCOL_VERSION, dxl_comm_result));
+            end
+            fprintf('Detected Dynamixel : \n');
+            for id = 0 : MAX_ID
+              if calllib(obj.lib_name, 'getBroadcastPingResult', obj.port_num, PROTOCOL_VERSION, id)
+                fprintf('Available ID: %d \n', id);
+                obj.availableIDs = [obj.availableIDs, id];
+              end
+            end
 
 
         end
@@ -68,8 +85,20 @@ classdef servo < handle
                 unloadlibrary(obj.lib_name);
 
         end
+
+        function ID = checkIdAvailable(obj, id)
+            if ismember(id, obj.availableIDs)
+                ID = id;
+            else
+                error('ID %d is not available', id);
+            end
+        end
+
         
         function torqueEnableDisable(obj,ID,enable_bool)
+
+            ID = checkIdAvailable(obj, ID);
+
             % Enable the Torque on servo with ID.
 
             %Definitions
@@ -108,6 +137,9 @@ classdef servo < handle
         end
 
         function success = setAngle(obj, ID, angle)
+
+                ID = checkIdAvailable(obj, ID);
+
                 %Set the angle of servo with ID to an angle between 0 and 2
                 %pi in RADIANT. Torque has to be enabled.
 
@@ -151,6 +183,9 @@ classdef servo < handle
         end
 
         function [angle, success] = getAngle(obj,ID)
+
+            ID = checkIdAvailable(obj, ID);
+
             %Receive the current Position of a servo in RAD
 
             %Definitions

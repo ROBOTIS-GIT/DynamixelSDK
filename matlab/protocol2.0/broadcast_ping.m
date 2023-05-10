@@ -52,11 +52,11 @@ end
 PROTOCOL_VERSION                = 2.0;          % See which protocol version is used in the Dynamixel
 
 % Default setting
-BAUDRATE                        = 57600;
-DEVICENAME                      = 'COM1';       % Check which port is being used on your controller
+BAUDRATE                        = 1000000;
+DEVICENAME                      = 'COM3';       % Check which port is being used on your controller
                                                 % ex) Windows: 'COM1'   Linux: '/dev/ttyUSB0'
 
-MAX_ID                          = 252;          % Maximum ID value
+MAX_ID                          = 10;          % Maximum ID value
 COMM_SUCCESS                    = 0;            % Communication Success result value
 COMM_TX_FAIL                    = -1001;        % Communication Tx Failed
 
