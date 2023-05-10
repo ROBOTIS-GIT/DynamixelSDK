@@ -1,4 +1,4 @@
-classdef servo < handle
+classdef servos < handle
 
     
     properties
@@ -10,25 +10,33 @@ classdef servo < handle
     end
     
     methods
-        function obj = servo(PORT)
+        function obj = servos(PORT)
 
             %Definitions
             PROTOCOL_VERSION = 2;
             COMM_SUCCESS = 0;
-            MAX_ID = 100;
+            MAX_ID = 10;
 
+            %Add library include directory path
             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\include\dynamixel_sdk\'))
-            addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\win64'))
 
+            %Checks your OS and adds the correct built library
+            %Pre-built for windows, you need to build yourself on Linux and
+            %Mac. There is a Makefile in the linked folder.
             if strcmp(computer, 'PCWIN')
               obj.lib_name = 'dxl_x86_c';
+              addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\win32'))
             elseif strcmp(computer, 'PCWIN64')
+             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\win64'))
               obj.lib_name = 'dxl_x64_c';
             elseif strcmp(computer, 'GLNX86')
+             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\linux32'))
               obj.lib_name = 'libdxl_x86_c';
             elseif strcmp(computer, 'GLNXA64')
+             addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\linux64'))
               obj.lib_name = 'libdxl_x64_c';
             elseif strcmp(computer, 'MACI64')
+              addpath(genpath('C:\Users\samue\Documents\Git\DynamixelSDK\c\build\mac'))
               obj.lib_name = 'libdxl_mac_c';
             end
 
@@ -40,7 +48,7 @@ classdef servo < handle
             % Open port
             obj.port_num = calllib(obj.lib_name, 'portHandler', PORT);
 
-            if (openPort(obj.port_num))
+            if (calllib(obj.lib_name, 'openPort', obj.port_num))
                 fprintf('Succeeded to open the port!\n');
             else
                 unloadlibrary(obj.lib_name);
@@ -49,7 +57,7 @@ classdef servo < handle
             end
 
             % Set port baudrate
-            if (setBaudRate(obj.port_num, 1000000))
+            if (calllib(obj.lib_name, 'setBaudRate', obj.port_num, 1000000))
                 fprintf('Succeeded to change the baudrate!\n');
             else
                 delete(obj)
@@ -154,11 +162,13 @@ classdef servo < handle
                 % Initialize groupBulkWrite Struct
                 groupwrite_num = calllib(obj.lib_name, 'groupBulkWrite', obj.port_num, PROTOCOL_VERSION);           
 
-                % Calculate the goal positoin from the angle and the
-                % min/max values
-                angle = rem(angle,2*pi);
+                while angle < 0
+                    angle = angle + 2*pi;
+                end
+                
+                angle = rem(angle, 2*pi);
                 dxl_goal_position = (angle/(2*pi)) * DXL_MAXIMUM_POSITION_VALUE + DXL_MINIMUM_POSITION_VALUE;
-            
+
                 % Add parameter storage for Dynamixel#1 goal position
                 dxl_addparam_result = calllib(obj.lib_name, 'groupBulkWriteAddParam', groupwrite_num, ID, ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION,  typecast(int32(dxl_goal_position), 'uint32'), LEN_PRO_GOAL_POSITION);
                 if dxl_addparam_result ~= true
