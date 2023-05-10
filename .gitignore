@@ -46,3 +46,6 @@
 
 # Mac
 .DS_Store
+
+#matlab autosave
+.asv

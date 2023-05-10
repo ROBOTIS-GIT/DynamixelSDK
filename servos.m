@@ -1,22 +1,18 @@
-% This is the class definition of the Servos class. It will connect to a
-% given Port and print all the available Servos at this port. Use this to
-% set and get the angles of the connected servos. Also enable and disable
-% the torque for each servo.
-
-% This class uses the DynamixelSDK library that has been built in c. You
-% will find may calllibrary() functions that require that the path to the
-% library is correct. Configure the correct absolut path in the
-% constructor.
-
 classdef Servos < handle
+% The 'Servos' class provides an interface for interacting with connected servos. It is
+% designed to establish a connection to a specified port and list all the servos available at that port.
+% The class allows the user to set and retrieve the angles of each connected servo. Additionally, it
+% provides functionality to enable and disable the torque for each servo.
+% The Servos class relies on the DynamixelSDK library, which is a C-based library. Throughout the class, 
+% numerous 'calllibrary()' functions are utilized, which necessitate the correct path to the DynamixelSDK 
+% library. To ensure the correct operation of the Servos class, it is essential that the absolute path to
+% the DynamixelSDK library is accurately configured within the class constructor.
 
     
     properties
-        
         lib_name;
         port_num;
         availableIDs = [];
-        
     end
     
     methods
