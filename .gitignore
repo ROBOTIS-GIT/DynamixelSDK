@@ -48,4 +48,4 @@
 .DS_Store
 
 #matlab autosave
-.asv
+*.asv
