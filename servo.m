@@ -61,52 +61,99 @@ classdef servo < handle
         end
 
         function delete(obj)
-                disp("destructor has been called")
+                disp("closing port, unloading library")
                 calllib(obj.lib_name, 'closePort', obj.port_num);
                 unloadlibrary(obj.lib_name);
 
         end
         
-        function enableTorque(obj,ID)
-            
+        function enableOrDisableTorque(obj,ID,enable_bool)
+            % Enable the Torque on servo with ID.
+
+            %Definitions
             PROTOCOL_VERSION = 2;
             ADDR_PRO_TORQUE_ENABLE       = 64;         % Control table address is different in Dynamixel model
             ADDR_PRO_PRESENT_POSITION    = 132;
             TORQUE_ENABLE               = 1;            % Value for enabling the torque
             COMM_SUCCESS                    = 0;            % Communication Success result value
             LEN_PRO_PRESENT_POSITION        = 4;
+            TORQUE_DISABLE              = 0;            % Value for disabling the torque
 
-
-
-            % Initialize groupBulkWrite Struct
-            groupwrite_num = calllib(obj.lib_name, 'groupBulkWrite', obj.port_num, PROTOCOL_VERSION);
-
-            
-            % Initialize Groupbulkread Structs
-            groupread_num = calllib(obj.lib_name, 'groupBulkRead', obj.port_num, PROTOCOL_VERSION);
-
-            %Enable torque
-            calllib(obj.lib_name, 'write1ByteTxRx', obj.port_num, PROTOCOL_VERSION, ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE);
-            dxl_comm_result = calllib(obj.lib_name, 'getLastTxRxResult', obj.port_num, PROTOCOL_VERSION);
-            dxl_error = calllib(obj.lib_name, 'getLastRxPacketError', obj.port_num, PROTOCOL_VERSION);
-            if dxl_comm_result ~= COMM_SUCCESS
-                fprintf('%s\n', calllib(obj.lib_name, 'getTxRxResult', PROTOCOL_VERSION, dxl_comm_result));
-            elseif dxl_error ~= 0
-                fprintf('%s\n', calllib(obj.lib_name, 'getRxPacketError', protocol_version, dxl_error));
+            if(enable_bool)
+                %Enable torque
+                calllib(obj.lib_name, 'write1ByteTxRx', obj.port_num, PROTOCOL_VERSION, ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE);
+                dxl_comm_result = calllib(obj.lib_name, 'getLastTxRxResult', obj.port_num, PROTOCOL_VERSION);
+                dxl_error = calllib(obj.lib_name, 'getLastRxPacketError', obj.port_num, PROTOCOL_VERSION);
+                if dxl_comm_result ~= COMM_SUCCESS
+                    fprintf('%s\n', calllib(obj.lib_name, 'getTxRxResult', PROTOCOL_VERSION, dxl_comm_result));
+                elseif dxl_error ~= 0
+                    fprintf('%s\n', calllib(obj.lib_name, 'getRxPacketError', PROTOCOL_VERSION, dxl_error));
+                else
+                    fprintf('Torque of ID %d has been successfully enabled \n', ID);
+                end
             else
-                fprintf('Torque of ID %d has been successfully enabled \n', ID);
-            end
-
-            % Add parameter storage for Dynamixel#1 present position value
-            dxl_addparam_result = calllib(obj.lib_name, 'groupBulkReadAddParam', groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
-            if dxl_addparam_result ~= true
-                fprintf('[ID:%d] groupBulkRead addparam failed', ID);
-                return;
-            else
-                fprintf('[ID:%d] groupBulkRead addparam succeeded', ID);
+                %Disable torque
+                calllib(obj.lib_name, 'write1ByteTxRx', obj.port_num, PROTOCOL_VERSION, ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_DISABLE);
+                dxl_comm_result = calllib(obj.lib_name, 'getLastTxRxResult', obj.port_num, PROTOCOL_VERSION);
+                dxl_error = calllib(obj.lib_name, 'getLastRxPacketError', obj.port_num, PROTOCOL_VERSION);
+                if dxl_comm_result ~= COMM_SUCCESS
+                    fprintf('%s\n', calllib(obj.lib_name, 'getTxRxResult', PROTOCOL_VERSION, dxl_comm_result));
+                elseif dxl_error ~= 0
+                    fprintf('%s\n', calllib(obj.lib_name, 'getRxPacketError', PROTOCOL_VERSION, dxl_error));
+                else
+                    fprintf('Torque of ID %d has been successfully disabled \n', ID);
+                end
             end
 
         end
+
+        function success = setAngle(obj, ID, angle)
+                %Set the angle of servo with ID to an angle between 0 and 2
+                %pi in RADIANT. Torque has to be enabled.
+
+                % Definitions
+                PROTOCOL_VERSION = 2;
+                ADDR_PRO_GOAL_POSITION       = 116;
+                LEN_PRO_GOAL_POSITION           = 4;
+                DXL_MINIMUM_POSITION_VALUE  = 0;
+                DXL_MAXIMUM_POSITION_VALUE  = 4095;
+                COMM_SUCCESS = 0;
+
+                % Initialize groupBulkWrite Struct
+                groupwrite_num = calllib(obj.lib_name, 'groupBulkWrite', obj.port_num, PROTOCOL_VERSION);           
+
+                % Calculate the goal positoin from the angle and the
+                % min/max values
+                angle = rem(angle,2*pi);
+                dxl_goal_position = (angle/(2*pi)) * DXL_MAXIMUM_POSITION_VALUE + DXL_MINIMUM_POSITION_VALUE;
+            
+                % Add parameter storage for Dynamixel#1 goal position
+                % dxl_addparam_result = groupBulkWriteAddParam(groupwrite_num, DXL1_ID, ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION, typecast(int32(dxl_goal_position(index2)), 'uint32'), LEN_PRO_GOAL_POSITION);
+                dxl_addparam_result = calllib(obj.lib_name, 'groupBulkWriteAddParam', groupwrite_num, ID, ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION,  typecast(int32(dxl_goal_position), 'uint32'), LEN_PRO_GOAL_POSITION);
+                if dxl_addparam_result ~= true
+                  fprintf(stderr, '[ID:%03d] groupBulkWrite addparam failed \n', ID);
+                  success = 0;
+                  return;
+                end
+
+                % Bulkwrite goal position
+                % groupBulkWriteTxPacket(groupwrite_num);
+                calllib(obj.lib_name, 'groupBulkWriteTxPacket', groupwrite_num);
+                % dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION);
+                dxl_comm_result = calllib(obj.lib_name, 'getLastTxRxResult', obj.port_num, PROTOCOL_VERSION);
+                if dxl_comm_result ~= COMM_SUCCESS
+                    % STRING = getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
+                    fprintf('%s\n', calllib(obj.lib_name, 'getTxRxResult', PROTOCOL_VERSION, dxl_comm_result));
+                else
+                    fprintf('[ID:%03d] Successfully wrote goal position \n', ID);
+                end
+
+                % Clear bulkwrite parameter storage
+                groupBulkWriteClearParam(groupwrite_num);
+
+        end
+
+        
     end
 end
 
