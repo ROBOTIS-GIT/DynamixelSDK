@@ -1,6 +1,0 @@
-var searchData=
-[
-  ['broadcastping',['broadcastPing',['../classdynamixel_1_1PacketHandler.html#a4bcc7b0caef0937d763dd785cd8a9852',1,'dynamixel::PacketHandler::broadcastPing()'],['../classdynamixel_1_1Protocol1PacketHandler.html#a90a58c6ed6f3c2cdcf624a2b18030e36',1,'dynamixel::Protocol1PacketHandler::broadcastPing()'],['../classdynamixel_1_1Protocol2PacketHandler.html#ab46b125cc4255258d033a446fd603342',1,'dynamixel::Protocol2PacketHandler::broadcastPing()']]],
-  ['bulkreadtx',['bulkReadTx',['../classdynamixel_1_1PacketHandler.html#aae42416c864692a95f675c6ecddd47c7',1,'dynamixel::PacketHandler::bulkReadTx()'],['../classdynamixel_1_1Protocol1PacketHandler.html#a6cafc93bfbdaa1282efb92bc44081b77',1,'dynamixel::Protocol1PacketHandler::bulkReadTx()'],['../classdynamixel_1_1Protocol2PacketHandler.html#ada9efbc8d1f101a605f411fb6ddf797a',1,'dynamixel::Protocol2PacketHandler::bulkReadTx()']]],
-  ['bulkwritetxonly',['bulkWriteTxOnly',['../classdynamixel_1_1PacketHandler.html#a2fe5bcf3f16b0d05ce6bc97eb260b0b5',1,'dynamixel::PacketHandler::bulkWriteTxOnly()'],['../classdynamixel_1_1Protocol1PacketHandler.html#a67ca47a6995b0ba73181da4b76d03ba4',1,'dynamixel::Protocol1PacketHandler::bulkWriteTxOnly()'],['../classdynamixel_1_1Protocol2PacketHandler.html#ad10c05153214d3d3c842293ddbf79a94',1,'dynamixel::Protocol2PacketHandler::bulkWriteTxOnly()']]]
-];

@@ -1,6 +1,0 @@
-<map id="dynamixel::PortHandler" name="dynamixel::PortHandler">
-<area shape="rect" id="node2" href="$classdynamixel_1_1PortHandlerArduino.html" title="The class for control port in Arduino. " alt="" coords="217,5,419,32"/>
-<area shape="rect" id="node3" href="$classdynamixel_1_1PortHandlerLinux.html" title="The class for control port in Linux. " alt="" coords="223,56,413,83"/>
-<area shape="rect" id="node4" href="$classdynamixel_1_1PortHandlerMac.html" title="The class for control port in Mac OS. " alt="" coords="227,107,409,133"/>
-<area shape="rect" id="node5" href="$classdynamixel_1_1PortHandlerWindows.html" title="The class for control port in Windows. " alt="" coords="212,157,424,184"/>
-</map>
