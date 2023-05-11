@@ -57,21 +57,70 @@ classdef BevelGear < handle
            
         end
 
+        %Set azimuth and elevation in RAD
+        function setAzimuthAndElevation(obj,azimuth,elevation)
+
+            %Elevation must be between pi/4 and pi/2 (zenit)
+            elevation = min(max(elevation, pi/4), pi/2);
+
+            azimuth_deg = rad2deg(azimuth);
+            elevation_deg = rad2deg(elevation);
+            
+            v = BevelGear.getVectorFromAzimuthAndElevation(azimuth_deg, elevation_deg);
+
+
+            [rot_y,rot_x] = BevelGear.solveForRotation([0,0,1],v);
+
+            obj.rotateAroundY(rot_y);
+            obj.rotateAroundX(rot_x);
+
+        end
+
     end
         methods(Static)
 
-            function [roty, rotx] = getRotations(vec)
-                %The goal is to find a function that calculates the euler rotation angles around y
-                %and subsequent rotation around x' from a rotated vector vec.
-                %The unrotated original vector is assumed to be [0,0,1]
-                %pointing straight up with sceme [x,y,z]. 
-    
-                %E.g. getRotations([-1,0,0]) should give [pi/2, 0];
-                %     getRotations([0, 1,0]) should give [0, pi/2];
-                %     getRotations([0, 0, 1]) should give [0,0];
             
-            
+
+            %% These functions all use DEG
+            function v = rotateYX(u,rot_y,rot_x)
+
+                v = rotx(-rot_x)*roty(-rot_y)*u';
+                
             end
+
+            function [rot_y,rot_x] = solveForRotation(u,v)
+                % Define the error function to minimize
+                errorFunc = @(rot) norm(v - rotx(-rot(2))*roty(-rot(1))*u');
+                
+                % Initial guess
+                rot_init = [0 0];
+                
+                % Use fminsearch to find the rotations that minimize the error
+                rot = fminsearch(errorFunc, rot_init);
+                
+                % Return the rotations
+                rot_y = rot(1);
+                rot_x = rot(2);
+            end
+
+            function v = getVectorFromAzimuthAndElevation(azimuth_deg, elevation_deg)
+                % Convert degrees to radians
+                azimuth = deg2rad(azimuth_deg);
+                elevation = deg2rad(elevation_deg);
+                
+                % Convert Spherical coordinates (r, azimuth, elevation) to Cartesian coordinates (x, y, z)
+                % Given that r = 1 for a unit vector
+                x = cos(azimuth) * cos(elevation);
+                y = sin(azimuth) * cos(elevation);
+                z = sin(elevation);
+                
+                % Assemble the result vector
+                v = [x; y; z];
+            end
+            %%
+
+
+
     end
 end
 
