@@ -1,13 +1,14 @@
 classdef BevelGear < handle
     
-    properties
+    properties (Access = private)
         ServosObject = [];
         composingServos = [];
         rotationAroundY = 0;
         rotationAroundX = 0;
     end
-    
-    methods
+
+    methods (Access = public)
+
         function obj = BevelGear(PORT)
             obj.ServosObject = Servos(PORT);
         end
@@ -29,27 +30,6 @@ classdef BevelGear < handle
             obj.ServosObject.setAngle(obj.composingServos(2),pi);
             obj.rotationAroundY = 0;
             obj.rotationAroundX = 0;
-        end
-
-        %Tilt back front
-        function rotateAroundX(obj, angle)
-
-            obj.rotationAroundX = angle;
-           
-            obj.ServosObject.setAngle(obj.composingServos(1), pi - 2*( angle - obj.rotationAroundY));
-            obj.ServosObject.setAngle(obj.composingServos(2), pi - 2*( angle + obj.rotationAroundY));
-           
-        end
-
-        %Tilt right left
-        function rotateAroundY(obj, angle)
-
-
-            obj.rotationAroundY = angle;
-
-            obj.ServosObject.setAngle(obj.composingServos(1), pi - 2*angle);
-            obj.ServosObject.setAngle(obj.composingServos(2), pi + 2*angle);
-           
         end
 
         function setAzimuthAndElevation(obj,azimuth,elevation)
@@ -109,16 +89,36 @@ classdef BevelGear < handle
         end
 
     end
-        methods(Static)
+    
 
+    methods (Access = private)
+
+        %Tilt back front
+        function rotateAroundX(obj, angle)
+
+            obj.rotationAroundX = angle;
+           
+            obj.ServosObject.setAngle(obj.composingServos(1), pi - 2*( angle - obj.rotationAroundY));
+            obj.ServosObject.setAngle(obj.composingServos(2), pi - 2*( angle + obj.rotationAroundY));
+           
+        end
+
+        %Tilt right left
+        function rotateAroundY(obj, angle)
+
+
+            obj.rotationAroundY = angle;
+
+            obj.ServosObject.setAngle(obj.composingServos(1), pi - 2*angle);
+            obj.ServosObject.setAngle(obj.composingServos(2), pi + 2*angle);
+           
+        end
+
+    end
+
+    methods(Static, Access = private)
             
-
             %% These functions all use DEG
-            function v = rotateYX(u,rot_y,rot_x)
-
-                v = rotx(-rot_x)*roty(-rot_y)*u';
-                
-            end
 
             function [rot_y,rot_x] = solveForRotation(u,v)
                 % Define the error function to minimize
@@ -169,8 +169,6 @@ classdef BevelGear < handle
             end
 
             %%
-
-
 
     end
 end
