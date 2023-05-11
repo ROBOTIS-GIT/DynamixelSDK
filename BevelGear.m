@@ -52,10 +52,11 @@ classdef BevelGear < handle
            
         end
 
-        %Set azimuth and elevation in RAD
         function setAzimuthAndElevation(obj,azimuth,elevation)
+             %Set azimuth and elevation in RAD
 
-            %Elevation must be between pi/4 and pi/2 (zenit)
+
+            %Elevation must be between pi/5 and pi/2 (zenit)
             elevation_limited = min(max(elevation, pi/5), pi/2);
 
             if(elevation_limited ~= elevation)
@@ -74,6 +75,36 @@ classdef BevelGear < handle
 
             obj.rotateAroundY(deg2rad(rot_y));
             obj.rotateAroundX(deg2rad(rot_x));
+
+        end
+        
+        function setVector(obj, v)
+            %Set the gear like a vector. Pointing straight up for v =
+            %[0,0,1]
+
+
+           [azimuth_deg, elevation_deg] = BevelGear.getAzimuthAndElevationFromVector(v);
+
+           elevation = deg2rad(elevation_deg);
+
+           elevation_limited = min(max(elevation, pi/5), pi/2);
+            if(elevation_limited ~= elevation)
+                fprintf("Elevation has been limited to: %.2f \n",rad2deg(elevation_limited));
+                elevation = elevation_limited;
+            end
+
+
+            elevation_deg = rad2deg(elevation);
+
+
+            v = BevelGear.getVectorFromAzimuthAndElevation(azimuth_deg, elevation_deg);
+
+
+            [rot_y,rot_x] = BevelGear.solveForRotation([0,0,1],v);
+
+            obj.rotateAroundY(deg2rad(rot_y));
+            obj.rotateAroundX(deg2rad(rot_x));
+
 
         end
 
@@ -118,6 +149,25 @@ classdef BevelGear < handle
                 % Assemble the result vector
                 v = [x; y; z];
             end
+
+            function [azimuth_deg, elevation_deg] = getAzimuthAndElevationFromVector(v)
+                % Normalize the vector
+                v = v / norm(v);
+                
+                % Get the coordinates
+                x = -v(1);
+                y = v(2);
+                z = v(3);
+                
+                % Calculate the azimuth and elevation in radians
+                azimuth = atan2(y, x);
+                elevation = asin(z);
+            
+                % Convert to degrees
+                azimuth_deg = rad2deg(azimuth);
+                elevation_deg = rad2deg(elevation);
+            end
+
             %%
 
 
