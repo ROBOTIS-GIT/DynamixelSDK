@@ -34,26 +34,21 @@ classdef BevelGear < handle
         %Tilt back front
         function rotateAroundX(obj, angle)
 
-
-            angle = min(max(angle,-pi/2 + 0.01),pi/2 - 0.01);
-
             obj.rotationAroundX = angle;
            
-
-            obj.ServosObject.setAngle(obj.composingServos(1), pi - angle - obj.rotationAroundY);
-            obj.ServosObject.setAngle(obj.composingServos(2), pi - angle + obj.rotationAroundY);
+            obj.ServosObject.setAngle(obj.composingServos(1), pi - 2*( angle - obj.rotationAroundY));
+            obj.ServosObject.setAngle(obj.composingServos(2), pi - 2*( angle + obj.rotationAroundY));
            
         end
 
         %Tilt right left
         function rotateAroundY(obj, angle)
 
-            angle = min(max(angle,-pi/2 + 0.01),pi/2 - 0.01);
 
             obj.rotationAroundY = angle;
 
-            obj.ServosObject.setAngle(obj.composingServos(1), pi - angle);
-            obj.ServosObject.setAngle(obj.composingServos(2), pi + angle);
+            obj.ServosObject.setAngle(obj.composingServos(1), pi - 2*angle);
+            obj.ServosObject.setAngle(obj.composingServos(2), pi + 2*angle);
            
         end
 
@@ -61,7 +56,13 @@ classdef BevelGear < handle
         function setAzimuthAndElevation(obj,azimuth,elevation)
 
             %Elevation must be between pi/4 and pi/2 (zenit)
-            elevation = min(max(elevation, pi/4), pi/2);
+            elevation_limited = min(max(elevation, pi/5), pi/2);
+
+            if(elevation_limited ~= elevation)
+                fprintf("Elevation has been limited to: %.2f \n",rad2deg(elevation_limited));
+                elevation = elevation_limited;
+            end
+
 
             azimuth_deg = rad2deg(azimuth);
             elevation_deg = rad2deg(elevation);
@@ -71,8 +72,8 @@ classdef BevelGear < handle
 
             [rot_y,rot_x] = BevelGear.solveForRotation([0,0,1],v);
 
-            obj.rotateAroundY(rot_y);
-            obj.rotateAroundX(rot_x);
+            obj.rotateAroundY(deg2rad(rot_y));
+            obj.rotateAroundX(deg2rad(rot_x));
 
         end
 
