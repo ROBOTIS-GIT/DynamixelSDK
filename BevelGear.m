@@ -12,6 +12,12 @@ classdef BevelGear < handle
         function obj = BevelGear(PORT)
             obj.ServosObject = Servos(PORT);
         end
+
+        function delete(obj)
+
+            obj.pointStraightUp();
+
+        end
         
         function obj = setComposingServos(obj,ID1, ID2) 
             obj.ServosObject.checkIdAvailable(ID1);
