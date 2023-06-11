@@ -1,6 +1,6 @@
 classdef Frame < handle
     properties
-        position
+        relativePosition
         rotation
         parent
         children
@@ -9,18 +9,19 @@ classdef Frame < handle
         yHandle
         zHandle
         textHandle
-        xTextHandle % Added graphics handle for X label
-        yTextHandle % Added graphics handle for Y label
-        zTextHandle % Added graphics handle for Z label
+        xTextHandle
+        yTextHandle
+        zTextHandle
     end
+
     methods
-        function obj = Frame(position, rotation, parent, label)
+        function obj = Frame(relativePosition, parent, label)
             if nargin > 0
-                obj.position = position;
+                obj.relativePosition = relativePosition;
                 if isempty(parent)
-                    obj.rotation = rotation;
+                    obj.rotation = eye(3);
                 else
-                    obj.rotation = parent.rotation * rotation;
+                    obj.rotation = parent.rotation;
                     parent.children = [parent.children; obj];
                 end
                 obj.parent = parent;
@@ -29,34 +30,43 @@ classdef Frame < handle
             obj.children = [];
         end
         
-function rotate(obj, angle, axis)
-    rot = obj.rotate_about_axis(angle, axis);
-    oldRotation = obj.rotation;
-    obj.rotation = rot * obj.rotation;
+        function pos = getGlobalPosition(obj)
+            if isempty(obj.parent)
+                pos = obj.relativePosition;
+            else
+                pos = obj.parent.getGlobalPosition() + obj.parent.rotation * obj.relativePosition;
+            end
+        end
 
-    % ERROR: Here we need to not only update all children, but also the children
-    % of the children, therefor the frame class should contain an update
-    % method that calls this procedure and also recursifly calls the update
-    % methods of any of the children and the childrens children..
-    for i = 1:length(obj.children)
-        child = obj.children(i);
-        child.position = obj.position + obj.rotation * inv(oldRotation) * (child.position - obj.position);
-        child.rotation = obj.rotation * inv(oldRotation) * child.rotation;  % rotate child's frame relative to parent's rotation
-    end
-end
+        function rotate(obj, angle, axis_label)
 
-        
+            switch lower(axis_label)
+            case 'x'
+                axis_vec = obj.rotation(:, 1);
+            case 'y'
+                axis_vec = obj.rotation(:, 2);
+            case 'z'
+                axis_vec = obj.rotation(:, 3);
+            otherwise
+                error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
+            end
+            
+            rotate_about_axis(obj, angle, axis_vec)
+
+
+        end
+
           function [ref_position, ref_rotation, ref_frame] = display(obj, ref_frame)
             if nargin < 2
                 % If no reference frame is given, use global frame
                 ref_frame_label = 'global frame';
                 ref_frame = [];
-                ref_position = obj.position;
+                ref_position = obj.getGlobalPosition;
                 ref_rotation = obj.rotation;
             else
                 % Compute position and rotation in the reference frame
                 ref_frame_label = ref_frame.label;
-                ref_position = ref_frame.rotation' * (obj.position - ref_frame.position);
+                ref_position = ref_frame.rotation' * (obj.getGlobalPosition - ref_frame.getGlobalPosition);
                 ref_rotation = ref_frame.rotation' * obj.rotation;
             end
 
@@ -64,7 +74,7 @@ end
             fprintf('Position in %s FoR: [%f, %f, %f]\n', ref_frame_label, ref_position);
             fprintf('Rotation in %s FoR:\n', ref_frame_label);
             disp(ref_rotation);
-            obj.draw_frame(obj.rotation, obj.position, obj.label);
+            obj.draw_frame(obj.rotation, obj.getGlobalPosition(), obj.label);
             
             if ~isempty(obj.parent)
                 fprintf('%s has parent frame: %s\n', obj.label, obj.parent.label);
@@ -87,17 +97,7 @@ end
         end
 
         
-        function rot = rotate_about_axis(obj, angle, axis)
-            switch lower(axis)
-                case 'x'
-                    axis_vec = obj.rotation(:, 1);
-                case 'y'
-                    axis_vec = obj.rotation(:, 2);
-                case 'z'
-                    axis_vec = obj.rotation(:, 3);
-                otherwise
-                    error('Invalid rotation axis. Use ''x'', ''y'', or ''z''.');
-            end
+        function rotMatrix = rotate_about_axis(obj, angle, axis_vec)
 
             c = cos(angle);
             s = sin(angle);
@@ -107,14 +107,25 @@ end
             z = axis_vec(3);
             
             % Using Rodrigues' rotation formula
-            rot = [t*x*x + c,   t*x*y - s*z, t*x*z + s*y;
+            rotMatrix = [t*x*x + c,   t*x*y - s*z, t*x*z + s*y;
                    t*x*y + s*z, t*y*y + c,   t*y*z - s*x;
                    t*x*z - s*y, t*y*z + s*x, t*z*z + c];
+
+
+            obj.rotation = rotMatrix * obj.rotation;
+            
+            for i = 1:length(obj.children)
+                child = obj.children(i);
+                child.rotate_about_axis(angle, axis_vec)
+            end
         end
 
         function draw_frame(obj, frame, position, label)
             colors = ['r', 'g', 'b'];
             axis_labels = {'X', 'Y', 'Z'};
+            
+            max_robot_dimension = 500;  % Update this based on your robot size
+            scale_factor = max_robot_dimension / 20;  % Scale factor for the frames
             
             % Delete the previous plotted objects before replotting
             if ~isempty(obj.xHandle) && isvalid(obj.xHandle)
@@ -140,14 +151,14 @@ end
             end
             
             % Plot each axis and save the graphics handle
-            obj.xHandle = quiver3(position(1), position(2), position(3), frame(1,1), frame(2,1), frame(3,1), 'Color', colors(1), 'LineWidth', 2, 'MaxHeadSize', 0.3, 'AutoScale', 'off');
-            obj.yHandle = quiver3(position(1), position(2), position(3), frame(1,2), frame(2,2), frame(3,2), 'Color', colors(2), 'LineWidth', 2, 'MaxHeadSize', 0.3, 'AutoScale', 'off');
-            obj.zHandle = quiver3(position(1), position(2), position(3), frame(1,3), frame(2,3), frame(3,3), 'Color', colors(3), 'LineWidth', 2, 'MaxHeadSize', 0.3, 'AutoScale', 'off');
+            obj.xHandle = quiver3(position(1), position(2), position(3), scale_factor*frame(1,1), scale_factor*frame(2,1), scale_factor*frame(3,1), 'Color', colors(1));
+            obj.yHandle = quiver3(position(1), position(2), position(3), scale_factor*frame(1,2), scale_factor*frame(2,2), scale_factor*frame(3,2), 'Color', colors(2));
+            obj.zHandle = quiver3(position(1), position(2), position(3), scale_factor*frame(1,3), scale_factor*frame(2,3), scale_factor*frame(3,3), 'Color', colors(3));
             
             % Plot color legend and save the graphics handle
-            obj.xTextHandle = text(position(1) + frame(1,1), position(2) + frame(2,1), position(3) + frame(3,1), axis_labels{1}, 'Color', colors(1), 'FontWeight', 'bold'); % Modified
-            obj.yTextHandle = text(position(1) + frame(1,2), position(2) + frame(2,2), position(3) + frame(3,2), axis_labels{2}, 'Color', colors(2), 'FontWeight', 'bold'); % Modified
-            obj.zTextHandle = text(position(1) + frame(1,3), position(2) + frame(2,3), position(3) + frame(3,3), axis_labels{3}, 'Color', colors(3), 'FontWeight', 'bold'); % Modified
+            obj.xTextHandle = text(position(1) + scale_factor*frame(1,1), position(2) + scale_factor*frame(2,1), position(3) + scale_factor*frame(3,1), axis_labels{1}, 'Color', colors(1), 'FontWeight', 'bold'); 
+            obj.yTextHandle = text(position(1) + scale_factor*frame(1,2), position(2) + scale_factor*frame(2,2), position(3) + scale_factor*frame(3,2), axis_labels{2}, 'Color', colors(2), 'FontWeight', 'bold'); 
+            obj.zTextHandle = text(position(1) + scale_factor*frame(1,3), position(2) + scale_factor*frame(2,3), position(3) + scale_factor*frame(3,3), axis_labels{3}, 'Color', colors(3), 'FontWeight', 'bold'); 
             
             % Plot label and save the graphics handle
             obj.textHandle = text(position(1), position(2), position(3), label);
@@ -155,11 +166,3 @@ end
     end
 end
 
-
-function result = ifelse(condition, true_result, false_result)
-    if condition
-        result = true_result;
-    else
-        result = false_result;
-    end
-end

@@ -20,9 +20,11 @@ classdef Link < handle
                 delete(obj.lineHandle);
             end
             % Draw the new line and save its handle
-            obj.lineHandle = plot3([obj.startFrame.position(1), obj.endFrame.position(1)], ...
-                  [obj.startFrame.position(2), obj.endFrame.position(2)], ...
-                  [obj.startFrame.position(3), obj.endFrame.position(3)], 'k-', 'LineWidth', 5);
+            startPos = obj.startFrame.getGlobalPosition;
+            endPos = obj.endFrame.getGlobalPosition;
+            obj.lineHandle = plot3([startPos(1), endPos(1)], ...
+                  [startPos(2), endPos(2)], ...
+                  [startPos(3), endPos(3)], 'k-', 'LineWidth', 5);
         end
     end
 end
