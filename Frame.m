@@ -42,17 +42,32 @@ function rotate(obj, angle, axis)
 end
 
         
-        function display(obj)
+          function [ref_position, ref_rotation, ref_frame] = display(obj, ref_frame)
+            if nargin < 2
+                % If no reference frame is given, use global frame
+                ref_frame_label = 'global frame';
+                ref_frame = [];
+                ref_position = obj.position;
+                ref_rotation = obj.rotation;
+            else
+                % Compute position and rotation in the reference frame
+                ref_frame_label = ref_frame.label;
+                ref_position = ref_frame.rotation' * (obj.position - ref_frame.position);
+                ref_rotation = ref_frame.rotation' * obj.rotation;
+            end
+
             fprintf('Frame: %s\n', obj.label);
-            fprintf('Position: [%f, %f, %f]\n', obj.position);
-            fprintf('Rotation:\n');
-            disp(obj.rotation);
+            fprintf('Position in %s FoR: [%f, %f, %f]\n', ref_frame_label, ref_position);
+            fprintf('Rotation in %s FoR:\n', ref_frame_label);
+            disp(ref_rotation);
             obj.draw_frame(obj.rotation, obj.position, obj.label);
+            
             if ~isempty(obj.parent)
                 fprintf('%s has parent frame: %s\n', obj.label, obj.parent.label);
             else
                 fprintf('%s has no parent frame\n', obj.label);
             end
+            
             if ~isempty(obj.children)
                 fprintf('%s has child frames: ', obj.label);
                 for i = 1:length(obj.children)
@@ -66,6 +81,7 @@ end
                 fprintf('%s has no child frames\n', obj.label);
             end
         end
+
         
         function rot = rotate_about_axis(obj, angle, axis)
             switch lower(axis)
@@ -132,5 +148,14 @@ end
             % Plot label and save the graphics handle
             obj.textHandle = text(position(1), position(2), position(3), label);
         end
+    end
+end
+
+
+function result = ifelse(condition, true_result, false_result)
+    if condition
+        result = true_result;
+    else
+        result = false_result;
     end
 end

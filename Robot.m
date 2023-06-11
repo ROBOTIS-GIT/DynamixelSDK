@@ -37,12 +37,18 @@ ylabel('Y');
 zlabel('Z');
 title('Robot Joints');
 
+
 % Test
 joint1_frame.rotate(-pi/2, 'x');
 
 % Update and display frames
 joint1_frame.display();
+fprintf("\n")
+% Display joint2_frame in the reference of joint1_frame
+[pos, rot, ref] = joint2_frame.display(joint1_frame);
+% Display joint2_frame in the global frame of reference
 joint2_frame.display();
+
 
 % Update and display links
 link1.update();
