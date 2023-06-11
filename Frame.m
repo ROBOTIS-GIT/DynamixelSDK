@@ -34,6 +34,10 @@ function rotate(obj, angle, axis)
     oldRotation = obj.rotation;
     obj.rotation = rot * obj.rotation;
 
+    % ERROR: Here we need to not only update all children, but also the children
+    % of the children, therefor the frame class should contain an update
+    % method that calls this procedure and also recursifly calls the update
+    % methods of any of the children and the childrens children..
     for i = 1:length(obj.children)
         child = obj.children(i);
         child.position = obj.position + obj.rotation * inv(oldRotation) * (child.position - obj.position);
