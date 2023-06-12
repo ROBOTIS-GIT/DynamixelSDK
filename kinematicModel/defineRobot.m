@@ -30,14 +30,13 @@ joint3.rotate(pi/4)
 joint4.rotate(pi/4)
 
 % Set a desired endeffector velocity
-x_dot = [-100;0;0];
+x_dot = [-50;0;0];
 
 % Set a time increment for the simulation
 dt = 0.1; % s
 
 ref_positions_array = [];
 
-tic;
 for i = 1:1000
 
     % Get current joint angles
@@ -50,7 +49,7 @@ for i = 1:1000
     J = robot.getJacobianNumeric;
 
     % Stop if the current configuration approaches a singularity
-    if cond(pinv(J)) > 50
+    if cond(pinv(J)) > 15
         disp('Warning: Close to singularity!');
         break
     end
@@ -65,12 +64,10 @@ for i = 1:1000
     robot.joints(4).rotate(q_dot(4)*dt);
 
     % Visualize the robot every x frame
-    if mod(i,1) == 0
-        clear = 0;
-        draw_frames = 0;
-        robot.display(clear, draw_frames);
-        drawnow
-    end
+    clear = 0;
+    draw_frames = 0;
+    robot.display(clear, draw_frames);
+    drawnow
 
     % Get endeffector info
     display_info = 0;
@@ -80,7 +77,8 @@ for i = 1:1000
     ref_positions_array = [ref_positions_array ref_position];
     plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
 
-    pause(dt)
+    % fprintf('Time for iteration %d: %f seconds\n', i, loopTime);
+    
 
 end
-toc
+
