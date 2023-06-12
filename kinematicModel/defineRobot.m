@@ -39,13 +39,17 @@ ref_positions_array = [];
 
 for i = 1:1000
 
-    % Get current joint angles
+    % Get current joint angles % This would later be received from the real
+    % motors. I should therefor add a setAngle method to the Joint to set
+    % the angle from the real joints to the angle of the simulated joint.
     sAlpha = robot.joints(1).angle;
     sBeta = robot.joints(2).angle;
     sGamma = robot.joints(3).angle;
     sDelta = robot.joints(4).angle;
+
+    % --> Set these angles to the modeled robot
     
-    % Calculate the Jacobian in the current configuration numerically
+    % Calculate the Jacobian in the current (modeled robot = real robot) configuration numerically
     J = robot.getJacobianNumeric;
 
     % Stop if the current configuration approaches a singularity
@@ -57,13 +61,19 @@ for i = 1:1000
     % Calculate respective joint velocity
     q_dot = pinv(J) * x_dot;
 
-    %Apply joint rotation increment
+    % Set the joint velocity to the real robot here
+    % Check for further constraints such as joint limits and elevation
+    % limits for the bevel gear..
+
+    %Apply joint rotation increment % No need for this later since the
+    %simulated joints will be set by the real robot as mentioned above
     robot.joints(1).rotate(q_dot(1)*dt);
     robot.joints(2).rotate(q_dot(2)*dt);
     robot.joints(3).rotate(q_dot(3)*dt);
     robot.joints(4).rotate(q_dot(4)*dt);
 
-    % Visualize the robot every x frame
+    % Visualize the robot every x frame % Visualize the modeld robot that
+    % should be a mirror image of the real robot
     clear = 0;
     draw_frames = 0;
     robot.display(clear, draw_frames);
