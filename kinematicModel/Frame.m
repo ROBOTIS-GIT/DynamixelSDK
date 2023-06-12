@@ -1,21 +1,34 @@
 classdef Frame < handle
+    %Frame - A class to represent a coordinate frame in 3D space.
+    % The Frame object holds information about its position and orientation
+    % relative to its parent frame. It also contains a list of its child
+    % frames. The frame's position is stored in the relativePosition
+    % property and the frame's orientation is stored as a 3x3 rotation 
+    % matrix in the rotation property. The orientation is represented in 
+    % the origin frame, i.e., it's a global rotation.
     properties
-        relativePosition
-        rotation
-        parent
-        children
-        label
-        xHandle
-        yHandle
-        zHandle
-        textHandle
-        xTextHandle
-        yTextHandle
-        zTextHandle
+        relativePosition  % Position vector relative to the parent frame
+        rotation          % Orientation of the frame represented as a 3x3 rotation matrix in global frame
+        parent            % Reference to the parent Frame object
+        children          % Array of references to the child Frame objects
+        label             % String label for the frame
+        xHandle           % Graphics handle for X axis
+        yHandle           % Graphics handle for Y axis
+        zHandle           % Graphics handle for Z axis
+        textHandle        % Graphics handle for the frame label
+        xTextHandle       % Graphics handle for X axis label
+        yTextHandle       % Graphics handle for Y axis label
+        zTextHandle       % Graphics handle for Z axis label
     end
 
     methods
         function obj = Frame(relativePosition, parent, label)
+           %Frame - Construct a Frame object.
+            % Frame(relativePosition, parent, label) creates a Frame object
+            % with the specified relative position, parent frame, and label.
+            % The frame's orientation is initialized to match the parent
+            % frame's orientation, or to the identity matrix if no parent 
+            % frame is provided.
             if nargin > 0
                 obj.relativePosition = relativePosition;
                 if isempty(parent)
@@ -31,6 +44,10 @@ classdef Frame < handle
         end
         
         function pos = getGlobalPosition(obj)
+            %getGlobalPosition - Calculate the frame's position in the global frame.
+            % pos = getGlobalPosition(obj) returns a 3x1 vector specifying 
+            % the frame's position in the global frame.
+
             if isempty(obj.parent)
                 pos = obj.relativePosition;
             else
@@ -39,7 +56,9 @@ classdef Frame < handle
         end
 
         function rotate(obj, angle, axis_label)
-
+            % This method rotates the frame around one of its axes by a certain
+            % angle (in radians). The rotation axis is given by the 'axis_label'
+            % parameter and is in the frame's local coordinates.
             switch lower(axis_label)
             case 'x'
                 axis_vec = obj.rotation(:, 1);
@@ -57,6 +76,11 @@ classdef Frame < handle
         end
 
           function [ref_position, ref_rotation, ref_frame] = display(obj, ref_frame)
+            % This method displays information about the frame in the MATLAB
+            % command window and also draws the frame in a 3D plot. If the optional
+            % 'ref_frame' argument is provided, the position and orientation of
+            % the frame are given with respect to this reference frame. Otherwise,
+            % they are given with respect to the global frame.
             if nargin < 2
                 % If no reference frame is given, use global frame
                 ref_frame_label = 'global frame';
@@ -98,7 +122,12 @@ classdef Frame < handle
 
         
         function rotMatrix = rotate_about_axis(obj, angle, axis_vec)
-
+            % This is a helper method that performs the actual rotation of the
+            % frame. It uses Rodrigues' rotation formula to compute the rotation
+            % matrix given the rotation angle and the rotation axis vector (in
+            % global coordinates). This rotation matrix is then post-multiplied
+            % to the current rotation matrix of the frame. This method also
+            % recursively applies the same rotation to all child frames.
             c = cos(angle);
             s = sin(angle);
             t = 1 - c;
@@ -120,7 +149,12 @@ classdef Frame < handle
             end
         end
 
-        function draw_frame(obj, frame, position, label)
+        function draw_frame(obj, rotation, globalPosition, label)
+            % This method draws the frame in a 3D plot. It uses the 'quiver3' and
+            % 'text' functions to draw the frame's axes and labels, respectively.
+            % The 'rotation' and 'globalPosition' arguments provide the rotation
+            % matrix and global position of the frame. The 'label' argument is the
+            % label of the frame.
             colors = ['r', 'g', 'b'];
             axis_labels = {'X', 'Y', 'Z'};
             
@@ -151,17 +185,17 @@ classdef Frame < handle
             end
             
             % Plot each axis and save the graphics handle
-            obj.xHandle = quiver3(position(1), position(2), position(3), scale_factor*frame(1,1), scale_factor*frame(2,1), scale_factor*frame(3,1), 'Color', colors(1));
-            obj.yHandle = quiver3(position(1), position(2), position(3), scale_factor*frame(1,2), scale_factor*frame(2,2), scale_factor*frame(3,2), 'Color', colors(2));
-            obj.zHandle = quiver3(position(1), position(2), position(3), scale_factor*frame(1,3), scale_factor*frame(2,3), scale_factor*frame(3,3), 'Color', colors(3));
+            obj.xHandle = quiver3(globalPosition(1), globalPosition(2), globalPosition(3), scale_factor*rotation(1,1), scale_factor*rotation(2,1), scale_factor*rotation(3,1), 'Color', colors(1));
+            obj.yHandle = quiver3(globalPosition(1), globalPosition(2), globalPosition(3), scale_factor*rotation(1,2), scale_factor*rotation(2,2), scale_factor*rotation(3,2), 'Color', colors(2));
+            obj.zHandle = quiver3(globalPosition(1), globalPosition(2), globalPosition(3), scale_factor*rotation(1,3), scale_factor*rotation(2,3), scale_factor*rotation(3,3), 'Color', colors(3));
             
             % Plot color legend and save the graphics handle
-            obj.xTextHandle = text(position(1) + scale_factor*frame(1,1), position(2) + scale_factor*frame(2,1), position(3) + scale_factor*frame(3,1), axis_labels{1}, 'Color', colors(1), 'FontWeight', 'bold'); 
-            obj.yTextHandle = text(position(1) + scale_factor*frame(1,2), position(2) + scale_factor*frame(2,2), position(3) + scale_factor*frame(3,2), axis_labels{2}, 'Color', colors(2), 'FontWeight', 'bold'); 
-            obj.zTextHandle = text(position(1) + scale_factor*frame(1,3), position(2) + scale_factor*frame(2,3), position(3) + scale_factor*frame(3,3), axis_labels{3}, 'Color', colors(3), 'FontWeight', 'bold'); 
+            obj.xTextHandle = text(globalPosition(1) + scale_factor*rotation(1,1), globalPosition(2) + scale_factor*rotation(2,1), globalPosition(3) + scale_factor*rotation(3,1), axis_labels{1}, 'Color', colors(1), 'FontWeight', 'bold'); 
+            obj.yTextHandle = text(globalPosition(1) + scale_factor*rotation(1,2), globalPosition(2) + scale_factor*rotation(2,2), globalPosition(3) + scale_factor*rotation(3,2), axis_labels{2}, 'Color', colors(2), 'FontWeight', 'bold'); 
+            obj.zTextHandle = text(globalPosition(1) + scale_factor*rotation(1,3), globalPosition(2) + scale_factor*rotation(2,3), globalPosition(3) + scale_factor*rotation(3,3), axis_labels{3}, 'Color', colors(3), 'FontWeight', 'bold'); 
             
             % Plot label and save the graphics handle
-            obj.textHandle = text(position(1), position(2), position(3), label);
+            obj.textHandle = text(globalPosition(1), globalPosition(2), globalPosition(3), label);
         end
     end
 end
