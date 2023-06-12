@@ -23,19 +23,47 @@ robot = Robot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, lin
 
 
 %% Rotations
-joint1.rotate(pi/3)
-joint2.rotate(pi/4)
-joint3.rotate(pi/5)
-joint4.rotate(pi/6)
+joint1.rotate(0)
+joint2.rotate(0)
+joint3.rotate(0)
+joint4.rotate(pi/2)
 
-robot.forwardKinematics
+%Get symbolic Jacobian
+J = robot.getJacobian;
 
+% Desired endeffector velocity
+x_dot = [0;0;1]; % move straight up with 1 mm /s
 
-%% Display
-robot.display();
-[ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo();
+% Time increment
+dt = 1; % s
 
+while 1
 
-%% Plot settings
+    % Get current joint angles
+    sAlpha = robot.joints(1).angle;
+    sBeta = robot.joints(2).angle;
+    sGamma = robot.joints(3).angle;
+    sDelta = robot.joints(4).angle;
+    
+    %Get numeric Jacobian
+    J = double(subs(J));
 
-hold off
+    % Calculate necessary joint velocity
+    q_dot = pinv(J) * x_dot;
+
+    %Apply joint rotation increment 
+    robot.joints(1).rotate(q_dot(1)*dt);
+    robot.joints(2).rotate(q_dot(2)*dt);
+    robot.joints(3).rotate(q_dot(3)*dt);
+    robot.joints(4).rotate(q_dot(4)*dt);
+
+    % Visualize the robot
+    robot.display();
+    drawnow
+
+    % Get endeffector info
+    [ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo();
+
+    pause(dt)
+
+end

@@ -53,6 +53,46 @@ classdef Robot < handle
 
         end
 
+
+        function [sOxE] = forwardKinematicsSym(obj)
+            % This method computes the symbolic version of the forward kinematics function
+            
+            % Declare joint angles as symbolic variables
+            syms sAlpha sBeta sGamma sDelta real;
+            
+            % Rotational matrices
+            sR1 = rotx(-sAlpha);
+            sR2 = roty(-sBeta);
+            sR3 = rotz(-sGamma);
+            sR4 = rotx(-sDelta);
+            
+            % Distances
+            xo1 = obj.joints(1).relativePosition;
+            x12 = obj.joints(2).relativePosition;
+            x23 = obj.joints(3).relativePosition;
+            x34 = obj.joints(4).relativePosition;
+            x4E = obj.frames(2).relativePosition;
+            
+            % Symbolic forward kinematics
+            sOxE  = sR1 * (sR2 * (sR3 * (sR4 * x4E + x34) + x23) + x12) + xo1;
+        end
+
+        function J = getJacobian(obj)
+            % This method computes the Jacobian matrix based on the symbolic version of the forward kinematics function
+            
+            % Declare joint angles as symbolic variables
+            syms sAlpha sBeta sGamma sDelta real;
+            
+            % Get symbolic forward kinematics
+            sOxE = obj.forwardKinematicsSym;
+            
+            % Compute the Jacobian
+            J = jacobian(sOxE, [sAlpha, sBeta, sGamma, sDelta]);
+        end
+
+
+
+
         
         % The display method updates and displays all joints and links
         function display(obj)
@@ -95,6 +135,7 @@ function rotz = rotz(gamma)
     rotz = [cos(gamma) sin(gamma) 0; -sin(gamma) cos(gamma) 0; 0 0 1];
 
 end
+
 
 
     
