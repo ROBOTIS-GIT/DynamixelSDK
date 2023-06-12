@@ -70,14 +70,19 @@ classdef Frame < handle
                 error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
             end
             
-            rotate_about_axis(obj, angle, axis_vec)
+            rotate_about_axis(obj, angle, axis_vec);
 
 
         end
 
-          function [ref_position, ref_rotation, ref_frame] = display(obj, ref_frame)
+    function display(obj)
+            % This method just plots the frame in a 3D plot
+            obj.draw_frame(obj.rotation, obj.getGlobalPosition(), obj.label);
+        end
+    
+        function [ref_position, ref_rotation, ref_frame] = getInfo(obj, ref_frame)
             % This method displays information about the frame in the MATLAB
-            % command window and also draws the frame in a 3D plot. If the optional
+            % command window and also returns it. If the optional
             % 'ref_frame' argument is provided, the position and orientation of
             % the frame are given with respect to this reference frame. Otherwise,
             % they are given with respect to the global frame.
@@ -93,13 +98,12 @@ classdef Frame < handle
                 ref_position = ref_frame.rotation' * (obj.getGlobalPosition - ref_frame.getGlobalPosition);
                 ref_rotation = ref_frame.rotation' * obj.rotation;
             end
-
+    
             fprintf('Frame: %s\n', obj.label);
             fprintf('Position in %s FoR: [%f, %f, %f]\n', ref_frame_label, ref_position);
             fprintf('Rotation in %s FoR:\n', ref_frame_label);
             disp(ref_rotation);
-            obj.draw_frame(obj.rotation, obj.getGlobalPosition(), obj.label);
-            
+    
             if ~isempty(obj.parent)
                 fprintf('%s has parent frame: %s\n', obj.label, obj.parent.label);
             else
@@ -118,6 +122,8 @@ classdef Frame < handle
             else
                 fprintf('%s has no child frames\n', obj.label);
             end
+    
+            return
         end
 
         
@@ -145,7 +151,7 @@ classdef Frame < handle
             
             for i = 1:length(obj.children)
                 child = obj.children(i);
-                child.rotate_about_axis(angle, axis_vec)
+                child.rotate_about_axis(angle, axis_vec);
             end
         end
 

@@ -30,6 +30,7 @@ joint4_frame.rotate(pi/2, 'z');
 
 %% Display
 robot.display();
+[ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo();
 
 
 %% Plot settings
