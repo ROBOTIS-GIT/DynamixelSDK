@@ -12,6 +12,8 @@ classdef Link < handle
         % The lineHandle property stores the graphics handle for the link
         % which can be used to delete the link from the plot when necessary.
         lineHandle
+        color  % Add a color property
+
     end
     
     methods
@@ -19,10 +21,11 @@ classdef Link < handle
         % startFrame and endFrame properties with the frames provided as
         % arguments. It also initializes the lineHandle property to an empty
         % array, as there is no line drawn initially.
-        function obj = Link(startFrame, endFrame)
+        function obj = Link(startFrame, endFrame, color)
             obj.startFrame = startFrame;
             obj.endFrame = endFrame;
             obj.lineHandle = [];
+            obj.color = color;  % Set the color property
         end
         
         % The display method updates the display of the link. Currently, it
@@ -38,15 +41,15 @@ classdef Link < handle
         % global position of the endFrame, and its handle is saved in
         % lineHandle for future reference.
         function update(obj)
-            if ~isempty(obj.lineHandle) && isvalid(obj.lineHandle)  % Delete old line if it exists
+            if ~isempty(obj.lineHandle) && isvalid(obj.lineHandle)
                 delete(obj.lineHandle);
             end
-            % Draw the new line and save its handle
             startPos = obj.startFrame.getGlobalPosition;
             endPos = obj.endFrame.getGlobalPosition;
+            % Use the color property when drawing the line
             obj.lineHandle = plot3([startPos(1), endPos(1)], ...
                   [startPos(2), endPos(2)], ...
-                  [startPos(3), endPos(3)], '-k', 'LineWidth', 5);
+                  [startPos(3), endPos(3)], '-', 'Color', obj.color, 'LineWidth', 5);
         end
     end
 end

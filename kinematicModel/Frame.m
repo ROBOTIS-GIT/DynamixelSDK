@@ -75,19 +75,14 @@ classdef Frame < handle
 
         end
 
-    function display(obj)
+        function display(obj)
             % This method just plots the frame in a 3D plot
             obj.draw_frame(obj.rotation, obj.getGlobalPosition(), obj.label);
         end
     
-        function [ref_position, ref_rotation, ref_frame] = getInfo(obj, ref_frame)
-            % This method displays information about the frame in the MATLAB
-            % command window and also returns it. If the optional
-            % 'ref_frame' argument is provided, the position and orientation of
-            % the frame are given with respect to this reference frame. Otherwise,
-            % they are given with respect to the global frame.
-            if nargin < 2
-                % If no reference frame is given, use global frame
+        function [ref_position, ref_rotation, ref_frame] = getInfo(obj,display_info, ref_frame)
+            % If the ref_frame argument is missing or empty, use global frame
+            if nargin < 3 || isempty(ref_frame)
                 ref_frame_label = 'global frame';
                 ref_frame = [];
                 ref_position = obj.getGlobalPosition;
@@ -98,29 +93,31 @@ classdef Frame < handle
                 ref_position = ref_frame.rotation' * (obj.getGlobalPosition - ref_frame.getGlobalPosition);
                 ref_rotation = ref_frame.rotation' * obj.rotation;
             end
-    
-            fprintf('Frame: %s\n', obj.label);
-            fprintf('Position in %s FoR: [%f, %f, %f]\n', ref_frame_label, ref_position);
-            fprintf('Rotation in %s FoR:\n', ref_frame_label);
-            disp(ref_rotation);
-    
-            if ~isempty(obj.parent)
-                fprintf('%s has parent frame: %s\n', obj.label, obj.parent.label);
-            else
-                fprintf('%s has no parent frame\n', obj.label);
-            end
-            
-            if ~isempty(obj.children)
-                fprintf('%s has child frames: ', obj.label);
-                for i = 1:length(obj.children)
-                    if i == length(obj.children)
-                        fprintf('%s\n', obj.children(i).label);
-                    else
-                        fprintf('%s, ', obj.children(i).label);
-                    end
+                    
+            if display_info
+                fprintf('Frame: %s\n', obj.label);
+                fprintf('Position in %s FoR: [%f, %f, %f]\n', ref_frame_label, ref_position);
+                fprintf('Rotation in %s FoR:\n', ref_frame_label);
+                disp(ref_rotation);
+        
+                if ~isempty(obj.parent)
+                    fprintf('%s has parent frame: %s\n', obj.label, obj.parent.label);
+                else
+                    fprintf('%s has no parent frame\n', obj.label);
                 end
-            else
-                fprintf('%s has no child frames\n', obj.label);
+                
+                if ~isempty(obj.children)
+                    fprintf('%s has child frames: ', obj.label);
+                    for i = 1:length(obj.children)
+                        if i == length(obj.children)
+                            fprintf('%s\n', obj.children(i).label);
+                        else
+                            fprintf('%s, ', obj.children(i).label);
+                        end
+                    end
+                else
+                    fprintf('%s has no child frames\n', obj.label);
+                end
             end
     
             return

@@ -12,11 +12,12 @@ joint4 = Joint([0;0;163.99], joint3, 'Joint 4', 'x');
 endeffector_frame = Frame([0;0;218.86], joint4, 'Endeffector');
 
 %% Links
-link1 = Link(orig_frame, joint1);
-link2 = Link(joint1, joint2);
-link3 = Link(joint2, joint3);
-link4 = Link(joint3, joint4);
-link5 = Link(joint4, endeffector_frame);
+link1 = Link(orig_frame, joint1, 'r');  % Red
+link2 = Link(joint1, joint2, 'g');  % Green
+link3 = Link(joint2, joint3, 'b');  % Blue
+link4 = Link(joint3, joint4, 'y');  % Yellow
+link5 = Link(joint4, endeffector_frame, 'm');  % Magenta
+
 
 %% Robot
 robot = Robot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, link5], [orig_frame, endeffector_frame]);
@@ -72,11 +73,12 @@ for i = 1:1000
     end
 
     % Get endeffector info
-    % [ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo();
+    display_info = 0;
+    [ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo(display_info);
 
     ref_positions_array = [ref_positions_array ref_position];
     plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'c');
 
-
+    
 
 end
