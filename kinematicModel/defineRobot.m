@@ -30,13 +30,14 @@ joint3.rotate(pi/4)
 joint4.rotate(pi/4)
 
 % Set a desired endeffector velocity
-x_dot = [-20;0;0]; % move straight up with 1 mm /s
+x_dot = [-100;0;0];
 
 % Set a time increment for the simulation
 dt = 0.1; % s
 
 ref_positions_array = [];
 
+tic;
 for i = 1:1000
 
     % Get current joint angles
@@ -63,8 +64,8 @@ for i = 1:1000
     robot.joints(3).rotate(q_dot(3)*dt);
     robot.joints(4).rotate(q_dot(4)*dt);
 
-    % Visualize the robot every tenth frame
-    if mod(i,10) == 0
+    % Visualize the robot every x frame
+    if mod(i,1) == 0
         clear = 0;
         draw_frames = 0;
         robot.display(clear, draw_frames);
@@ -77,6 +78,9 @@ for i = 1:1000
 
     % Append the endeffector postion to an array and plot the trajectory
     ref_positions_array = [ref_positions_array ref_position];
-    plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'c');
+    plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
+
+    pause(dt)
 
 end
+toc
