@@ -48,28 +48,10 @@ classdef Robot < handle
 
 
             oxE  = R1 * (R2 * (R3 * (R4 * x4E + x34) + x23) + x12) + xo1;
-        end
 
-        function sOxE = forwardKinematicsSym(obj, sAngles)
-            % This method computes the symbolic version of the forward kinematics function
-    
-            % Rotational matrices
-            sR1 = rotx(-sAngles(1));
-            sR2 = roty(-sAngles(2));
-            sR3 = rotz(-sAngles(3));
-            sR4 = rotx(-sAngles(4));
-            
-            % Distances
-            xo1 = obj.joints(1).relativePosition;
-            x12 = obj.joints(2).relativePosition;
-            x23 = obj.joints(3).relativePosition;
-            x34 = obj.joints(4).relativePosition;
-            x4E = obj.frames(2).relativePosition;
-    
-            % Symbolic forward kinematics
-            sOxE  = sR1 * (sR2 * (sR3 * (sR4 * x4E + x34) + x23) + x12) + xo1;
-        end
 
+
+        end
 
         
         % The display method updates and displays all joints and links

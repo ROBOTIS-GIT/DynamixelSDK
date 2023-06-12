@@ -29,21 +29,6 @@ joint3.rotate(pi/4)
 joint4.rotate(pi/4)
 
 robot.forwardKinematics
-% Define joint angles as symbolic variables
-syms alpha beta gamma delta real
-
-% Create an array of symbolic variables
-sAngles = [alpha beta gamma delta];
-
-% Call the forwardKinematicsSym method
-oxE_symbolic = robot.forwardKinematicsSym(sAngles);
-
-% Substitute specific values for the joint angles
-values = [pi/4, pi/4, pi/4, pi/4]; % These are example values. Use your own here.
-oxE_numeric = double(subs(oxE_symbolic, sAngles, values))
-
-
-
 
 
 %% Display
