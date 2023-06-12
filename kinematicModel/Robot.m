@@ -14,7 +14,7 @@ classdef Robot < handle
             obj.frames = frames;
         end
 
-        function [oxE] = forwardKinematics(obj)
+        function [oxE] = forwardKinematicsNumeric(obj)
             %This method is written for the 4 joint robot configuration of the real robot. A
             %general method with n-joints is not available yet.
             
@@ -50,8 +50,7 @@ classdef Robot < handle
 
         end
 
-
-        function [sOxE] = forwardKinematicsSym(obj)
+        function [sOxE] = forwardKinematicsSymbolic(obj)
             % This method computes the symbolic version of the forward kinematics function
             
             % Declare joint angles as symbolic variables
@@ -74,14 +73,14 @@ classdef Robot < handle
             sOxE  = sR1 * (sR2 * (sR3 * (sR4 * x4E + x34) + x23) + x12) + xo1;
         end
 
-        function J = getJacobian(obj)
+        function J = getJacobianSymbolic(obj)
             % This method computes the Jacobian matrix based on the symbolic version of the forward kinematics function
             
             % Declare joint angles as symbolic variables
             syms sAlpha sBeta sGamma sDelta real;
             
             % Get symbolic forward kinematics
-            sOxE = obj.forwardKinematicsSym;
+            sOxE = obj.forwardKinematicsSymbolic;
             
             % Compute the Jacobian
             J = jacobian(sOxE, [sAlpha, sBeta, sGamma, sDelta]);
@@ -126,7 +125,6 @@ classdef Robot < handle
             % be as precise as symbolic computation, especially if the forward kinematics function is not 
             % smooth or if 'delta_q' is not small enough. 
 
-        
             % Get current joint angles
             alpha = obj.joints(1).angle;
             beta = obj.joints(2).angle;
@@ -159,7 +157,7 @@ classdef Robot < handle
                 obj.joints(4).angle = q_plus(4);
         
                 % Compute forward kinematics
-                oxE_plus = obj.forwardKinematics;
+                oxE_plus = obj.forwardKinematicsNumeric;
         
                 % Update joint angles
                 obj.joints(1).angle = q_minus(1);
@@ -168,26 +166,18 @@ classdef Robot < handle
                 obj.joints(4).angle = q_minus(4);
         
                 % Compute forward kinematics
-                oxE_minus = obj.forwardKinematics;
+                oxE_minus = obj.forwardKinematicsNumeric;
         
                 % Compute derivative
                 J(:, i) = (oxE_plus - oxE_minus) / (2 * delta_q);
             end
-        
             % Reset joint angles to original values
             obj.joints(1).angle = q(1);
             obj.joints(2).angle = q(2);
             obj.joints(3).angle = q(3);
             obj.joints(4).angle = q(4);
-        
-            return
         end
 
-
-
-
-
-        
         % The display method updates and displays all joints and links
         function display(obj, clear, draw_frames)
             % Get the current figure handle
@@ -228,6 +218,7 @@ classdef Robot < handle
 
     end
 end
+
 
 function rotx = rotx(alpha)
     
