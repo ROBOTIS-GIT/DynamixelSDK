@@ -48,7 +48,8 @@ for i = 1:1000
     sGamma = robot.joints(3).angle;
     sDelta = robot.joints(4).angle;
     
-    J = double(subs(J_sym));
+    % J = double(subs(J_sym));
+    J = robot.getJacobianNumeric;
 
     if cond(pinv(J)) > 50
         disp('Warning: Close to singularity!');
