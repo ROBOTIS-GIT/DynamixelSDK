@@ -3,6 +3,7 @@ classdef Robot < handle
         joints  % An array of Joint objects, defining the joints of the robot
         links   % An array of Link objects, defining the physical connections between joints
         frames % An array of Frame objects, defining additional frames of the robot
+        axis_set = 0;
     end
 
     methods
@@ -185,7 +186,7 @@ classdef Robot < handle
             
             % If the figure does not exist, create a new one
             if isempty(fig)
-                figure;
+                fig = figure;
             else
                 % Otherwise, clear the existing figure
                 if clear
@@ -193,6 +194,9 @@ classdef Robot < handle
                 end
             end
         
+            % Set the figure to be the current figure
+            % figure(fig);
+            
             hold on;
             grid on;
             for i = 1:length(obj.joints)
@@ -208,13 +212,17 @@ classdef Robot < handle
                     obj.frames(i).display();
                 end
             end
-            view(45, 45);
-            axis equal;
-            xlabel('X');
-            ylabel('Y');
-            zlabel('Z');
-            title('Robot Joints');
+            if obj.axis_set == 0
+                view(45, 45);
+                axis equal;
+                xlabel('X');
+                ylabel('Y');
+                zlabel('Z');
+                title('Robot Joints');
+                obj.axis_set = 1;
+            end
         end
+
 
     end
 end

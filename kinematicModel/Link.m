@@ -35,21 +35,26 @@ classdef Link < handle
         end
         
         % The update method redraws the link. If there was a previous line
-        % drawn (i.e., lineHandle is not empty and is valid), it deletes
-        % the old line from the plot before drawing the new one. The new
-        % line is drawn from the global position of the startFrame to the
-        % global position of the endFrame, and its handle is saved in
-        % lineHandle for future reference.
+        % drawn (i.e., lineHandle is not empty and is valid), it updates
+        % the old line's data. If the line has not been drawn before, it
+        % creates a new line. The line is drawn from the global position of
+        % the startFrame to the global position of the endFrame, and its
+        % handle is saved in lineHandle for future reference.
         function update(obj)
-            if ~isempty(obj.lineHandle) && isvalid(obj.lineHandle)
-                delete(obj.lineHandle);
-            end
             startPos = obj.startFrame.getGlobalPosition;
             endPos = obj.endFrame.getGlobalPosition;
-            % Use the color property when drawing the line
-            obj.lineHandle = plot3([startPos(1), endPos(1)], ...
-                  [startPos(2), endPos(2)], ...
-                  [startPos(3), endPos(3)], '-', 'Color', obj.color, 'LineWidth', 5);
+            if isempty(obj.lineHandle) || ~isvalid(obj.lineHandle)
+                % Create the line if it does not exist yet
+                obj.lineHandle = plot3([startPos(1), endPos(1)], ...
+                      [startPos(2), endPos(2)], ...
+                      [startPos(3), endPos(3)], '-', 'Color', obj.color, 'LineWidth', 5);
+            else
+                % Update the line's data if it already exists
+                obj.lineHandle.XData = [startPos(1), endPos(1)];
+                obj.lineHandle.YData = [startPos(2), endPos(2)];
+                obj.lineHandle.ZData = [startPos(3), endPos(3)];
+            end
         end
+
     end
 end
