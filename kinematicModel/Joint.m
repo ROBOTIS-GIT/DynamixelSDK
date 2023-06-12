@@ -5,6 +5,7 @@ classdef Joint < Frame
 
     properties
         rotationAxisLabel  % The axis label that this joint can rotate around
+        angle = 0;
     end
 
     methods
@@ -21,6 +22,7 @@ classdef Joint < Frame
         end
 
         function rotate(obj, angle)
+            obj.angle = angle;
             % The rotation axis is taken from the rotationAxisLabel property
             switch lower(obj.rotationAxisLabel)
             case 'x'

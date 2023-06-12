@@ -21,11 +21,15 @@ link5 = Link(joint4, endeffector_frame);
 %% Robot
 robot = Robot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, link5], [orig_frame, endeffector_frame]);
 
+
 %% Rotations
-joint1.rotate(0)
-joint2.rotate(0)
+joint1.rotate(pi/4)
+joint2.rotate(pi/4)
 joint3.rotate(pi/4)
-joint4.rotate(pi/2)
+joint4.rotate(pi/4)
+
+robot.forwardKinematics
+
 
 %% Display
 robot.display();
