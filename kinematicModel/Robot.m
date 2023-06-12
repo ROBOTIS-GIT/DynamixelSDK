@@ -95,18 +95,34 @@ classdef Robot < handle
 
         
         % The display method updates and displays all joints and links
-        function display(obj)
-            figure;
+        function display(obj, clear, draw_frames)
+            % Get the current figure handle
+            fig = findobj('type', 'figure');
+            
+            % If the figure does not exist, create a new one
+            if isempty(fig)
+                figure;
+            else
+                % Otherwise, clear the existing figure
+                if clear
+                    clf(fig);
+                end
+            end
+        
             hold on;
             grid on;
             for i = 1:length(obj.joints)
-                obj.joints(i).display();
+                if draw_frames
+                    obj.joints(i).display();
+                end
             end
             for i = 1:length(obj.links)
                 obj.links(i).display();
             end
             for i = 1:length(obj.frames)
-                obj.frames(i).display();
+                if draw_frames
+                    obj.frames(i).display();
+                end
             end
             view(45, 45);
             axis equal;
@@ -115,6 +131,7 @@ classdef Robot < handle
             zlabel('Z');
             title('Robot Joints');
         end
+
     end
 end
 

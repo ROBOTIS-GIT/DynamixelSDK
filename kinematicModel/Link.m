@@ -46,7 +46,7 @@ classdef Link < handle
             endPos = obj.endFrame.getGlobalPosition;
             obj.lineHandle = plot3([startPos(1), endPos(1)], ...
                   [startPos(2), endPos(2)], ...
-                  [startPos(3), endPos(3)], 'k-', 'LineWidth', 5);
+                  [startPos(3), endPos(3)], '-k', 'LineWidth', 5);
         end
     end
 end

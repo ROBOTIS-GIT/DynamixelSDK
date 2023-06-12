@@ -22,7 +22,7 @@ classdef Joint < Frame
         end
 
         function rotate(obj, angle)
-            obj.angle = angle;
+            obj.angle = obj.angle + angle;
             % The rotation axis is taken from the rotationAxisLabel property
             switch lower(obj.rotationAxisLabel)
             case 'x'

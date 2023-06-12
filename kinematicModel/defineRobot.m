@@ -23,21 +23,23 @@ robot = Robot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, lin
 
 
 %% Rotations
-joint1.rotate(0)
-joint2.rotate(0)
-joint3.rotate(0)
-joint4.rotate(pi/2)
-
-%Get symbolic Jacobian
-J = robot.getJacobian;
+joint1.rotate(pi/4)
+joint2.rotate(pi/4)
+joint3.rotate(pi/4)
+joint4.rotate(pi/4)
 
 % Desired endeffector velocity
-x_dot = [0;0;1]; % move straight up with 1 mm /s
+x_dot = [-20;0;0]; % move straight up with 1 mm /s
 
 % Time increment
-dt = 1; % s
+dt = 0.1; % s
 
-while 1
+% get symbolic jacobian
+J_sym = robot.getJacobian;
+
+ref_positions_array = [];
+
+for i = 1:1000
 
     % Get current joint angles
     sAlpha = robot.joints(1).angle;
@@ -45,8 +47,12 @@ while 1
     sGamma = robot.joints(3).angle;
     sDelta = robot.joints(4).angle;
     
-    %Get numeric Jacobian
-    J = double(subs(J));
+    J = double(subs(J_sym));
+
+    if cond(pinv(J)) > 50
+        disp('Warning: Close to singularity!');
+        break
+    end
 
     % Calculate necessary joint velocity
     q_dot = pinv(J) * x_dot;
@@ -58,12 +64,19 @@ while 1
     robot.joints(4).rotate(q_dot(4)*dt);
 
     % Visualize the robot
-    robot.display();
-    drawnow
+    if mod(i,10) == 0
+        clear = 0;
+        draw_frames = 0;
+        robot.display(clear, draw_frames);
+        drawnow
+    end
 
     % Get endeffector info
-    [ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo();
+    % [ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo();
 
-    pause(dt)
+    ref_positions_array = [ref_positions_array ref_position];
+    plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'c');
+
+
 
 end
