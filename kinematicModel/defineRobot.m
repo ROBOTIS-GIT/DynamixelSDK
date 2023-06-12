@@ -23,10 +23,10 @@ robot = Robot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, lin
 
 
 %% Rotations
-joint1.rotate(pi/4)
+joint1.rotate(pi/3)
 joint2.rotate(pi/4)
-joint3.rotate(pi/4)
-joint4.rotate(pi/4)
+joint3.rotate(pi/5)
+joint4.rotate(pi/6)
 
 robot.forwardKinematics
 
