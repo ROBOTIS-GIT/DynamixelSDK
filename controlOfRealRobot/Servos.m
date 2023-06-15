@@ -181,14 +181,18 @@ classdef Servos < handle
                 ADDR_PRO_OP_MODE = 11;
                 VALUE = calllib(obj.lib_name, 'read1ByteTxRx', obj.port_num , PROTOCOL_VERSION, ID, ADDR_PRO_OP_MODE);
                 if VALUE ~= 3
-                    error("Control mode of the Servo with the given ID is not set to position. Use setOperatingMode method first.");
+                    fprintf("Control mode of the Servo with ID %d is not set to position. Use setOperatingMode method first. \n", ID);
+                    success = 0;
+                    return
                 end
 
                 % Check if torque of the servo is enabled
                 ADDR_PRO_TORQUE_ENABLE       = 64;         % Control table address is different in Dynamixel model
                 VALUE = calllib(obj.lib_name, 'read1ByteTxRx', obj.port_num , PROTOCOL_VERSION, ID, ADDR_PRO_TORQUE_ENABLE);
                 if VALUE ~= 1
-                    error("Torque of the Servo with the given ID is not enabled. Use torqueEnableDisable method first.");
+                    fprintf("Torque of the Servo with with ID %d is not enabled. Use torqueEnableDisable method first. \n", ID);
+                    success = 0;
+                    return
                 end
 
 
@@ -292,7 +296,9 @@ classdef Servos < handle
                 case 'velocity'
                     mode = 1;
                 otherwise
-                    error('Invalid Operating Mode. Use ''position'', or ''velocity''.');
+                    frpintf('Invalid Operating Mode. Use ''position'', or ''velocity''.');
+                    success = 0;
+                    return
             end
 
             
@@ -334,7 +340,7 @@ classdef Servos < handle
                 case 4
                     gear_ratio = 57/23;
                 otherwise
-                    error("Faulty ID");
+                    fprintf("Faulty ID \n");
             end
 
 
@@ -343,14 +349,18 @@ classdef Servos < handle
             ADDR_PRO_OP_MODE = 11;
             VALUE = calllib(obj.lib_name, 'read1ByteTxRx', obj.port_num , PROTOCOL_VERSION, ID, ADDR_PRO_OP_MODE);
             if VALUE ~= 1
-                error("Control mode of the Servo with the given ID is not set to velocity. Use setOperatingMode method first.");
+                success = 0;
+                fprintf("Control mode of the Servo with ID %d is not set to velocity. Use setOperatingMode method first. \n", ID);
+                return
             end
 
             % Check if torque of the servo is enabled
             ADDR_PRO_TORQUE_ENABLE       = 64;         % Control table address is different in Dynamixel model
             VALUE = calllib(obj.lib_name, 'read1ByteTxRx', obj.port_num , PROTOCOL_VERSION, ID, ADDR_PRO_TORQUE_ENABLE);
             if VALUE ~= 1
-                error("Torque of the Servo with the given ID is not enabled. Use torqueEnableDisable method first.");
+                success = 0;
+                fprintf("Torque of the Servo with ID %d is not enabled. Use torqueEnableDisable method first. \n", ID);
+                return
             end
 
             % Set the velocity
@@ -376,7 +386,7 @@ classdef Servos < handle
                 fprintf("Could not set velocity of Servo with ID %d \n", ID);
                 success = 0;
             end
-
+            
         end
     
     end

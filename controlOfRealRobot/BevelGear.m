@@ -10,7 +10,13 @@ classdef BevelGear < handle
     methods (Access = public)
 
         function obj = BevelGear(PORT)
+               % Check if the function was called with an argument
+              if nargin == 0
+                  % If not, use 'COM3' as a default port
+                  PORT = 'COM3';
+              end
             obj.ServosObject = Servos(PORT);
+            obj.setComposingServos(3,4); %Default Bevel Gears
         end
 
         function delete(obj)
