@@ -20,6 +20,12 @@ classdef Servos < handle
             % Hint: Get the correct Port string in your device manager e.g.
             % 'COM3', 'COM4'
 
+            % Check if the function was called with an argument
+          if nargin == 0
+              % If not, use 'COM3' as a default port
+              PORT = 'COM3';
+          end
+
             %% Modify the following string to your absolute path to the DynamixelSDK
             absolute_path = 'C:\Users\samue\Documents\Git\DynamixelSDK\c\';
             %%
