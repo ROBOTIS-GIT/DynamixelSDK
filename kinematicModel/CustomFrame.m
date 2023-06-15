@@ -1,4 +1,4 @@
-classdef Frame < handle
+classdef CustomFrame < handle
     %Frame - A class to represent a coordinate frame in 3D space.
     % The Frame object holds information about its position and orientation
     % relative to its parent frame. It also contains a list of its child
@@ -22,7 +22,7 @@ classdef Frame < handle
     end
 
     methods
-        function obj = Frame(relativePosition, parent, label)
+        function obj = CustomFrame(relativePosition, parent, label)
            %Frame - Construct a Frame object.
             % Frame(relativePosition, parent, label) creates a Frame object
             % with the specified relative position, parent frame, and label.

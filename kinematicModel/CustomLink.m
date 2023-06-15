@@ -1,4 +1,4 @@
-classdef Link < handle
+classdef CustomLink < handle
     % The Link class defines a link object in a robot manipulator model.
     % Each link is defined by two frames, a start frame and an end frame.
     % It also maintains a handle to the graphical representation of the link,
@@ -21,7 +21,7 @@ classdef Link < handle
         % startFrame and endFrame properties with the frames provided as
         % arguments. It also initializes the lineHandle property to an empty
         % array, as there is no line drawn initially.
-        function obj = Link(startFrame, endFrame, color)
+        function obj = CustomLink(startFrame, endFrame, color)
             obj.startFrame = startFrame;
             obj.endFrame = endFrame;
             obj.lineHandle = [];
