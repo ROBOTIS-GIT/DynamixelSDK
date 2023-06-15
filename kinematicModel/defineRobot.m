@@ -4,8 +4,8 @@ close
 
 %% Setup Frames and Joints
 orig_frame = CustomFrame([0; 0; 0], [], 'Origin');
-joint1 = Joint([0; 0; 83.51], orig_frame, 'Joint 1', 'x');
-joint2 = Joint([0;0;0], joint1, 'Joint 2', 'y');
+joint1 = Joint([0; 0; 83.51], orig_frame, 'Joint 1', 'y');
+joint2 = Joint([0;0;0], joint1, 'Joint 2', 'x');
 joint3 = Joint([0;0;119.35], joint2, 'Joint 3', 'z');
 joint4 = Joint([0;0;163.99], joint3, 'Joint 4', 'x');
 endeffector_frame = CustomFrame([0;0;218.86], joint4, 'Endeffector');
@@ -24,13 +24,17 @@ robot = Robot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, lin
 
 %% Main
 % Set initial rotation
-joint1.rotate(pi/4)
+joint1.rotate(pi/2)
 joint2.rotate(pi/4)
 joint3.rotate(pi/4)
 joint4.rotate(pi/4)
 
+clearFig = 0;
+draw_frames = 1;
+robot.display(clearFig, draw_frames);
+
 % Set a desired endeffector velocity
-x_dot = [-50;0;0];
+x_dot = [10;10;0];
 
 % Set a time increment for the simulation
 dt = 0.1; % s
@@ -48,7 +52,7 @@ for i = 1:1000
     sDelta = robot.joints(4).angle;
 
     % --> Set these angles to the modeled robot
-    
+
     % Calculate the Jacobian in the current (modeled robot = real robot) configuration numerically
     J = robot.getJacobianNumeric;
 
@@ -88,7 +92,7 @@ for i = 1:1000
     plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
 
     % fprintf('Time for iteration %d: %f seconds\n', i, loopTime);
-    
+
 
 end
 

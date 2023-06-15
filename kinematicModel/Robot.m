@@ -35,8 +35,8 @@ classdef Robot < handle
             % There the rotated Frame is on the left, therefore we have to
             % transpose the Rotational Matrix (or simply use a negative
             % sign before the angle).
-            R1 = rotx(-alpha);
-            R2 = roty(-beta);
+            R1 = roty(-alpha);
+            R2 = rotx(-beta);
             R3 = rotz(-gamma);
             R4 = rotx(-delta);
 
@@ -58,8 +58,8 @@ classdef Robot < handle
             syms sAlpha sBeta sGamma sDelta real;
             
             % Rotational matrices
-            sR1 = rotx(-sAlpha);
-            sR2 = roty(-sBeta);
+            sR1 = roty(-sAlpha);
+            sR2 = rotx(-sBeta);
             sR3 = rotz(-sGamma);
             sR4 = rotx(-sDelta);
             
