@@ -330,9 +330,9 @@ classdef Servos < handle
                 case 2
                     gear_ratio = 1;
                 case 3
-                    gear_ratio = 0;
+                    gear_ratio = 57/23;
                 case 4
-                    gear_ratio = 0;
+                    gear_ratio = 57/23;
                 otherwise
                     error("Faulty ID");
             end
@@ -355,7 +355,7 @@ classdef Servos < handle
 
             % Set the velocity
             ADDR_PRO_GOAL_VELOCITY      = 104;         % Control table address is different in Dynamixel model
-            VELOCITY_VAL = 1/0.2290 * velocity * gear_ratio;
+            VELOCITY_VAL = 1/0.229 * velocity * gear_ratio; % Convert velocity to decimal
             if VELOCITY_VAL <0
                 VELOCITY_VAL = 4294967296 + VELOCITY_VAL;
             end
