@@ -216,7 +216,8 @@ classdef Servos < handle
                 if dxl_comm_result ~= COMM_SUCCESS
                     fprintf('%s\n', calllib(obj.lib_name, 'getTxRxResult', PROTOCOL_VERSION, dxl_comm_result));
                 else
-                    % fprintf('[ID:%03d] Successfully wrote goal position \n', ID);
+                    fprintf('[ID:%03d] Successfully wrote goal position \n', ID);
+                    success = 1;
                 end
 
                 % Clear bulkwrite parameter storage
@@ -282,7 +283,7 @@ classdef Servos < handle
               success = 1;
         end
     
-        function [success] = setOperatingMode(obj, ID, modeString)
+        function success = setOperatingMode(obj, ID, modeString)
 
             switch modeString
 
@@ -323,7 +324,18 @@ classdef Servos < handle
             ID = checkIdAvailable(obj, ID);
             PROTOCOL_VERSION = 2;
  
-            gear_ratio = 2.4570; % has to be approximated
+            switch ID
+                case 1 
+                    gear_ratio = 2.4570; % has to be approximated
+                case 2
+                    gear_ratio = 1;
+                case 3
+                    gear_ratio = 0;
+                case 4
+                    gear_ratio = 0;
+                otherwise
+                    error("Faulty ID");
+            end
 
 
             % Check if the operating mode of the servo with the given
@@ -347,9 +359,23 @@ classdef Servos < handle
             if VELOCITY_VAL <0
                 VELOCITY_VAL = 4294967296 + VELOCITY_VAL;
             end
+            
+            %Floor VELOCITY_VAL
+            VELOCITY_VAL = floor(VELOCITY_VAL);
+
+
             calllib(obj.lib_name, 'write4ByteTxRx', obj.port_num , PROTOCOL_VERSION, ID, ADDR_PRO_GOAL_VELOCITY, VELOCITY_VAL);
             
+            %Read the goal velocity
+            VALUE = calllib(obj.lib_name, 'read4ByteTxRx', obj.port_num , PROTOCOL_VERSION, ID, ADDR_PRO_GOAL_VELOCITY);
             
+            if VALUE == VELOCITY_VAL
+                fprintf("Successfully set velocity of Servo with ID %d \n", ID);
+                success = 1;
+            else
+                fprintf("Could not set velocity of Servo with ID %d \n", ID);
+                success = 0;
+            end
 
         end
     
