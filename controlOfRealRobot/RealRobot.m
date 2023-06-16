@@ -32,9 +32,9 @@ classdef RealRobot < handle
                 case 2
                     success = obj.BevelGearObject.setVelocityAroundX(velocity);
                 case 3
-                    success = obj.BevelGearObject.ServosObject.setVelocity(2, velocity);
+                    success = obj.BevelGearObject.ServosObject.setVelocity(2, -velocity);
                 case 4
-                    success = obj.BevelGearObject.ServosObject.setVelocity(1, velocity);
+                    success = obj.BevelGearObject.ServosObject.setVelocity(1, -velocity);
                 otherwise
                     error("Invalid Joint: Choose Joint 1 to 4");
             end

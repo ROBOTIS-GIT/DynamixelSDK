@@ -399,6 +399,59 @@ classdef Servos < handle
             end
             
         end
+
+        function [velocity,success] = getVelocity(obj, ID)
+            % get velocity in rev/min
+
+            ID = checkIdAvailable(obj, ID);
+
+            switch ID
+                case 1 
+                    gear_ratio = 2.4570; % has to be approximated
+                case 2
+                    gear_ratio = 1;
+                case 3
+                    gear_ratio = 57/23;
+                case 4
+                    gear_ratio = 57/23;
+                otherwise
+                    fprintf("Faulty ID \n");
+            end
+
+
+
+            PROTOCOL_VERSION = 2;
+            ADDR_PRO_PRESENT_VELOCITY = 128;
+            velocity = calllib(obj.lib_name, 'read4ByteTxRx', obj.port_num , PROTOCOL_VERSION, ID, ADDR_PRO_PRESENT_VELOCITY);
+            
+              if velocity > 4294000000
+                  velocity = -(4294967295 - velocity);
+              end
+            
+            velocity = (velocity * 0.229) / gear_ratio;
+
+            success = 1;
+
+
+        end
+
+        function [success] = addVelocity(obj, ID, velocity)
+            
+            ID = checkIdAvailable(obj, ID);
+            [present_velocity, success] = obj.getVelocity(ID);
+            if success ~= 1
+                return
+            end
+            
+            new_velocity = present_velocity + velocity;
+
+            success = obj.setVelocity(ID, new_velocity);
+        
+            
+
+        end
+
+
     
     end
 end
