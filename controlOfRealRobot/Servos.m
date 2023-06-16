@@ -155,7 +155,7 @@ classdef Servos < handle
                     success = 0;
                     fprintf('%s\n', calllib(obj.lib_name, 'getRxPacketError', PROTOCOL_VERSION, dxl_error));
                 else
-                    success = 0;
+                    success = 1;
                     fprintf('Torque of ID %d has been successfully disabled \n', ID);
                 end
             end

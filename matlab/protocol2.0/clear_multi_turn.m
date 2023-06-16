@@ -216,7 +216,8 @@ while 1
             break;
         end
                 
-        if ~(abs(MAX_POSITION_VALUE - typecast(uint32(dxl_present_position), 'int32')) > DXL_MOVING_STATUS_THRESHOLD)
+        if ~(abs(MAX_POSITION_VALUE - typecast(uint32(
+), 'int32')) > DXL_MOVING_STATUS_THRESHOLD)
             break;
         end
     end

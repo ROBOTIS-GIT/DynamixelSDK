@@ -24,17 +24,17 @@ robot = Robot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, lin
 
 %% Main
 % Set initial rotation
-joint1.rotate(pi/2)
+joint1.rotate(pi/4)
 joint2.rotate(pi/4)
 joint3.rotate(pi/4)
 joint4.rotate(pi/4)
 
-clearFig = 0;
-draw_frames = 1;
-robot.display(clearFig, draw_frames);
+% clearFig = 0;
+% draw_frames = 1;
+% robot.display(clearFig, draw_frames);
 
 % Set a desired endeffector velocity
-x_dot = [10;10;0];
+x_dot = [0;10;10];
 
 % Set a time increment for the simulation
 dt = 0.1; % s
