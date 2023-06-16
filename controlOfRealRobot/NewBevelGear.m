@@ -164,6 +164,7 @@ classdef NewBevelGear < handle
             rotx = -(firstServoRotation + secondServoRotation) * bevelFactor;
             roty = (-firstServoRotation + secondServoRotation) * bevelFactor;
 
+            success = 1;
             elevation = pi/2 - acos(cos(rotx)*cos(roty));
 
 

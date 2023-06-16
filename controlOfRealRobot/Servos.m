@@ -281,8 +281,19 @@ classdef Servos < handle
 
               % Get Dynamixel#1 present position value
               dxl1_present_position = calllib(obj.lib_name, 'groupBulkReadGetData', groupread_num, ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+             
 
-              angle = ((dxl1_present_position-DXL_MINIMUM_POSITION_VALUE)/DXL_MAXIMUM_POSITION_VALUE)  * (2*pi);
+              %% This is a dirty fix, maybe rework
+              if dxl1_present_position > 4294000000
+                  dxl1_present_position = -(4294967295 - dxl1_present_position);
+              end
+                
+                
+              angle = dxl1_present_position * 0.087891 * pi/180;
+
+
+
+              disp(angle)
               % fprintf('[ID:%03d] Current Angle : %d \n', ID, angle);
               success = 1;
         end
