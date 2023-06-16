@@ -47,9 +47,9 @@ realRobot.robotTorqueEnableDisable(1)
 %Move the robot out of the singularity
 realRobot.setJointVelocity(1,1);
 realRobot.setJointVelocity(2,1);
-realRobot.setJointVelocity(3,1);
-realRobot.setJointVelocity(4,1);
-pause(4)
+realRobot.setJointVelocity(3,2);
+realRobot.setJointVelocity(4,5);
+pause(2)
 realRobot.setJointVelocity(1,0);
 realRobot.setJointVelocity(2,0);
 realRobot.setJointVelocity(3,0);
