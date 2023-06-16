@@ -47,8 +47,8 @@ realRobot.robotTorqueEnableDisable(1)
 %Move the robot out of the singularity
 realRobot.setJointVelocity(1,1);
 realRobot.setJointVelocity(2,1);
-realRobot.setJointVelocity(3,2);
-realRobot.setJointVelocity(4,5);
+realRobot.setJointVelocity(3,0);
+realRobot.setJointVelocity(4,0);
 pause(2)
 realRobot.setJointVelocity(1,0);
 realRobot.setJointVelocity(2,0);
@@ -61,6 +61,12 @@ for i = 1:1000
     % Get current joint angles % This would later be received from the real
     % motors. I should therefor add a setAngle method to the Joint to set
     % the angle from the real joints to the angle of the simulated joint.
+    simulatedRobot.joints(1).setAngle(realRobot.getJointAngle(1));
+    simulatedRobot.joints(2).setAngle(realRobot.getJointAngle(2));
+    simulatedRobot.joints(3).setAngle(realRobot.getJointAngle(3));
+    simulatedRobot.joints(4).setAngle(realRobot.getJointAngle(4));
+
+
     sAlpha = simulatedRobot.joints(1).angle;
     sBeta = simulatedRobot.joints(2).angle;
     sGamma = simulatedRobot.joints(3).angle;

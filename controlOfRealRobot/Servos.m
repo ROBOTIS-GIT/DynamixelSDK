@@ -241,8 +241,6 @@ classdef Servos < handle
             COMM_SUCCESS = 0;
             ADDR_PRO_PRESENT_POSITION    = 132;
             LEN_PRO_PRESENT_POSITION        = 4;
-            DXL_MINIMUM_POSITION_VALUE  = 0;
-            DXL_MAXIMUM_POSITION_VALUE  = 4095;
 
             % Initialize Groupbulkread Structs
             groupread_num = calllib(obj.lib_name, 'groupBulkRead', obj.port_num, PROTOCOL_VERSION);
@@ -293,7 +291,6 @@ classdef Servos < handle
 
 
 
-              disp(angle)
               % fprintf('[ID:%03d] Current Angle : %d \n', ID, angle);
               success = 1;
         end

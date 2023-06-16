@@ -83,7 +83,7 @@ classdef NewBevelGear < handle
             end
             
             successLevel = 0;
-            if moving == 0 velocity == 0
+            if moving == 0 || velocity == 0
                 successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(1), -velocity);
                 successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(2), velocity);
             else
@@ -142,7 +142,7 @@ classdef NewBevelGear < handle
             secondServoRotation = obj.zeroAngleSecondComposingServo - angleSecondComposingServo;
 
             bevelFactor = 1/5;
-            roty = (-firstServoRotation + secondServoRotation) * bevelFactor;
+            roty = -(-firstServoRotation + secondServoRotation) * bevelFactor;
             
             success = 1;
             

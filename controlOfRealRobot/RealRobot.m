@@ -109,7 +109,7 @@ classdef RealRobot < handle
                 case 4
                     gear_ratio = 2.4570; % has to be approximated
                     [angle,success] = obj.BevelGearObject.ServosObject.getAngle(1);
-                    angle = (- obj.ElbowJointZeroPos + angle)/gear_ratio;
+                    angle = -(- obj.ElbowJointZeroPos + angle)/gear_ratio;
                 otherwise
                     error("Invalid Joint: Choose Joint 1 to 4");
             end
