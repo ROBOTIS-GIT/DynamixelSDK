@@ -7,6 +7,12 @@ classdef NewBevelGear < handle
         angleAroundX = 0;
         zeroAngleFirstComposingServo = -inf;
         zeroAngleSecondComposingServo = -inf;
+
+
+        velocityX = 0
+        velocityY = 0
+
+
     end
 
     methods (Access = public)
@@ -43,22 +49,12 @@ classdef NewBevelGear < handle
         %Rotate around the dependent X axis (Joint 2) with Velocity
         function success = setVelocityAroundX(obj,velocity)
 
-            %Check if Bevel Gear is already moving
-            if obj.ServosObject.getVelocity(3) > 0.1 || obj.ServosObject.getVelocity(4) > 0.1
-                moving = 1;
-            else
-                moving = 0;
-            end
-            
-            
+            obj.velocityX = velocity;
+
             successLevel = 0;
-            if moving == 0 || velocity == 0
-                successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(1), velocity);
-                successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(2), velocity);
-            else
-                successLevel = successLevel + obj.ServosObject.addVelocity(obj.composingServos(1), velocity);
-                successLevel = successLevel + obj.ServosObject.addVelocity(obj.composingServos(2), velocity);  
-            end
+            successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(1), velocity-obj.velocityY);
+            successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(2), velocity+obj.velocityY);
+  
 
             if successLevel ~= 2
                 obj.ServosObject.setVelocity(obj.composingServos(1), 0);
@@ -75,21 +71,12 @@ classdef NewBevelGear < handle
         %Rotate around the Y axis (Joint 1) with Velocity
         function success = setVelocityAroundY(obj,velocity)
 
-            %Check if Bevel Gear is already moving
-            if obj.ServosObject.getVelocity(3) > 0.1 || obj.ServosObject.getVelocity(4) > 0.1
-                moving = 1;
-            else
-                moving = 0;
-            end
+            obj.velocityY = velocity;
+
             
             successLevel = 0;
-            if moving == 0 || velocity == 0
-                successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(1), -velocity);
-                successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(2), velocity);
-            else
-                successLevel = successLevel + obj.ServosObject.addVelocity(obj.composingServos(1), -velocity);
-                successLevel = successLevel + obj.ServosObject.addVelocity(obj.composingServos(2), velocity);
-            end
+            successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(1), -velocity+obj.velocityX);
+            successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(2), velocity+obj.velocityX);
 
             if successLevel ~= 2
                 obj.ServosObject.setVelocity(obj.composingServos(1), 0);

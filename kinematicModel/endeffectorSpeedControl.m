@@ -28,57 +28,49 @@ realRobot = RealRobot();
 %% Main
 % Set initial rotation
 
-% clearFig = 0;
-% draw_frames = 1;
-% robot.display(clearFig, draw_frames);
-
-% Set a desired endeffector velocity
-x_dot = [0;10;10];
-
-% Set a time increment for the simulation
-dt = 0.1; % s
-
-ref_positions_array = [];
 
 %Zero the robot at the current position
 realRobot.setZeroPositionToCurrentPosition
 %Enable torque
 realRobot.robotTorqueEnableDisable(1)
 %Move the robot out of the singularity
-realRobot.setJointVelocity(1,1);
-realRobot.setJointVelocity(2,1);
-realRobot.setJointVelocity(3,0);
-realRobot.setJointVelocity(4,0);
+realRobot.setJointVelocity(1,2);
+realRobot.setJointVelocity(2,2);
+realRobot.setJointVelocity(3,-4);
+realRobot.setJointVelocity(4,10);
 pause(2)
 realRobot.setJointVelocity(1,0);
 realRobot.setJointVelocity(2,0);
 realRobot.setJointVelocity(3,0);
 realRobot.setJointVelocity(4,0);
 
+pause(2)
+
+% Set a desired endeffector velocity
+x_dot = [0;0;300];
+
+
+ref_positions_array = [];
+
 
 for i = 1:1000
 
-    % Get current joint angles % This would later be received from the real
-    % motors. I should therefor add a setAngle method to the Joint to set
-    % the angle from the real joints to the angle of the simulated joint.
+    % Get current joint angles and set them to the simulated robot
     simulatedRobot.joints(1).setAngle(realRobot.getJointAngle(1));
     simulatedRobot.joints(2).setAngle(realRobot.getJointAngle(2));
     simulatedRobot.joints(3).setAngle(realRobot.getJointAngle(3));
     simulatedRobot.joints(4).setAngle(realRobot.getJointAngle(4));
 
-
-    sAlpha = simulatedRobot.joints(1).angle;
-    sBeta = simulatedRobot.joints(2).angle;
-    sGamma = simulatedRobot.joints(3).angle;
-    sDelta = simulatedRobot.joints(4).angle;
-
-    % --> Set these angles to the modeled robot
-
+  
     % Calculate the Jacobian in the current (modeled robot = real robot) configuration numerically
     J = simulatedRobot.getJacobianNumeric;
 
     % Stop if the current configuration approaches a singularity
     if cond(pinv(J)) > 15
+        realRobot.setJointVelocity(1,0);
+        realRobot.setJointVelocity(2,0);
+        realRobot.setJointVelocity(3,0);
+        realRobot.setJointVelocity(4,0);
         disp('Warning: Close to singularity!');
         break
     end
@@ -87,15 +79,13 @@ for i = 1:1000
     q_dot = pinv(J) * x_dot;
 
     % Set the joint velocity to the real robot here
-    % Check for further constraints such as joint limits and elevation
-    % limits for the bevel gear..
+    realRobot.setJointVelocity(1,q_dot(1));
+    realRobot.setJointVelocity(2,q_dot(2));
+    realRobot.setJointVelocity(3,q_dot(3));
+    realRobot.setJointVelocity(4,q_dot(4));
 
-    %Apply joint rotation increment % No need for this later since the
-    %simulated joints will be set by the real robot as mentioned above
-    simulatedRobot.joints(1).rotate(q_dot(1)*dt);
-    simulatedRobot.joints(2).rotate(q_dot(2)*dt);
-    simulatedRobot.joints(3).rotate(q_dot(3)*dt);
-    simulatedRobot.joints(4).rotate(q_dot(4)*dt);
+    pause(0.01)
+
 
     % Visualize the robot every x frame % Visualize the modeld robot that
     % should be a mirror image of the real robot
@@ -113,7 +103,6 @@ for i = 1:1000
     plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
 
     % fprintf('Time for iteration %d: %f seconds\n', i, loopTime);
-
 
 end
 
