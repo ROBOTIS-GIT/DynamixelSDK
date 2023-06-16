@@ -41,7 +41,7 @@ classdef NewBevelGear < handle
 
 
         %Rotate around the dependent X axis (Joint 2) with Velocity
-        function setVelocityAroundX(obj,velocity)
+        function success = setVelocityAroundX(obj,velocity)
             
             successLevel = 0;
             successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(1), velocity);
@@ -51,14 +51,16 @@ classdef NewBevelGear < handle
                 obj.ServosObject.setVelocity(obj.composingServos(1), 0);
                 obj.ServosObject.setVelocity(obj.composingServos(2), 0);
                 fprintf("Error Setting Bevel Gear Rotation \n");
+                success = 0;
             else
                 fprintf("Bevel Gear Rotation Set Successfully \n");
+                success = 1;
             end
 
         end
 
         %Rotate around the Y axis (Joint 1) with Velocity
-        function setVelocityAroundY(obj,velocity)
+        function success = setVelocityAroundY(obj,velocity)
             
             successLevel = 0;
             successLevel = successLevel + obj.ServosObject.setVelocity(obj.composingServos(1), -velocity);
@@ -68,8 +70,10 @@ classdef NewBevelGear < handle
                 obj.ServosObject.setVelocity(obj.composingServos(1), 0);
                 obj.ServosObject.setVelocity(obj.composingServos(2), 0);
                 fprintf("Error Setting Bevel Gear Rotation \n");
+                success = 0;
             else
                 fprintf("Bevel Gear Rotation Set Successfully \n");
+                success = 1;
             end
 
         end

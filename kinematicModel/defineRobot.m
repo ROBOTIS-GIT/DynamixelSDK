@@ -2,6 +2,9 @@ clear
 clc
 close
 
+addpath('C:\Users\samue\Documents\Git\DynamixelSDK\controlOfRealRobot')
+
+
 %% Setup Frames and Joints
 orig_frame = CustomFrame([0; 0; 0], [], 'Origin');
 joint1 = Joint([0; 0; 83.51], orig_frame, 'Joint 1', 'y');
@@ -19,15 +22,11 @@ link5 = CustomLink(joint4, endeffector_frame, 'm');  % Magenta
 
 
 %% Setup Robot
-robot = Robot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, link5], [orig_frame, endeffector_frame]);
-
+simulatedRobot = SimulatedRobot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, link5], [orig_frame, endeffector_frame]);
+realRobot = RealRobot();
 
 %% Main
 % Set initial rotation
-joint1.rotate(pi/4)
-joint2.rotate(pi/4)
-joint3.rotate(pi/4)
-joint4.rotate(pi/4)
 
 % clearFig = 0;
 % draw_frames = 1;
@@ -41,20 +40,36 @@ dt = 0.1; % s
 
 ref_positions_array = [];
 
+%Zero the robot at the current position
+realRobot.setZeroPositionToCurrentPosition
+%Enable torque
+realRobot.robotTorqueEnableDisable(1)
+%Move the robot out of the singularity
+realRobot.setJointVelocity(1,1);
+realRobot.setJointVelocity(2,1);
+realRobot.setJointVelocity(3,1);
+realRobot.setJointVelocity(4,1);
+pause(4)
+realRobot.setJointVelocity(1,0);
+realRobot.setJointVelocity(2,0);
+realRobot.setJointVelocity(3,0);
+realRobot.setJointVelocity(4,0);
+
+
 for i = 1:1000
 
     % Get current joint angles % This would later be received from the real
     % motors. I should therefor add a setAngle method to the Joint to set
     % the angle from the real joints to the angle of the simulated joint.
-    sAlpha = robot.joints(1).angle;
-    sBeta = robot.joints(2).angle;
-    sGamma = robot.joints(3).angle;
-    sDelta = robot.joints(4).angle;
+    sAlpha = simulatedRobot.joints(1).angle;
+    sBeta = simulatedRobot.joints(2).angle;
+    sGamma = simulatedRobot.joints(3).angle;
+    sDelta = simulatedRobot.joints(4).angle;
 
     % --> Set these angles to the modeled robot
 
     % Calculate the Jacobian in the current (modeled robot = real robot) configuration numerically
-    J = robot.getJacobianNumeric;
+    J = simulatedRobot.getJacobianNumeric;
 
     % Stop if the current configuration approaches a singularity
     if cond(pinv(J)) > 15
@@ -71,16 +86,16 @@ for i = 1:1000
 
     %Apply joint rotation increment % No need for this later since the
     %simulated joints will be set by the real robot as mentioned above
-    robot.joints(1).rotate(q_dot(1)*dt);
-    robot.joints(2).rotate(q_dot(2)*dt);
-    robot.joints(3).rotate(q_dot(3)*dt);
-    robot.joints(4).rotate(q_dot(4)*dt);
+    simulatedRobot.joints(1).rotate(q_dot(1)*dt);
+    simulatedRobot.joints(2).rotate(q_dot(2)*dt);
+    simulatedRobot.joints(3).rotate(q_dot(3)*dt);
+    simulatedRobot.joints(4).rotate(q_dot(4)*dt);
 
     % Visualize the robot every x frame % Visualize the modeld robot that
     % should be a mirror image of the real robot
     clearFig = 0;
     draw_frames = 0;
-    robot.display(clearFig, draw_frames);
+    simulatedRobot.display(clearFig, draw_frames);
     drawnow
 
     % Get endeffector info

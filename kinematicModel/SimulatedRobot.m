@@ -1,4 +1,4 @@
-classdef Robot < handle
+classdef SimulatedRobot < handle
     properties
         joints  % An array of Joint objects, defining the joints of the robot
         links   % An array of Link objects, defining the physical connections between joints
@@ -9,7 +9,7 @@ classdef Robot < handle
     methods
         % Constructor method for Robot. It takes two arguments, an array
         % of Joint objects and an array of Link objects
-        function obj = Robot(joints, links, frames)
+        function obj = SimulatedRobot(joints, links, frames)
             obj.joints = joints;
             obj.links = links;
             obj.frames = frames;
