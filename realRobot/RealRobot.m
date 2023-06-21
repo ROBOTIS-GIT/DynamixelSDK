@@ -97,6 +97,13 @@ classdef RealRobot < handle
             % joint3 : yaw rotate z : ID 2
             % joint4 : elbow rotate x : ID 1
 
+            if obj.YawJointZeroPos == -inf || obj.ElbowJointZeroPos == -inf
+                success = 0;
+                fprintf("Error getting Angle of Joint %d : Zero position not defined \n", joint);
+                angle = 0;
+                return
+            end
+
             
             switch joint
                 case 1
@@ -115,7 +122,7 @@ classdef RealRobot < handle
             end
 
             if success == 0
-                fprintf("Error getting Joint Angle \n");
+                fprintf("Error getting Joint Angle of Joint %d \n", joint);
             end
 
 
@@ -154,13 +161,6 @@ classdef RealRobot < handle
                 obj.robotTorqueEnableDisable(1)
             end
 
-            
-            if obj.YawJointZeroPos == -inf || obj.ElbowJointZeroPos == -inf
-                success = 0;
-                fprintf("Error: Zero position not defined \n");
-                return
-            end
-
 
             % Use a P-controller to move the joint angles to the zero
             % position
@@ -176,13 +176,13 @@ classdef RealRobot < handle
                 %Get current pos
                 successLevel = 0;
                 [Joint1_Angle, success] = obj.getJointAngle(1);
-                successLevel = successLevel + 1;
+                successLevel = successLevel + success;
                 [Joint2_Angle, success] = obj.getJointAngle(2);
-                successLevel = successLevel + 1;
+                successLevel = successLevel + success;
                 [Joint3_Angle, success] = obj.getJointAngle(3);
-                successLevel = successLevel + 1;
+                successLevel = successLevel + success;
                 [Joint4_Angle, success] = obj.getJointAngle(4);
-                successLevel = successLevel + 1;
+                successLevel = successLevel + success;
 
                 if successLevel < 4
                     fprintf("Error getting Angles of Servos")
@@ -253,8 +253,41 @@ classdef RealRobot < handle
 
 
         end
+        
+        function success = setJointPosition(obj, joint, position)
 
-   
-    
+            %Blocking function of setting a Joint position
+
+            % Define P_Gain
+            P_Gain = 5;
+            
+            while 1
+                % Get the current joint angle
+                [joint_angle, success] = obj.getJointAngle(joint);
+            
+                % If success is 0, that means there was an error in getting the joint angle
+                if success == 0
+                    return
+                end
+        
+                % Check if the joint angle is within tolerance
+                if abs(position - joint_angle) < 0.06
+                    obj.setJointVelocity(joint, 0);
+                    fprintf("Joint %d set to desired pos. \n", joint);
+                    success = 1;
+                    break
+                end
+            
+                % Calculate the control signal using a P-controller
+                control_signal = P_Gain * (position - joint_angle);
+            
+                % Set the joint velocity
+                success = obj.setJointVelocity(joint, control_signal);
+            
+            end
+        end
+
+            
+        
     end
 end
