@@ -38,20 +38,58 @@ realRobot.robotTorqueEnableDisable(1);
 realRobot.setJointVelocity(1,2);
 realRobot.setJointVelocity(2,2);
 realRobot.setJointVelocity(3,-4);
-realRobot.setJointVelocity(4,10);
-pause(2)
+realRobot.setJointVelocity(4,6);
+pause(1)
 realRobot.setJointVelocity(1,0);
 realRobot.setJointVelocity(2,0);
 realRobot.setJointVelocity(3,0);
 realRobot.setJointVelocity(4,0);
 
-% Set a desired endeffector velocity
-x_dot = [0;0;300];
+% Initialize x_dot
+x_dot = [0; 0; 0];
+
+% Create a velocity variable
+v = 50; % Modify this according to your needs
 
 
 ref_positions_array = [];
 
-for i = 1:1000
+% Create a new figure and set the KeyPressFcn
+fig = figure('KeyPressFcn', @(fig_obj, eventDat) setappdata(fig_obj, 'key', eventDat.Key), ...
+             'KeyReleaseFcn', @(fig_obj, eventDat) setappdata(fig_obj, 'key', ''));
+
+% Initialize x_dot
+x_dot = [0; 0; 0];
+
+% Create a velocity variable
+v = 500; % Modify this according to your needs
+
+figure(fig);
+pause(0.5);  % wait for 0.5 seconds for the window to gain focus
+
+% Loop while the 'c' key has not been pressed
+while ~strcmp(getappdata(fig, 'key'), 'c')
+
+    key = getappdata(fig, 'key');
+    % Update the velocity according to the key pressed
+    if ~isempty(key)
+        switch key
+            case 'leftarrow'
+                x_dot = [-v; 0; 0]
+            case 'rightarrow'
+                x_dot = [v; 0; 0]
+            case 'uparrow'
+                x_dot = [0; v; 0]
+            case 'downarrow'
+                x_dot = [0; -v; 0]
+            case 'w'
+                x_dot = [0; 0; v]
+            case 's'
+                x_dot = [0; 0; -v]
+        end
+    else
+        x_dot = [0; 0; 0]
+    end
 
     % Get current joint angles and set them to the simulated robot
     simulatedRobot.joints(1).setAngle(realRobot.getJointAngle(1));
@@ -97,5 +135,9 @@ for i = 1:1000
     ref_positions_array = [ref_positions_array ref_position];
     plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
 
+    % You may want to add a brief pause to allow MATLAB to process the keypress
+    pause(0.01);
+
 end
+realRobot.goToZeroPosition(1);
 
