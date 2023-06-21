@@ -30,11 +30,24 @@ link5 = CustomLink(joint4, endeffector_frame, 'm');  % Magenta
 simulatedRobot = SimulatedRobot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, link5], [orig_frame, endeffector_frame]);
 realRobot = RealRobot();
 
+
 %% Main
 
-%Zero the robot at the current position, the real robot should be pointing
-%straight up
+% Zero the robot and move to a non singularity position
 realRobot.setZeroPositionToCurrentPosition;
+realRobot.robotTorqueEnableDisable(1);
+realRobot.setJointVelocity(1,1);
+realRobot.setJointVelocity(2,1);
+realRobot.setJointVelocity(3,-2);
+realRobot.setJointVelocity(4,4);
+pause(1)
+realRobot.setJointVelocity(1,0);
+realRobot.setJointVelocity(2,0);
+realRobot.setJointVelocity(3,0);
+realRobot.setJointVelocity(4,0);
+
+% Disable Torque so the robot can be guided by hand
+realRobot.robotTorqueEnableDisable(0);
 
 ref_positions_array = [];
 while 1
@@ -53,7 +66,7 @@ while 1
     drawnow
 
     % Get endeffector info for the trajectory
-    display_info = 0;
+    display_info = 1;
     [ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo(display_info);
 
     % Append the endeffector postion to an array and plot the trajectory

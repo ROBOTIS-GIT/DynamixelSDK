@@ -1,7 +1,3 @@
-% This script sets the robot to a starting position relative to its initial
-% (zero) position. Then it trys to set a fixed velocity to the endeffector
-% by calculating the Jacobian.
-
 clear
 clc
 close
@@ -38,31 +34,44 @@ realRobot.robotTorqueEnableDisable(1);
 realRobot.setJointVelocity(1,2);
 realRobot.setJointVelocity(2,2);
 realRobot.setJointVelocity(3,-4);
-realRobot.setJointVelocity(4,10);
-pause(2)
+realRobot.setJointVelocity(4,6);
+pause(1)
 realRobot.setJointVelocity(1,0);
 realRobot.setJointVelocity(2,0);
 realRobot.setJointVelocity(3,0);
 realRobot.setJointVelocity(4,0);
 
-% Set a desired endeffector velocity
-x_dot = [0;0;300];
+x_desired = [-89.106495, -148.362929, 520.512059]';
 
 
 ref_positions_array = [];
 
+P_gain = 5;
+D_gain = 1; % You may have to adjust this to suit your application
+x_error_previous = zeros(3,1); % To store previous error for derivative action
+
+
+clearFig = 1;
+draw_frames = 0;
+simulatedRobot.joints(1).setAngle(realRobot.getJointAngle(1));
+simulatedRobot.joints(2).setAngle(realRobot.getJointAngle(2));
+simulatedRobot.joints(3).setAngle(realRobot.getJointAngle(3));
+simulatedRobot.joints(4).setAngle(realRobot.getJointAngle(4));
+simulatedRobot.display(clearFig, draw_frames);
+scatter3(x_desired(1),x_desired(2),x_desired(3),'g','filled');
+
+pause(2)
+
+
 for i = 1:1000
 
-    % Get current joint angles and set them to the simulated robot
     simulatedRobot.joints(1).setAngle(realRobot.getJointAngle(1));
     simulatedRobot.joints(2).setAngle(realRobot.getJointAngle(2));
     simulatedRobot.joints(3).setAngle(realRobot.getJointAngle(3));
     simulatedRobot.joints(4).setAngle(realRobot.getJointAngle(4));
 
-    % Calculate the Jacobian in the current (modeled robot = real robot) configuration numerically
     J = simulatedRobot.getJacobianNumeric;
 
-    % Stop if the current configuration approaches a singularity
     if cond(pinv(J)) > 15
         realRobot.setJointVelocity(1,0);
         realRobot.setJointVelocity(2,0);
@@ -72,30 +81,53 @@ for i = 1:1000
         break
     end
 
-    % Calculate respective joint velocity
+    if rad2deg(realRobot.getBevelElevation) < 50
+        realRobot.setJointVelocity(1,0);
+        realRobot.setJointVelocity(2,0);
+        realRobot.setJointVelocity(3,0);
+        realRobot.setJointVelocity(4,0);
+        disp('Warning: Bevel Gear Elevation limit reached!')
+        break
+    end
+
+
+    display_info = 0;
+    [ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo(display_info);
+
+    x_current = ref_position;
+    x_error = x_desired - x_current;
+    fprintf('Distance to goal: %.0f mm \n', norm(x_error));
+
+    if norm(x_error) < 10
+        realRobot.setJointVelocity(1,0);
+        realRobot.setJointVelocity(2,0);
+        realRobot.setJointVelocity(3,0);
+        realRobot.setJointVelocity(4,0);
+        disp('Reached position within epsilon');
+        break;
+    end
+
+    x_dot = P_gain*x_error + D_gain*(x_error_previous - x_error);
+    x_error_previous = x_error; % Update previous errorr
+
+
     q_dot = pinv(J) * x_dot;
 
-    % Set the joint velocity to the real robot here
     realRobot.setJointVelocity(1,q_dot(1));
     realRobot.setJointVelocity(2,q_dot(2));
     realRobot.setJointVelocity(3,q_dot(3));
     realRobot.setJointVelocity(4,q_dot(4));
 
+    % Appen trajectory
+    ref_positions_array = [ref_positions_array ref_position];
 
-    % Visualize the simulated robot which
-    % should be a mirror image of the real robot
+    %Plot
     clearFig = 0;
     draw_frames = 0;
     simulatedRobot.display(clearFig, draw_frames);
+    plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
+    scatter3(x_desired(1),x_desired(2),x_desired(3),'g','filled');
     drawnow
 
-    % Get endeffector info for the trajectory
-    display_info = 0;
-    [ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo(display_info);
-
-    % Append the endeffector postion to an array and plot the trajectory
-    ref_positions_array = [ref_positions_array ref_position];
-    plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
 
 end
-
