@@ -30,10 +30,10 @@ realRobot = RealRobot();
 
 
 %Zero the robot at the current position
-realRobot.setZeroPositionToCurrentPosition
+realRobot.setZeroPositionToCurrentPosition;
 %Enable torque
-realRobot.robotTorqueEnableDisable(1)
-%Move the robot out of the singularity
+realRobot.robotTorqueEnableDisable(1);
+%Move the robot out of the singularity to a starting position
 realRobot.setJointVelocity(1,2);
 realRobot.setJointVelocity(2,2);
 realRobot.setJointVelocity(3,-4);
@@ -43,7 +43,6 @@ realRobot.setJointVelocity(1,0);
 realRobot.setJointVelocity(2,0);
 realRobot.setJointVelocity(3,0);
 realRobot.setJointVelocity(4,0);
-
 pause(2)
 
 % Set a desired endeffector velocity
@@ -51,7 +50,6 @@ x_dot = [0;0;300];
 
 
 ref_positions_array = [];
-
 
 for i = 1:1000
 
@@ -61,7 +59,6 @@ for i = 1:1000
     simulatedRobot.joints(3).setAngle(realRobot.getJointAngle(3));
     simulatedRobot.joints(4).setAngle(realRobot.getJointAngle(4));
 
-  
     % Calculate the Jacobian in the current (modeled robot = real robot) configuration numerically
     J = simulatedRobot.getJacobianNumeric;
 
@@ -84,25 +81,21 @@ for i = 1:1000
     realRobot.setJointVelocity(3,q_dot(3));
     realRobot.setJointVelocity(4,q_dot(4));
 
-    pause(0.01)
 
-
-    % Visualize the robot every x frame % Visualize the modeld robot that
+    % Visualize the simulated robot which
     % should be a mirror image of the real robot
     clearFig = 0;
     draw_frames = 0;
     simulatedRobot.display(clearFig, draw_frames);
     drawnow
 
-    % Get endeffector info
+    % Get endeffector info for the trajectory
     display_info = 0;
     [ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo(display_info);
 
     % Append the endeffector postion to an array and plot the trajectory
     ref_positions_array = [ref_positions_array ref_position];
     plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
-
-    % fprintf('Time for iteration %d: %f seconds\n', i, loopTime);
 
 end
 

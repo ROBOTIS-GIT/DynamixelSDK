@@ -62,7 +62,7 @@ classdef NewBevelGear < handle
                 fprintf("Error Setting Bevel Gear Rotation \n");
                 success = 0;
             else
-                fprintf("Bevel Gear Rotation Set Successfully \n");
+                % fprintf("Bevel Gear Rotation Set Successfully \n");
                 success = 1;
             end
 
@@ -84,7 +84,7 @@ classdef NewBevelGear < handle
                 fprintf("Error Setting Bevel Gear Rotation \n");
                 success = 0;
             else
-                fprintf("Bevel Gear Rotation Set Successfully \n");
+                % fprintf("Bevel Gear Rotation Set Successfully \n");
                 success = 1;
             end
 

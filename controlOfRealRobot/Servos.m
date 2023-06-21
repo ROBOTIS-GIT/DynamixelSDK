@@ -388,7 +388,7 @@ classdef Servos < handle
             VALUE = calllib(obj.lib_name, 'read4ByteTxRx', obj.port_num , PROTOCOL_VERSION, ID, ADDR_PRO_GOAL_VELOCITY);
             
             if VALUE == VELOCITY_VAL
-                fprintf("Successfully set velocity of Servo with ID %d \n", ID);
+                % fprintf("Successfully set velocity of Servo with ID %d \n", ID);
                 success = 1;
             else
                 fprintf("Could not set velocity of Servo with ID %d \n", ID);
