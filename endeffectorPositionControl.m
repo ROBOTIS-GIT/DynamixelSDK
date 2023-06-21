@@ -40,13 +40,15 @@ realRobot.setJointVelocity(2,0);
 realRobot.setJointVelocity(3,0);
 realRobot.setJointVelocity(4,0);
 
-x_desired = [200, -148.362929, 400.512059]';
+x_desired = [-305.630423, -71.880247, 189.167890]';
 
 
 ref_positions_array = [];
 
-P_gain = 5;
-D_gain = 1; % You may have to adjust this to suit your application
+P_gain = 4;
+D_gain = 2; % You may have to adjust this to suit your application
+I_gain = 0; % You may have to adjust this to suit your application
+x_error_integral = zeros(3,1); % To store integral of error
 x_error_previous = zeros(3,1); % To store previous error for derivative action
 
 
@@ -56,7 +58,7 @@ simulatedRobot.joints(3).setAngle(realRobot.getJointAngle(3));
 simulatedRobot.joints(4).setAngle(realRobot.getJointAngle(4));
 
 
-epsilon = 10; %mm
+epsilon = 3; %mm
 
 clearFig = 0;
 draw_frames = 0;
@@ -67,7 +69,9 @@ pause(4)
 
 %Position epsilon at which it breaks the loop
 
+PI_Activated = 0;
 
+last_position_change = inf;
 for i = 1:1000
 
     simulatedRobot.joints(1).setAngle(realRobot.getJointAngle(1));
@@ -84,10 +88,12 @@ for i = 1:1000
     end
 
     if rad2deg(realRobot.getBevelElevation) < 50
-        disp('Warning: Bevel Gear Elevation limit reached!')
+        disp('Warning: Bevel elevation limit reached')
         realRobot.goToZeroPosition(0);
-        break
+        break;
     end
+
+
 
 
     display_info = 0;
@@ -99,18 +105,37 @@ for i = 1:1000
 
     if norm(x_error) < epsilon
         disp('Reached position within epsilon');
+        for i = 1:4
+            realRobot.setJointVelocity(i,0);
+        end
+        pause(4)
         realRobot.goToZeroPosition(0);
         break;
     end
 
-    x_dot = P_gain*x_error + D_gain*(x_error_previous - x_error);
-    x_error_previous = x_error; % Update previous errorr
+    x_error_integral = x_error_integral + x_error; % Update error integral
+    x_dot = P_gain*x_error + D_gain*(x_error_previous - x_error) + I_gain*x_error_integral;
 
+    %Enable PI Controller when (x_error_previous - x_error) not changing much
+    position_change = norm(x_error_previous - x_error);
+    if norm(x_error_previous - x_error) < 5 && PI_Activated == 0 && last_position_change <5
+        for i = 1:4
+            realRobot.setJointVelocity(i,0);
+        end
+        PI_Activated = 1
+        x_error_integral = 0;
+        P_gain = 10;
+        D_gain = 0;
+        I_gain = 1;
+    end
+    last_position_change = position_change;
+
+    x_error_previous = x_error; % Update previous errorr
 
     q_dot = pinv(J) * x_dot;
 
-    realRobot.setJointVelocity(1,q_dot(1));
-    realRobot.setJointVelocity(2,q_dot(2));
+    realRobot.setJointVelocity(1,q_dot(1)*0.5);
+    realRobot.setJointVelocity(2,q_dot(2)*0.5);
     realRobot.setJointVelocity(3,q_dot(3));
     realRobot.setJointVelocity(4,q_dot(4));
 

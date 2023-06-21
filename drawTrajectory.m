@@ -33,24 +33,20 @@ realRobot = RealRobot();
 
 %% Main
 
-% Zero the robot and move to a non singularity position
+% Zero the robot
 realRobot.setZeroPositionToCurrentPosition;
-realRobot.robotTorqueEnableDisable(1);
-realRobot.setJointVelocity(1,1);
-realRobot.setJointVelocity(2,1);
-realRobot.setJointVelocity(3,-2);
-realRobot.setJointVelocity(4,4);
-pause(1)
-realRobot.setJointVelocity(1,0);
-realRobot.setJointVelocity(2,0);
-realRobot.setJointVelocity(3,0);
-realRobot.setJointVelocity(4,0);
 
 % Disable Torque so the robot can be guided by hand
 realRobot.robotTorqueEnableDisable(0);
 
+% Create a new figure and set the KeyPressFcn
+fig = figure('KeyPressFcn', @(fig_obj, eventDat) setappdata(fig_obj, 'key', eventDat.Key));
+
+
 ref_positions_array = [];
-while 1
+
+% Loop while the 'c' key has not been pressed
+while ~strcmp(getappdata(fig, 'key'), 'c')
 
     % Get current joint angles and set them to the simulated robot
     simulatedRobot.joints(1).setAngle(realRobot.getJointAngle(1));
@@ -66,12 +62,16 @@ while 1
     drawnow
 
     % Get endeffector info for the trajectory
-    display_info = 1;
+    display_info = 0;
     [ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo(display_info);
 
     % Append the endeffector postion to an array and plot the trajectory
     ref_positions_array = [ref_positions_array ref_position];
     plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
 
-end
+    % You may want to add a brief pause to allow MATLAB to process the keypress
+    pause(0.01);
 
+end
+endeffector_frame.getInfo(1);
+realRobot.goToZeroPosition(1);
