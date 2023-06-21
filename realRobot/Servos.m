@@ -374,12 +374,13 @@ classdef Servos < handle
             % Set the velocity
             ADDR_PRO_GOAL_VELOCITY      = 104;         % Control table address is different in Dynamixel model
             VELOCITY_VAL = 1/0.229 * velocity * gear_ratio; % Convert velocity to decimal
+            %Floor VELOCITY_VAL
+            VELOCITY_VAL = floor(VELOCITY_VAL);
             if VELOCITY_VAL <0
                 VELOCITY_VAL = 4294967296 + VELOCITY_VAL;
             end
             
-            %Floor VELOCITY_VAL
-            VELOCITY_VAL = floor(VELOCITY_VAL);
+
 
 
             calllib(obj.lib_name, 'write4ByteTxRx', obj.port_num , PROTOCOL_VERSION, ID, ADDR_PRO_GOAL_VELOCITY, VELOCITY_VAL);

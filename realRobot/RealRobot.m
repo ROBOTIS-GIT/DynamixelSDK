@@ -32,7 +32,7 @@ classdef RealRobot < handle
                 case 2
                     success = obj.BevelGearObject.setVelocityAroundX(velocity);
                 case 3
-                    success = obj.BevelGearObject.ServosObject.setVelocity(2, -velocity);
+                    success = obj.BevelGearObject.ServosObject.setVelocity(2, velocity);
                 case 4
                     success = obj.BevelGearObject.ServosObject.setVelocity(1, -velocity);
                 otherwise
@@ -147,7 +147,114 @@ classdef RealRobot < handle
             [elevation, success] = obj.BevelGearObject.getElevation();
 
         end
+        
+        function [success] = goToZeroPosition(obj, enableTorque)
+
+            if enableTorque == 1
+                obj.robotTorqueEnableDisable(1)
+            end
+
+            
+            if obj.YawJointZeroPos == -inf || obj.ElbowJointZeroPos == -inf
+                success = 0;
+                fprintf("Error: Zero position not defined \n");
+                return
+            end
 
 
+            % Use a P-controller to move the joint angles to the zero
+            % position
+
+
+            Joint1_converged = 0;
+            Joint2_converged = 0;
+            Joint3_converged = 0;
+            Joint4_converged = 0;
+
+
+            while 1
+                %Get current pos
+                successLevel = 0;
+                [Joint1_Angle, success] = obj.getJointAngle(1);
+                successLevel = successLevel + 1;
+                [Joint2_Angle, success] = obj.getJointAngle(2);
+                successLevel = successLevel + 1;
+                [Joint3_Angle, success] = obj.getJointAngle(3);
+                successLevel = successLevel + 1;
+                [Joint4_Angle, success] = obj.getJointAngle(4);
+                successLevel = successLevel + 1;
+
+                if successLevel < 4
+                    fprintf("Error getting Angles of Servos")
+                    success = 0;
+                    return
+                end
+
+                %Set the velocity with a Gain
+                P_Gain = 5;
+                successLevel = 0;
+                successLevel = successLevel + obj.setJointVelocity(1, -Joint1_Angle*P_Gain);
+                successLevel = successLevel + obj.setJointVelocity(2, -Joint2_Angle*P_Gain);
+                successLevel = successLevel + obj.setJointVelocity(3, -Joint3_Angle*P_Gain);
+                successLevel = successLevel + obj.setJointVelocity(4, -Joint4_Angle*P_Gain);
+                
+
+                if successLevel < 4
+                    fprintf("Error setting Angles of Servos")
+                    obj.setJointVelocity(1, 0);
+                    obj.setJointVelocity(2, 0);
+                    obj.setJointVelocity(3, 0);
+                    obj.setJointVelocity(4, 0);
+                    success = 0;
+                    return
+                end
+
+
+
+                %Check if the angles are within epsilon
+                if abs(Joint1_Angle) < 0.02 && ~Joint1_converged
+                    obj.setJointVelocity(1, 0);
+                    fprintf("Joint 1 reset to zero pos. \n")
+                    Joint1_converged = 1;
+    
+                end
+                if abs(Joint2_Angle) <  0.02 && ~Joint2_converged
+                    obj.BevelGearObject.ServosObject.setVelocity(4, 0);
+                    fprintf("Joint 2 reset to zero pos. \n")
+                    Joint2_converged = 1;   
+                end
+                if abs(Joint3_Angle) <  0.05 && ~Joint3_converged
+                    obj.BevelGearObject.ServosObject.setVelocity(2, 0);
+                    fprintf("Joint 3 reset to zero pos. \n")
+                    Joint3_converged = 1;   
+    
+                end
+                if abs(Joint4_Angle) <  0.05 && ~Joint4_converged
+                    obj.BevelGearObject.ServosObject.setVelocity(1, 0);
+                    fprintf("Joint 4 reset to zero pos. \n")
+                    Joint4_converged = 1;   
+    
+                end
+
+                if Joint1_converged && Joint2_converged && Joint3_converged && Joint4_converged
+                    fprintf("All servos reset to zero pos. \n")
+
+                    %Disable torque
+                    obj.robotTorqueEnableDisable(0);
+
+
+                    success = 1;
+                    break
+                end
+
+
+            end
+
+
+
+        end
+
+   
+    
     end
 end
