@@ -82,7 +82,11 @@ classdef RealRobot < handle
                 fprintf("Error enabling/disabling torque of whole robot \n");
                 success = 0;
             else
-                fprintf("Successfully enabled/disabled torque of whole robot \n");
+                if enable_bool == 1
+                    fprintf("Successfully enabled torque of whole robot \n");
+                else
+                    fprintf("Successfully disabled torque of whole robot \n");
+                end
                 success = 1;
             end
 
@@ -155,10 +159,10 @@ classdef RealRobot < handle
 
         end
         
-        function [success] = goToZeroPosition(obj, enableTorque)
+        function success = goToZeroPosition(obj, enableTorque)
 
             if enableTorque == 1
-                obj.robotTorqueEnableDisable(1)
+                obj.robotTorqueEnableDisable(1);
             end
 
 
@@ -214,30 +218,30 @@ classdef RealRobot < handle
                 %Check if the angles are within epsilon
                 if abs(Joint1_Angle) < 0.02 && ~Joint1_converged
                     obj.setJointVelocity(1, 0);
-                    fprintf("Joint 1 reset to zero pos. \n")
+                    % fprintf("Joint 1 reset to zero pos. \n")
                     Joint1_converged = 1;
     
                 end
                 if abs(Joint2_Angle) <  0.02 && ~Joint2_converged
                     obj.BevelGearObject.ServosObject.setVelocity(4, 0);
-                    fprintf("Joint 2 reset to zero pos. \n")
+                    % fprintf("Joint 2 reset to zero pos. \n")
                     Joint2_converged = 1;   
                 end
                 if abs(Joint3_Angle) <  0.05 && ~Joint3_converged
                     obj.BevelGearObject.ServosObject.setVelocity(2, 0);
-                    fprintf("Joint 3 reset to zero pos. \n")
+                    % fprintf("Joint 3 reset to zero pos. \n")
                     Joint3_converged = 1;   
     
                 end
                 if abs(Joint4_Angle) <  0.05 && ~Joint4_converged
                     obj.BevelGearObject.ServosObject.setVelocity(1, 0);
-                    fprintf("Joint 4 reset to zero pos. \n")
+                    % fprintf("Joint 4 reset to zero pos. \n")
                     Joint4_converged = 1;   
     
                 end
 
                 if Joint1_converged && Joint2_converged && Joint3_converged && Joint4_converged
-                    fprintf("All servos reset to zero pos. \n")
+                    fprintf("All joints reset to zero pos. \n")
 
                     %Disable torque
                     obj.robotTorqueEnableDisable(0);
@@ -287,7 +291,6 @@ classdef RealRobot < handle
             end
         end
 
-            
         
     end
 end

@@ -1,6 +1,5 @@
 clear
 clc
-close
 
 addpath('C:\Users\samue\Documents\Git\DynamixelSDK\realRobot')
 addpath('C:\Users\samue\Documents\Git\DynamixelSDK\simulatedRobot')
@@ -41,7 +40,7 @@ realRobot.setJointVelocity(2,0);
 realRobot.setJointVelocity(3,0);
 realRobot.setJointVelocity(4,0);
 
-x_desired = [-89.106495, -148.362929, 520.512059]';
+x_desired = [200, -148.362929, 400.512059]';
 
 
 ref_positions_array = [];
@@ -51,16 +50,22 @@ D_gain = 1; % You may have to adjust this to suit your application
 x_error_previous = zeros(3,1); % To store previous error for derivative action
 
 
-clearFig = 1;
-draw_frames = 0;
 simulatedRobot.joints(1).setAngle(realRobot.getJointAngle(1));
 simulatedRobot.joints(2).setAngle(realRobot.getJointAngle(2));
 simulatedRobot.joints(3).setAngle(realRobot.getJointAngle(3));
 simulatedRobot.joints(4).setAngle(realRobot.getJointAngle(4));
-simulatedRobot.display(clearFig, draw_frames);
-scatter3(x_desired(1),x_desired(2),x_desired(3),'g','filled');
 
-pause(2)
+
+epsilon = 10; %mm
+
+clearFig = 0;
+draw_frames = 0;
+simulatedRobot.display(clearFig, draw_frames);
+    scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
+
+pause(4)
+
+%Position epsilon at which it breaks the loop
 
 
 for i = 1:1000
@@ -73,20 +78,14 @@ for i = 1:1000
     J = simulatedRobot.getJacobianNumeric;
 
     if cond(pinv(J)) > 15
-        realRobot.setJointVelocity(1,0);
-        realRobot.setJointVelocity(2,0);
-        realRobot.setJointVelocity(3,0);
-        realRobot.setJointVelocity(4,0);
         disp('Warning: Close to singularity!');
+        realRobot.goToZeroPosition(0);
         break
     end
 
     if rad2deg(realRobot.getBevelElevation) < 50
-        realRobot.setJointVelocity(1,0);
-        realRobot.setJointVelocity(2,0);
-        realRobot.setJointVelocity(3,0);
-        realRobot.setJointVelocity(4,0);
         disp('Warning: Bevel Gear Elevation limit reached!')
+        realRobot.goToZeroPosition(0);
         break
     end
 
@@ -98,12 +97,9 @@ for i = 1:1000
     x_error = x_desired - x_current;
     fprintf('Distance to goal: %.0f mm \n', norm(x_error));
 
-    if norm(x_error) < 10
-        realRobot.setJointVelocity(1,0);
-        realRobot.setJointVelocity(2,0);
-        realRobot.setJointVelocity(3,0);
-        realRobot.setJointVelocity(4,0);
+    if norm(x_error) < epsilon
         disp('Reached position within epsilon');
+        realRobot.goToZeroPosition(0);
         break;
     end
 
@@ -126,7 +122,7 @@ for i = 1:1000
     draw_frames = 0;
     simulatedRobot.display(clearFig, draw_frames);
     plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
-    scatter3(x_desired(1),x_desired(2),x_desired(3),'g','filled');
+    scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
     drawnow
 
 

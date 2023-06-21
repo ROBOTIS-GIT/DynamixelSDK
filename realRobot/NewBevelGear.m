@@ -102,11 +102,11 @@ classdef NewBevelGear < handle
                 obj.angleAroundY = 0;
                 obj.zeroAngleFirstComposingServo  = zeroAngleFirstServo;
                 obj.zeroAngleSecondComposingServo = zeroAngleSecondServo;
-                fprintf("Successfully set Zero Position \n");
+                fprintf("Successfully set Zero Position of Bevel Gear \n");
                 return
             else
                 success = 0;
-                fprintf("Could not set Zero Position \n");
+                fprintf("Could not set Zero Position of Bevel Gear  \n");
                 return
             end
        

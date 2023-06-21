@@ -141,7 +141,7 @@ classdef Servos < handle
                     fprintf('%s\n', calllib(obj.lib_name, 'getRxPacketError', PROTOCOL_VERSION, dxl_error));
                 else
                     success = 1;
-                    fprintf('Torque of ID %d has been successfully enabled \n', ID);
+                    % fprintf('Torque of ID %d has been successfully enabled \n', ID);
                 end
             else
                 %Disable torque
@@ -156,7 +156,7 @@ classdef Servos < handle
                     fprintf('%s\n', calllib(obj.lib_name, 'getRxPacketError', PROTOCOL_VERSION, dxl_error));
                 else
                     success = 1;
-                    fprintf('Torque of ID %d has been successfully disabled \n', ID);
+                    % fprintf('Torque of ID %d has been successfully disabled \n', ID);
                 end
             end
 
