@@ -1,8 +1,14 @@
+% This script sets the robot to a starting position relative to its initial
+% (zero) position. Then it trys to set a fixed velocity to the endeffector
+% by calculating the Jacobian.
+
 clear
 clc
 close
 
 addpath('C:\Users\samue\Documents\Git\DynamixelSDK\controlOfRealRobot')
+addpath('C:\Users\samue\Documents\Git\DynamixelSDK\kinematicModel')
+
 
 
 %% Setup Frames and Joints
@@ -21,24 +27,66 @@ link4 = CustomLink(joint3, joint4, 'y');  % Yellow
 link5 = CustomLink(joint4, endeffector_frame, 'm');  % Magenta
 
 
-%% Setup simulated and real robot
+%% Setup Robot
 simulatedRobot = SimulatedRobot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, link5], [orig_frame, endeffector_frame]);
 realRobot = RealRobot();
 
 %% Main
+% Set initial rotation
 
-%Zero the robot at the current position, the real robot should be pointing
-%straight up
-realRobot.setZeroPositionToCurrentPosition
+
+%Zero the robot at the current position
+realRobot.setZeroPositionToCurrentPosition;
+%Enable torque
+realRobot.robotTorqueEnableDisable(1);
+%Move the robot out of the singularity to a starting position
+realRobot.setJointVelocity(1,2);
+realRobot.setJointVelocity(2,2);
+realRobot.setJointVelocity(3,-4);
+realRobot.setJointVelocity(4,10);
+pause(2)
+realRobot.setJointVelocity(1,0);
+realRobot.setJointVelocity(2,0);
+realRobot.setJointVelocity(3,0);
+realRobot.setJointVelocity(4,0);
+pause(2)
+
+% Set a desired endeffector velocity
+x_dot = [0;0;300];
+
 
 ref_positions_array = [];
-while 1
+
+for i = 1:1000
 
     % Get current joint angles and set them to the simulated robot
     simulatedRobot.joints(1).setAngle(realRobot.getJointAngle(1));
     simulatedRobot.joints(2).setAngle(realRobot.getJointAngle(2));
     simulatedRobot.joints(3).setAngle(realRobot.getJointAngle(3));
     simulatedRobot.joints(4).setAngle(realRobot.getJointAngle(4));
+
+    % Calculate the Jacobian in the current (modeled robot = real robot) configuration numerically
+    J = simulatedRobot.getJacobianNumeric;
+
+    % Stop if the current configuration approaches a singularity
+    if cond(pinv(J)) > 15
+        realRobot.setJointVelocity(1,0);
+        realRobot.setJointVelocity(2,0);
+        realRobot.setJointVelocity(3,0);
+        realRobot.setJointVelocity(4,0);
+        disp('Warning: Close to singularity!');
+        break
+    end
+
+    % Calculate respective joint velocity
+    q_dot = pinv(J) * x_dot;
+
+    % Set the joint velocity to the real robot here
+    realRobot.setJointVelocity(1,q_dot(1));
+    realRobot.setJointVelocity(2,q_dot(2));
+    realRobot.setJointVelocity(3,q_dot(3));
+    realRobot.setJointVelocity(4,q_dot(4));
+
 
     % Visualize the simulated robot which
     % should be a mirror image of the real robot
