@@ -24,7 +24,7 @@ classdef NewBevelGear < handle
                   PORT = 'COM3';
               end
             obj.ServosObject = Servos(PORT);
-            obj.setComposingServos(3,4); %Default Bevel Gears
+            obj.setComposingServos(4,3); %Default Bevel Gears
         end
 
         function delete(obj)

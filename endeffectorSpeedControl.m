@@ -45,11 +45,9 @@ realRobot.setJointVelocity(2,0);
 realRobot.setJointVelocity(3,0);
 realRobot.setJointVelocity(4,0);
 
-% Initialize x_dot
-x_dot = [0; 0; 0];
 
 % Create a velocity variable
-v = 50; % Modify this according to your needs
+v = 100; % Modify this according to your needs
 
 
 ref_positions_array = [];
@@ -75,20 +73,20 @@ while ~strcmp(getappdata(fig, 'key'), 'c')
     if ~isempty(key)
         switch key
             case 'leftarrow'
-                x_dot = [-v; 0; 0]
+                x_dot = [-v; 0; 0];
             case 'rightarrow'
-                x_dot = [v; 0; 0]
+                x_dot = [v; 0; 0];
             case 'uparrow'
-                x_dot = [0; v; 0]
+                x_dot = [0; v; 0];
             case 'downarrow'
-                x_dot = [0; -v; 0]
+                x_dot = [0; -v; 0];
             case 'w'
-                x_dot = [0; 0; v]
+                x_dot = [0; 0; v];
             case 's'
-                x_dot = [0; 0; -v]
+                x_dot = [0; 0; -v];
         end
     else
-        x_dot = [0; 0; 0]
+        x_dot = [0; 0; 0];
     end
 
     % Get current joint angles and set them to the simulated robot

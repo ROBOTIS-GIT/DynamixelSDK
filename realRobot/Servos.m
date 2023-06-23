@@ -112,7 +112,7 @@ classdef Servos < handle
             if ismember(id, obj.availableIDs)
                 ID = id;
             else
-                error('ID %d is not available', id);
+                error('ID %d is not available, check Button in ON Position and Connection to Robot Arm', id);
             end
         end
         
