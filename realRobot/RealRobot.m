@@ -25,6 +25,26 @@ classdef RealRobot < handle
             % joint2 : bevel rotate x
             % joint3 : yaw rotate z : ID 2
             % joint4 : elbow rotate x : ID 1
+        
+
+            % Set maximum joint speed
+            switch joint
+                case 1
+                    max_joint_speed = 2;
+                case 2
+                    max_joint_speed = 2;
+                case 3
+                    max_joint_speed = 10;
+                case 4
+                    max_joint_speed = 10;
+            end
+
+            % Ensure velocity does not exceed the maximum joint speed
+            if abs(velocity) > max_joint_speed
+                velocity = max_joint_speed * sign(velocity);
+            end
+
+
             
             switch joint
                 case 1
@@ -162,9 +182,12 @@ classdef RealRobot < handle
         function success = goToZeroPosition(obj, enableTorque,epsilon)
 
 
+            disp("Returning to zero Position...")
+
 
             if nargin < 4
-                epsilon = 0.02;
+                epsilon_deg = 0.3;
+                epsilon = deg2rad(epsilon_deg);
             end
 
             if enableTorque == 1
@@ -174,9 +197,9 @@ classdef RealRobot < handle
             % Initialize errors and gains
             integralError = [0, 0, 0, 0];
             prevError = [0, 0, 0, 0];
-            P_Gain = 5;  % Proportional gain
-            I_Gain = 0.1;  % Integral gain
-            D_Gain = 0.01;  % Derivative gain
+            P_Gain = 14;  % Proportional gain
+            I_Gain = 3;  % Integral gain
+            D_Gain = 6;  % Derivative gain
     
             % Use a PID-controller to move the joint angles to the zero
             % position
@@ -250,16 +273,17 @@ classdef RealRobot < handle
                 %Blocking function of setting a Joint position
 
                 if nargin < 4
-                    epsilon = 0.02;
+                    epsilon_deg = 0.3;
+                    epsilon = deg2rad(epsilon_deg);
                 end
         
-                % Initialize error values and gains
-                integralError = 0;
-                prevError = 0;
-                P_Gain = 5;  % Proportional gain
-                I_Gain = 0.1;  % Integral gain
-                D_Gain = 0.01;  % Derivative gain
-                
+                % Initialize errors and gains
+                integralError = [0, 0, 0, 0];
+                prevError = [0, 0, 0, 0];
+                P_Gain = 14;  % Proportional gain
+                I_Gain = 3;  % Integral gain
+                D_Gain = 6;  % Derivative gain
+                    
                 while 1
                     % Get the current joint angle
                     [joint_angle, success] = obj.getJointAngle(joint);
