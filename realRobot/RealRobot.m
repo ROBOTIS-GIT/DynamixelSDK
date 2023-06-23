@@ -158,26 +158,35 @@ classdef RealRobot < handle
             [elevation, success] = obj.BevelGearObject.getElevation();
 
         end
-        
-        function success = goToZeroPosition(obj, enableTorque)
+
+        function success = goToZeroPosition(obj, enableTorque,epsilon)
+
+
+
+            if nargin < 4
+                epsilon = 0.02;
+            end
 
             if enableTorque == 1
                 obj.robotTorqueEnableDisable(1);
             end
-
-
-            % Use a P-controller to move the joint angles to the zero
+    
+            % Initialize errors and gains
+            integralError = [0, 0, 0, 0];
+            prevError = [0, 0, 0, 0];
+            P_Gain = 5;  % Proportional gain
+            I_Gain = 0.1;  % Integral gain
+            D_Gain = 0.01;  % Derivative gain
+    
+            % Use a PID-controller to move the joint angles to the zero
             % position
-
-
             Joint1_converged = 0;
             Joint2_converged = 0;
             Joint3_converged = 0;
             Joint4_converged = 0;
-
-
+    
             while 1
-                %Get current pos
+                % Get current positions
                 successLevel = 0;
                 [Joint1_Angle, success] = obj.getJointAngle(1);
                 successLevel = successLevel + success;
@@ -187,108 +196,107 @@ classdef RealRobot < handle
                 successLevel = successLevel + success;
                 [Joint4_Angle, success] = obj.getJointAngle(4);
                 successLevel = successLevel + success;
-
+    
+                % Update errors
+                currentError = [Joint1_Angle, Joint2_Angle, Joint3_Angle, Joint4_Angle];
+                integralError = integralError + currentError;
+                derivativeError = currentError - prevError;
+                prevError = currentError;
+    
                 if successLevel < 4
                     fprintf("Error getting Angles of Servos")
                     success = 0;
                     return
                 end
-
-                %Set the velocity with a Gain
-                P_Gain = 5;
+    
+                % Calculate and set the PID velocity for each joint
                 successLevel = 0;
-                successLevel = successLevel + obj.setJointVelocity(1, -Joint1_Angle*P_Gain);
-                successLevel = successLevel + obj.setJointVelocity(2, -Joint2_Angle*P_Gain);
-                successLevel = successLevel + obj.setJointVelocity(3, -Joint3_Angle*P_Gain);
-                successLevel = successLevel + obj.setJointVelocity(4, -Joint4_Angle*P_Gain);
-                
-
+                for i = 1:4
+                    PID_velocity = -(P_Gain * currentError(i) + I_Gain * integralError(i) + D_Gain * derivativeError(i));
+                    successLevel = successLevel + obj.setJointVelocity(i, PID_velocity);
+                end
+    
                 if successLevel < 4
                     fprintf("Error setting Angles of Servos")
-                    obj.setJointVelocity(1, 0);
-                    obj.setJointVelocity(2, 0);
-                    obj.setJointVelocity(3, 0);
-                    obj.setJointVelocity(4, 0);
+                    for i = 1:4
+                        obj.setJointVelocity(i, 0);
+                    end
                     success = 0;
                     return
                 end
-
-
-
-                %Check if the angles are within epsilon
-                if abs(Joint1_Angle) < 0.02 && ~Joint1_converged
-                    obj.setJointVelocity(1, 0);
-                    % fprintf("Joint 1 reset to zero pos. \n")
-                    Joint1_converged = 1;
     
+                % Check if the angles are within epsilon
+                for i = 1:4
+                    if abs(currentError(i)) < epsilon && ~eval(['Joint' num2str(i) '_converged'])
+                        obj.setJointVelocity(i, 0);
+                        eval(['Joint' num2str(i) '_converged = 1;']);
+                    end
                 end
-                if abs(Joint2_Angle) <  0.02 && ~Joint2_converged
-                    obj.BevelGearObject.ServosObject.setVelocity(4, 0);
-                    % fprintf("Joint 2 reset to zero pos. \n")
-                    Joint2_converged = 1;   
-                end
-                if abs(Joint3_Angle) <  0.05 && ~Joint3_converged
-                    obj.BevelGearObject.ServosObject.setVelocity(2, 0);
-                    % fprintf("Joint 3 reset to zero pos. \n")
-                    Joint3_converged = 1;   
     
-                end
-                if abs(Joint4_Angle) <  0.05 && ~Joint4_converged
-                    obj.BevelGearObject.ServosObject.setVelocity(1, 0);
-                    % fprintf("Joint 4 reset to zero pos. \n")
-                    Joint4_converged = 1;   
-    
-                end
-
                 if Joint1_converged && Joint2_converged && Joint3_converged && Joint4_converged
                     fprintf("All joints reset to zero pos. \n")
-
-                    %Disable torque
+    
+                    % Disable torque
                     obj.robotTorqueEnableDisable(0);
-
-
+    
                     success = 1;
                     break
                 end
-
-
             end
-
-
-
         end
+
+        function success = setJointPosition(obj, joint, position, epsilon)
         
-        function success = setJointPosition(obj, joint, position)
+                %Blocking function of setting a Joint position
 
-            %Blocking function of setting a Joint position
-
-            % Define P_Gain
-            P_Gain = 5;
-            
-            while 1
-                % Get the current joint angle
-                [joint_angle, success] = obj.getJointAngle(joint);
-            
-                % If success is 0, that means there was an error in getting the joint angle
-                if success == 0
-                    return
+                if nargin < 4
+                    epsilon = 0.02;
                 end
         
-                % Check if the joint angle is within tolerance
-                if abs(position - joint_angle) < 0.06
-                    obj.setJointVelocity(joint, 0);
-                    fprintf("Joint %d set to desired pos. \n", joint);
-                    success = 1;
-                    break
+                % Initialize error values and gains
+                integralError = 0;
+                prevError = 0;
+                P_Gain = 5;  % Proportional gain
+                I_Gain = 0.1;  % Integral gain
+                D_Gain = 0.01;  % Derivative gain
+                
+                while 1
+                    % Get the current joint angle
+                    [joint_angle, success] = obj.getJointAngle(joint);
+                
+                    % If success is 0, that means there was an error in getting the joint angle
+                    if success == 0
+                        return
+                    end
+                    
+                    % Calculate the error
+                    currentError = position - joint_angle;
+            
+                    % Update integral and derivative errors
+                    integralError = integralError + currentError;
+                    derivativeError = currentError - prevError;
+                    prevError = currentError;
+            
+                    % Check if the joint angle is within tolerance
+                    if abs(currentError) < epsilon
+                        obj.setJointVelocity(joint, 0);
+                        fprintf("Joint %d set to desired pos. \n", joint);
+                        success = 1;
+                        break
+                    end
+                
+                    % Calculate the control signal using a PID-controller
+                    control_signal = P_Gain * currentError + I_Gain * integralError + D_Gain * derivativeError;
+                
+                    % Set the joint velocity
+                    success = obj.setJointVelocity(joint, control_signal);
+
+                    if success == 0
+                        fprintf("Error setting Joint position. \n")
+                        return
+                    end
+                
                 end
-            
-                % Calculate the control signal using a P-controller
-                control_signal = P_Gain * (position - joint_angle);
-            
-                % Set the joint velocity
-                success = obj.setJointVelocity(joint, control_signal);
-            
-            end
         end
 
         

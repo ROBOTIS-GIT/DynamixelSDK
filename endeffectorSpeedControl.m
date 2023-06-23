@@ -137,5 +137,5 @@ while ~strcmp(getappdata(fig, 'key'), 'c')
     pause(0.01);
 
 end
-realRobot.goToZeroPosition(1);
+realRobot.goToZeroPosition(1,0.02);
 

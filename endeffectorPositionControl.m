@@ -40,7 +40,7 @@ realRobot.setJointVelocity(2,0);
 realRobot.setJointVelocity(3,0);
 realRobot.setJointVelocity(4,0);
 
-x_desired = [-305.630423, -71.880247, 189.167890]';
+x_desired = [-332.889722, 24.725909, 223.842292]';
 
 
 ref_positions_array = [];
@@ -83,13 +83,13 @@ for i = 1:1000
 
     if cond(pinv(J)) > 15
         disp('Warning: Close to singularity!');
-        realRobot.goToZeroPosition(0);
+        realRobot.goToZeroPosition(0,0.02);
         break
     end
 
     if rad2deg(realRobot.getBevelElevation) < 50
         disp('Warning: Bevel elevation limit reached')
-        realRobot.goToZeroPosition(0);
+        realRobot.goToZeroPosition(0,0.02);
         break;
     end
 
@@ -109,7 +109,7 @@ for i = 1:1000
             realRobot.setJointVelocity(i,0);
         end
         pause(4)
-        realRobot.goToZeroPosition(0);
+        realRobot.goToZeroPosition(0,0.02);
         break;
     end
 

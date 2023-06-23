@@ -74,4 +74,4 @@ while ~strcmp(getappdata(fig, 'key'), 'c')
 
 end
 endeffector_frame.getInfo(1);
-realRobot.goToZeroPosition(1);
+realRobot.goToZeroPosition(1,0.02);
