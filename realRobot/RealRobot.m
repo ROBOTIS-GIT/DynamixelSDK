@@ -197,9 +197,9 @@ classdef RealRobot < handle
             % Initialize errors and gains
             integralError = [0, 0, 0, 0];
             prevError = [0, 0, 0, 0];
-            P_Gain = 14;  % Proportional gain
-            I_Gain = 3;  % Integral gain
-            D_Gain = 6;  % Derivative gain
+            P_Gain = 10;  % Proportional gain
+            I_Gain = 2;  % Integral gain
+            D_Gain = 5;  % Derivative gain
     
             % Use a PID-controller to move the joint angles to the zero
             % position
@@ -280,9 +280,9 @@ classdef RealRobot < handle
                 % Initialize errors and gains
                 integralError = [0, 0, 0, 0];
                 prevError = [0, 0, 0, 0];
-                P_Gain = 14;  % Proportional gain
-                I_Gain = 3;  % Integral gain
-                D_Gain = 6;  % Derivative gain
+                P_Gain = 10;  % Proportional gain
+                I_Gain = 2;  % Integral gain
+                D_Gain = 5;  % Derivative gain
                     
                 while 1
                     % Get the current joint angle

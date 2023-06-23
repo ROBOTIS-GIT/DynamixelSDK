@@ -43,12 +43,12 @@ realRobot.setJointVelocity(3,0);
 realRobot.setJointVelocity(4,0);
 
 % Desired position
-x_desired = [-319.311633, -8.206300, 172.201658]';
+x_desired = [-346.316364, 6.381530, 184.963270]';
 ref_positions_array = [];
 
 % PID gains
-P_gain = 15;
-D_gain = 5; 
+P_gain = 10;
+D_gain = 4; 
 I_gain = 0; 
 
 % Initialize error parameters
