@@ -193,7 +193,7 @@ classdef Servos < handle
             % Check if the Operating Mode was set successfully
             VALUE = calllib(obj.lib_name, 'read1ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_OP_MODE);
             if VALUE == OP_MODE
-                fprintf("Successfully set Operation mode of Servo with ID %d to %s \n", ID, modeString)
+                % fprintf("Successfully set Operation mode of Servo with ID %d to %s \n", ID, modeString)
                 success = 1;
             else
                 fprintf("Failed to set Operation mode of Servo with ID %d \n", ID);

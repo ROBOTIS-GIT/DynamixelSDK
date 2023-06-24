@@ -1,5 +1,5 @@
 classdef CustomFrame < handle
-    %Frame - A class to represent a coordinate frame in 3D space.
+    % CustomFrame - A class to represent a coordinate frame in 3D space.
     % The Frame object holds information about its position and orientation
     % relative to its parent frame. It also contains a list of its child
     % frames. The frame's position is stored in the relativePosition
@@ -12,6 +12,9 @@ classdef CustomFrame < handle
         parent            % Reference to the parent Frame object
         children          % Array of references to the child Frame objects
         label             % String label for the frame
+
+        % The graphic handles are used for modifying the existing plot of
+        % the frame instead of redrawing it every time which is faster.
         xHandle           % Graphics handle for X axis
         yHandle           % Graphics handle for Y axis
         zHandle           % Graphics handle for Z axis
@@ -71,8 +74,6 @@ classdef CustomFrame < handle
             end
             
             rotate_about_axis(obj, angle, axis_vec);
-
-
         end
 
         function display(obj)
@@ -81,6 +82,9 @@ classdef CustomFrame < handle
         end
     
         function [ref_position, ref_rotation, ref_frame] = getInfo(obj,display_info, ref_frame)
+            % This method provides information about a frame. The position
+            % and rotation is returned relative to a given ref_frame.
+
             % If the ref_frame argument is missing or empty, use global frame
             if nargin < 3 || isempty(ref_frame)
                 ref_frame_label = 'global frame';
@@ -122,8 +126,7 @@ classdef CustomFrame < handle
     
             return
         end
-
-        
+      
         function rotMatrix = rotate_about_axis(obj, angle, axis_vec)
             % This is a helper method that performs the actual rotation of the
             % frame. It uses Rodrigues' rotation formula to compute the rotation

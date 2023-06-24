@@ -1,4 +1,4 @@
-classdef Joint < CustomFrame
+classdef CustomJoint < CustomFrame
     %Joint - A class to represent a joint in 3D space.
     % The Joint object inherits from Frame and holds an additional
     % information about its fixed rotation axis.
@@ -9,7 +9,7 @@ classdef Joint < CustomFrame
     end
 
     methods
-        function obj = Joint(relativePosition, parent, label, rotationAxisLabel)
+        function obj = CustomJoint(relativePosition, parent, label, rotationAxisLabel)
             %Joint - Construct a Joint object.
             % Joint(relativePosition, parent, label, rotationAxisLabel) creates a Joint object
             % with the specified relative position, parent frame, label, and rotationAxisLabel.
@@ -22,6 +22,9 @@ classdef Joint < CustomFrame
         end
 
         function rotate(obj, angle)
+            % This method rotates the joint a given angle around its
+            % rotation axis.
+
             obj.angle = mod(obj.angle + angle, 2*pi);
             % The rotation axis is taken from the rotationAxisLabel property
             switch lower(obj.rotationAxisLabel)
@@ -39,6 +42,8 @@ classdef Joint < CustomFrame
         end
 
         function setAngle(obj, desiredAngle)
+            % This method sets the Angle of the joint by rotating it.
+
             % Convert the angles to the range [0, 2*pi] to ensure consistency
             desiredAngle = mod(desiredAngle, 2*pi);
             obj.angle = mod(obj.angle, 2*pi);

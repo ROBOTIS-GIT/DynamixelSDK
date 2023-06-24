@@ -28,7 +28,7 @@ classdef CustomLink < handle
             obj.color = color;  % Set the color property
         end
         
-        % The display method updates the display of the link. Currently, it
+        % The display method updates the display of the link. It
         % just calls the update method to redraw the link.
         function display(obj)
             obj.update();

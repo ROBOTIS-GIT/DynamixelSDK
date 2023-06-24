@@ -1,9 +1,34 @@
 classdef SimulatedRobot < handle
+    % SimulatedRobot is a MATLAB class that represents a robot manipulator 
+    % in a 3D environment. It provides methods for computing forward 
+    % kinematics, Jacobian matrices, displaying the robot configuration 
+    % in a 3D plot and updating the positions of its joints and links. 
+    % The robot is modeled as a collection of rigid links connected by 
+    % joints and additional frames can be defined as needed. 
+    %
+    % Each instance of the class has an array of Joint objects representing 
+    % the robot's joints, an array of Link objects representing the physical 
+    % connections between joints, and an array of Frame objects representing 
+    % additional frames of the robot.
+    %
+    % The class provides two methods for forward kinematics, one numerical 
+    % and one symbolic, which return the position of the end effector in 
+    % global coordinates given the current joint angles. It also provides 
+    % two methods for computing the Jacobian matrix, one numerical and one 
+    % symbolic, which relate the joint velocities to the linear and angular 
+    % velocity of the end effector. 
+    %
+    % The display method updates and displays all joints, links, and frames 
+    % in a 3D plot, with the option to clear the previous plot and draw 
+    % the coordinate frames.
+    
     properties
         joints  % An array of Joint objects, defining the joints of the robot
         links   % An array of Link objects, defining the physical connections between joints
         frames % An array of Frame objects, defining additional frames of the robot
-        axis_set = 0;
+        axis_set = 0; % Store if the axis property of the plot has already been set once.
+        % This saves compute compared to setting it repeatedly in the
+        % display method.
     end
 
     methods
@@ -75,7 +100,8 @@ classdef SimulatedRobot < handle
         end
 
         function J = getJacobianSymbolic(obj)
-            % This method computes the Jacobian matrix based on the symbolic version of the forward kinematics function
+            % This method computes the Jacobian matrix based on the
+            % symbolic version of the forward kinematics function.
             
             % Declare joint angles as symbolic variables
             syms sAlpha sBeta sGamma sDelta real;
@@ -83,12 +109,14 @@ classdef SimulatedRobot < handle
             % Get symbolic forward kinematics
             sOxE = obj.forwardKinematicsSymbolic;
             
-            % Compute the Jacobian
+            % Compute the Jacobian by partial derivation of the symbolic
+            % forward kinematic equation
             J = jacobian(sOxE, [sAlpha, sBeta, sGamma, sDelta]);
         end
 
         function J = getJacobianNumeric(obj)
-            % This method computes the Jacobian matrix numerically
+            % This method computes the Jacobian matrix numerically. Much
+            % faster then the symbolic derivation.
 
             % This function computes the Jacobian matrix of the robot manipulator using a numerical method.
             %
@@ -179,8 +207,9 @@ classdef SimulatedRobot < handle
             obj.joints(4).angle = q(4);
         end
 
-        % The display method updates and displays all joints and links
         function display(obj, clear, draw_frames)
+            % The display method updates and displays all joints and links
+
             % Get the current figure handle
             fig = findobj('type', 'figure');
             
@@ -223,10 +252,10 @@ classdef SimulatedRobot < handle
             end
         end
 
-
     end
 end
 
+%% Definition of the standard rotational matrices
 
 function rotx = rotx(alpha)
     
