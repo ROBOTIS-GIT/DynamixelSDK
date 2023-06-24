@@ -1,3 +1,6 @@
+% This script moves the robot to a starting position and then tries to
+% reach a goal position with the endeffector using a PID controller.
+
 clear
 clc
 close
