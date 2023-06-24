@@ -30,8 +30,10 @@ realRobot = RealRobot();
 
 %% Main
 % Initial position setup
+realRobot.torqueEnableDisable(0);
+realRobot.setOperatingMode('velocity');
 realRobot.setZeroPositionToCurrentPosition;
-realRobot.robotTorqueEnableDisable(1);
+realRobot.torqueEnableDisable(1);
 realRobot.setJointVelocity(1,2);
 realRobot.setJointVelocity(2,2);
 realRobot.setJointVelocity(3,-4);
@@ -86,12 +88,12 @@ while 1
     % Check for singularity condition and limit reached condition
     if cond(pinv(J)) > 15
         disp('Warning: Close to singularity');
-        realRobot.goToZeroPosition(0);
+        realRobot.goToZeroPosition();
         break
     end
     if rad2deg(realRobot.getBevelElevation) < 50
         disp('Warning: Bevel elevation limit reached')
-        realRobot.goToZeroPosition(0);
+        realRobot.goToZeroPosition();
         break;
     end
 
@@ -113,7 +115,7 @@ while 1
                 realRobot.setJointVelocity(i,0);
             end
             pause(2)
-            realRobot.goToZeroPosition(0);
+            realRobot.goToZeroPosition();
             break;
         end
     end
