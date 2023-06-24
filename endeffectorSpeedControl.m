@@ -12,10 +12,10 @@ addpath('C:\Users\samue\Documents\Git\DynamixelSDK\simulatedRobot')
 
 %% Setup Frames and Joints
 orig_frame = CustomFrame([0; 0; 0], [], 'Origin');
-joint1 = Joint([0; 0; 83.51], orig_frame, 'Joint 1', 'y');
-joint2 = Joint([0;0;0], joint1, 'Joint 2', 'x');
-joint3 = Joint([0;0;119.35], joint2, 'Joint 3', 'z');
-joint4 = Joint([0;0;163.99], joint3, 'Joint 4', 'x');
+joint1 = CustomJoint([0; 0; 83.51], orig_frame, 'Joint 1', 'y');
+joint2 = CustomJoint([0;0;0], joint1, 'Joint 2', 'x');
+joint3 = CustomJoint([0;0;119.35], joint2, 'Joint 3', 'z');
+joint4 = CustomJoint([0;0;163.99], joint3, 'Joint 4', 'x');
 endeffector_frame = CustomFrame([0;0;218.86], joint4, 'Endeffector');
 
 %% Setup Links
@@ -34,7 +34,7 @@ realRobot = RealRobot();
 
 % Zero the robot and move to a non singularity position
 realRobot.setZeroPositionToCurrentPosition;
-realRobot.robotTorqueEnableDisable(1);
+realRobot.torqueEnableDisable(1);
 realRobot.setJointVelocity(1,2);
 realRobot.setJointVelocity(2,2);
 realRobot.setJointVelocity(3,-4);
@@ -133,9 +133,7 @@ while ~strcmp(getappdata(fig, 'key'), 'c')
     ref_positions_array = [ref_positions_array ref_position];
     plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
 
-    % You may want to add a brief pause to allow MATLAB to process the keypress
-    pause(0.01);
-
 end
-realRobot.goToZeroPosition(1);
+% Return to initial zero positoin
+realRobot.goToZeroPosition();
 

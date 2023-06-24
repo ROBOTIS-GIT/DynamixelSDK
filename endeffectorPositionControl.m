@@ -1,32 +1,33 @@
-% Clear variables and command window
 clear
 clc
+close
 
-% Add paths to the robot models
 addpath('C:\Users\samue\Documents\Git\DynamixelSDK\realRobot')
 addpath('C:\Users\samue\Documents\Git\DynamixelSDK\simulatedRobot')
 
-%% Setup Frames and Joints
-% Create the frames and joints for the robot model
+
+%% Setup Frames and Joints of the simulated robot
 orig_frame = CustomFrame([0; 0; 0], [], 'Origin');
-joint1 = Joint([0; 0; 83.51], orig_frame, 'Joint 1', 'y');
-joint2 = Joint([0;0;0], joint1, 'Joint 2', 'x');
-joint3 = Joint([0;0;119.35], joint2, 'Joint 3', 'z');
-joint4 = Joint([0;0;163.99], joint3, 'Joint 4', 'x');
+joint1 = CustomJoint([0; 0; 83.51], orig_frame, 'Joint 1', 'y');
+joint2 = CustomJoint([0;0;0], joint1, 'Joint 2', 'x');
+joint3 = CustomJoint([0;0;119.35], joint2, 'Joint 3', 'z');
+joint4 = CustomJoint([0;0;163.99], joint3, 'Joint 4', 'x');
 endeffector_frame = CustomFrame([0;0;218.86], joint4, 'Endeffector');
 
-%% Setup Links
-% Create the links for the robot model
+%% Setup Links of the simulated robot
 link1 = CustomLink(orig_frame, joint1, 'r');  % Red
 link2 = CustomLink(joint1, joint2, 'g');  % Green
 link3 = CustomLink(joint2, joint3, 'b');  % Blue
 link4 = CustomLink(joint3, joint4, 'y');  % Yellow
 link5 = CustomLink(joint4, endeffector_frame, 'm');  % Magenta
 
-%% Setup Robot
-% Initialize both the simulated and real robot
+
+%% Setup simulated robot
 simulatedRobot = SimulatedRobot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, link5], [orig_frame, endeffector_frame]);
+
+%% Connect real robot
 realRobot = RealRobot();
+
 
 %% Main
 % Initial position setup
@@ -76,6 +77,12 @@ pause(2)
 
 last_position_change = inf;
 reached_positions_counter = 0;
+
+% Initialize extra variables
+distance_to_goal_previous = inf;
+distance_not_changing_counter = 0;
+I_gain_enabled = false;
+
 while 1
     % Update joint angles for the simulated robot
     for j = 1:4
@@ -91,7 +98,7 @@ while 1
         realRobot.goToZeroPosition();
         break
     end
-    if rad2deg(realRobot.getBevelElevation) < 50
+    if rad2deg(realRobot.getBevelElevation) < 45
         disp('Warning: Bevel elevation limit reached')
         realRobot.goToZeroPosition();
         break;
@@ -104,10 +111,27 @@ while 1
     x_error = x_desired - x_current;
 
     % Print the distance to the goal
-    fprintf('Distance to goal: %.0f mm \n', norm(x_error));
+    distance_to_goal = norm(x_error);
+    fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
+
+    % Check if the distance to the goal is not changing much
+    if abs(distance_to_goal - distance_to_goal_previous) < 2
+        distance_not_changing_counter = distance_not_changing_counter + 1;
+    else
+        distance_not_changing_counter = 0; % Reset the counter if the change is more than 1 mm
+    end
+    distance_to_goal_previous = distance_to_goal;
+
+    % If the distance is not changing for more than 3 timesteps, enable the I_gain
+    if distance_not_changing_counter > 3 && ~I_gain_enabled
+        I_gain = 1;
+        x_error_integral = zeros(3,1); % clear x_error_integral
+        I_gain_enabled = true; % set the flag to avoid multiple activations
+        disp('I-Gain has been enabled');
+    end
 
     % Check if the desired position is reached
-    if norm(x_error) < epsilon
+    if distance_to_goal < epsilon
         reached_positions_counter = reached_positions_counter + 1;
         if reached_positions_counter > 10
             disp('Reached position within epsilon');

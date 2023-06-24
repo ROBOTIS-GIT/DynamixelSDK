@@ -205,8 +205,8 @@ classdef RealRobot < handle
             % position by setting their velocity.
             integralError = [0, 0, 0, 0];
             prevError = [0, 0, 0, 0];
-            P_Gain = 10;  % Proportional gain
-            I_Gain = 2;  % Integral gain
+            P_Gain = 15;  % Proportional gain
+            I_Gain = 0;  % Integral gain
             D_Gain = 5;  % Derivative gain
     
             % Store which joints have already converged to their zero
@@ -215,6 +215,11 @@ classdef RealRobot < handle
             Joint2_converged = 0;
             Joint3_converged = 0;
             Joint4_converged = 0;
+
+            % Initialize extra variables
+            joint_angle_previous = [inf, inf, inf, inf];
+            joint_not_changing_counter = [0, 0, 0, 0];
+            I_gain_enabled = false;
     
             while 1
                 % Get current joint positions
@@ -240,6 +245,24 @@ classdef RealRobot < handle
                 integralError = integralError + currentError;
                 derivativeError = currentError - prevError;
                 prevError = currentError;
+        
+                % Check if the joint angle is not changing much
+                for i = 1:4
+                    if abs(currentError(i) - joint_angle_previous(i)) < 0.15
+                        joint_not_changing_counter(i) = joint_not_changing_counter(i) + 1;
+                    else
+                        joint_not_changing_counter(i) = 0; % Reset the counter if the change is more than 0.1 rad
+                    end
+                end
+                joint_angle_previous = currentError;
+        
+                % If the joint angle is not changing for more than 3 timesteps for all joints, enable the I_gain
+                if all(joint_not_changing_counter > 3) && ~I_gain_enabled
+                    I_Gain = 3;
+                    integralError = [0, 0, 0, 0]; % clear integralError
+                    I_gain_enabled = true; % set the flag to avoid multiple activations
+                    disp('I-Gain has been enabled');
+                end
                
                 % Calculate and set the PID velocity for each joint
                 successLevel = 0;
@@ -279,66 +302,6 @@ classdef RealRobot < handle
             end
         end
 
-        function success = setJointPosition(obj, joint, position, precision)
-            %Blocking function of setting a single Joint position. Uses
-            %the same PID Controller as goToZeroPosition.
-
-            disp("Setting joint Position... ");
-
-            % Use a default precision of 0.3 ° if no precision has been
-            % defined
-            if nargin < 4
-                precision_deg = 0.3;
-                precision = deg2rad(precision_deg);
-            end
-    
-            % Initialize errors and gains for the PID controller. This
-            % controller tries to move the joints to their stored zero
-            % position by setting their velocity.
-            integralError = [0, 0, 0, 0];
-            prevError = [0, 0, 0, 0];
-            P_Gain = 10;  % Proportional gain
-            I_Gain = 2;  % Integral gain
-            D_Gain = 5;  % Derivative gain
-                
-            while 1
-                % Get the current joint angle
-                [joint_angle, success] = obj.getJointAngle(joint);
-            
-                % If success is 0, that means there was an error in getting the joint angle
-                if success == 0
-                    fprintf("Failed setting the joint position: Could not get the current joint angle. \n")
-                    return
-                end
-                
-                % Calculate the joint position error
-                currentError = position - joint_angle;
-        
-                % Update integral and derivative errors
-                integralError = integralError + currentError;
-                derivativeError = currentError - prevError;
-                prevError = currentError;
-        
-                % Check if the joint angle is within given precision
-                if abs(currentError) < precision
-                    obj.setJointVelocity(joint, 0);
-                    fprintf("Joint %d set to desired pos. \n", joint);
-                    success = 1;
-                    return
-                end
-            
-                % Calculate the control signal using a PID-controller
-                control_signal = P_Gain * currentError + I_Gain * integralError + D_Gain * derivativeError;
-            
-                % Set the joint velocity
-                success = obj.setJointVelocity(joint, control_signal);
-                if success == 0
-                    fprintf("Failed setting the joint position: Could not set the Joint Velocity \n")
-                    return
-                end
-            end
-        end
-   
         function success = setJointVelocity(obj,joint,velocity)
             % Set the velocity of a specified Joint in rev/min.
 
