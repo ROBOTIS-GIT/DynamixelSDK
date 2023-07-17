@@ -50,7 +50,6 @@ realRobot.setJointVelocity(4,0);
 
 % Desired position
 x_desired =  [-315.301974, -83.883586, 189.013096]';
-ref_positions_array = [];
 
 % PID gains
 P_gain = 10;
@@ -88,15 +87,12 @@ I_gain_enabled = false;
 
 
 
-
-
-
 % Number of points
 n_points = 10;
 % Radius of the circle in mm
-radius = 100;  
+radius = 150;  
 % Center of the circle
-center = [-radius, -radius, 500];
+center = [-radius/2, -radius/2, 500];
 
 % Create an array of angular positions
 theta = linspace(0, 2*pi, n_points);
@@ -110,13 +106,13 @@ z = center(3) * ones(size(theta));
 positions_array = [x; y; z];
 
 
+ref_positions_array = [];
 
 for i = 1:size(positions_array, 2)
 
     x_desired = positions_array(:, i);
 
     % Reset all the needed variables before trying a new position
-    ref_positions_array = [];
     x_error_integral = zeros(3,1); 
     x_error_previous = zeros(3,1); 
     x_error_derivative = zeros(3,1); 
@@ -212,6 +208,7 @@ for i = 1:size(positions_array, 2)
     
         % Store the current position
         ref_positions_array = [ref_positions_array ref_position];
+
     
         % Display the simulated robot and the desired position
         simulatedRobot.display(clearFig, draw_frames);
