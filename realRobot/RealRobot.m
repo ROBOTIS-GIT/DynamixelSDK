@@ -177,7 +177,7 @@ classdef RealRobot < handle
             [elevation, success] = obj.BevelGearObject.getElevation();
         end
 
-        function success = goToZeroPosition(obj,precision)
+        function success = goToZeroPosition(obj,precision_deg)
             % Uses a PID controller for the joint position to return to the previously stored zero
             % position of the robot.
 
@@ -192,10 +192,11 @@ classdef RealRobot < handle
 
             % Use a default precision of 0.3 ° if no precision has been
             % defined
-            if nargin < 4
+            if nargin < 2
                 precision_deg = 0.3;
-                precision = deg2rad(precision_deg);
             end
+            precision = deg2rad(precision_deg);
+
 
             % Enable The torque
             obj.torqueEnableDisable(1);

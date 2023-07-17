@@ -49,7 +49,7 @@ realRobot.setJointVelocity(3,0);
 realRobot.setJointVelocity(4,0);
 
 % Desired position
-x_desired = [-346.316364, 6.381530, 184.963270]';
+x_desired =  [-315.301974, -83.883586, 189.013096]';
 ref_positions_array = [];
 
 % PID gains
@@ -68,7 +68,7 @@ for i = 1:4
 end
 
 % Display parameters
-epsilon = 3; %mm
+epsilon = 5; %mm
 clearFig = 0;
 draw_frames = 0;
 
@@ -98,12 +98,12 @@ while 1
     % Check for singularity condition and limit reached condition
     if cond(pinv(J)) > 15
         disp('Warning: Close to singularity');
-        realRobot.goToZeroPosition();
+        realRobot.goToZeroPosition(0.5);
         break
     end
     if rad2deg(realRobot.getBevelElevation) < 45
         disp('Warning: Bevel elevation limit reached')
-        realRobot.goToZeroPosition();
+        realRobot.goToZeroPosition(0.5);
         break;
     end
 
@@ -136,13 +136,13 @@ while 1
     % Check if the desired position is reached
     if distance_to_goal < epsilon
         reached_positions_counter = reached_positions_counter + 1;
-        if reached_positions_counter > 10
+        if reached_positions_counter > 5
             disp('Reached position within epsilon');
             for i = 1:4
                 realRobot.setJointVelocity(i,0);
             end
             pause(2)
-            realRobot.goToZeroPosition();
+            realRobot.goToZeroPosition(0.5);
             break;
         end
     end
