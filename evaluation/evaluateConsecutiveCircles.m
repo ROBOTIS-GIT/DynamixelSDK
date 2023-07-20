@@ -3,15 +3,15 @@ close all
 clc
 
 %Load the first data from the laptop
-load('C:\Users\samue\Desktop\before_calibration_record\33.mat');
+load('C:\Users\samue\Desktop\Semesterarbeit\First_Testing_Robotic_Arm\before_calibration_record\33.mat');
 recordedPositionsFirst =  out.pos_amree;
 
 %Load the second data from the laptop
-load('C:\Users\samue\Desktop\before_calibration_record\44.mat');
+load('C:\Users\samue\Desktop\Semesterarbeit\First_Testing_Robotic_Arm\before_calibration_record\44.mat');
 recordedPositionsSecond =  out.pos_amree;
 
 %Load the third data from the laptop
-load('C:\Users\samue\Desktop\after_calibration_record\calibrated55.mat');
+load('C:\Users\samue\Desktop\Semesterarbeit\First_Testing_Robotic_Arm\after_calibration_record\calibrated55.mat');
 recordedPositionsThird =  out.pos_amree;
 
 clc

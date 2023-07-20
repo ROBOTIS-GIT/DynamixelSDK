@@ -2,11 +2,11 @@ clear
 close all
 clc
 %Load the data from the laptop
-load('C:\Users\samue\Desktop\before_calibration_laptop\33.mat');
+load('C:\Users\samue\Desktop\Semesterarbeit\First_Testing_Robotic_Arm\before_calibration_laptop\33.mat');
 calculatedPositions = ref_positions_array;
 
 %Load the data from the motion capture
-load('C:\Users\samue\Desktop\before_calibration_record\33.mat');
+load('C:\Users\samue\Desktop\Semesterarbeit\First_Testing_Robotic_Arm\before_calibration_record\33.mat');
 recordedPositions = out.pos_amree;
 recordedOrientations = out.orient_arm_ee;
 
