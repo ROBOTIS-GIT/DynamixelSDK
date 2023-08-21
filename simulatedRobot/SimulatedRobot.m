@@ -78,10 +78,10 @@ classdef SimulatedRobot < handle
             syms sAlpha sBeta sGamma sDelta real;
             
             % Rotational matrices
-            sR1 = roty(-sAlpha);
-            sR2 = rotx(-sBeta);
-            sR3 = rotz(-sGamma);
-            sR4 = rotx(-sDelta);
+            sR1 = roty(sAlpha);
+            sR2 = rotx(sBeta);
+            sR3 = rotz(sGamma);
+            sR4 = rotx(sDelta);
             
             % Distances
             xo1 = obj.joints(1).relativePosition;

@@ -85,8 +85,8 @@ classdef CustomFrame < handle
             end
             
             % Apply the rotation to the object's current rotation matrix
-            % gRf = gRot(x/y/z) * gRf
-            obj.rotation = rotMatrix * obj.rotation;
+            % gRf = gRf * fRot(x/y/z)
+            obj.rotation = obj.rotation * rotMatrix;
             
             % Apply the same rotation to all descendent frames
             % Recursively iterate forward through the kinematic chain

@@ -90,14 +90,10 @@ simulatedRobot.display(1)
 [global_position, global_orientation] = endeffector_frame.getInfo(1);
 % This method outputs the position and rotation of a frame relative to any
 % given frame (here the orig_frame = global frame). It also displays the
-% parent and children of the frame.
+% parent and children of the frame. (forward kinematics)
 
-%% Calculate the position and rotation of the endeffector frame relative to its parent
-[rel_position, rel_orientation] = endeffector_frame.getInfo(1,endeffector_frame.parent);
-% This method outputs the position and rotation of a frame relative to any
-% given frame (here the orig_frame = global frame). It also displays the
-% parent and children of the frame.
-
+%% Calculate the position and rotation of the endeffector frame relative to the second frame
+[rel_position, rel_orientation] = endeffector_frame.getInfo(1,second_frame);
 
 
 
