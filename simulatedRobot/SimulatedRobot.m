@@ -242,12 +242,12 @@ classdef SimulatedRobot < handle
                 end
             end
             if obj.axis_set == 0
-                view(45, 45);
+                view(-25, 40);
                 axis equal;
                 xlabel('X');
                 ylabel('Y');
                 zlabel('Z');
-                title('Robot Joints');
+                title('Simulated Robot');
                 obj.axis_set = 1;
             end
         end
