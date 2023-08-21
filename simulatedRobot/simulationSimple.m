@@ -13,6 +13,7 @@ orig_frame = CustomFrame([0; 0; 0], [], 'Origin');
 simulatedRobot = SimulatedRobot([],[],orig_frame);
 simulatedRobot.display(1)
 
+
 %% Rotate the origin frame by 45° around its z axis
 orig_frame.rotate(pi/4,'z') 
 simulatedRobot.display(1)
@@ -83,6 +84,20 @@ simulatedRobot.display(1)
 joint.rotate(pi/8) 
 simulatedRobot.display(1)
 % The rotation is added to the previous rotation
+
+
+%% Calculate the position and rotation of the endeffector frame in global coordinates
+[global_position, global_orientation] = endeffector_frame.getInfo(1);
+% This method outputs the position and rotation of a frame relative to any
+% given frame (here the orig_frame = global frame). It also displays the
+% parent and children of the frame.
+
+%% Calculate the position and rotation of the endeffector frame relative to its parent
+[rel_position, rel_orientation] = endeffector_frame.getInfo(1,endeffector_frame.parent);
+% This method outputs the position and rotation of a frame relative to any
+% given frame (here the orig_frame = global frame). It also displays the
+% parent and children of the frame.
+
 
 
 

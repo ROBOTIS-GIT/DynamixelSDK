@@ -7,10 +7,10 @@ classdef CustomFrame < handle
     % matrix in the rotation property. The orientation is represented in 
     % the origin frame, i.e., it's a global rotation.
     properties
-        relativePosition  % Position vector relative to the parent frame
-        rotation          % Orientation of the frame represented as a 3x3 rotation matrix in global frame
-        parent            % Reference to the parent Frame object
-        children          % Array of references to the child Frame objects
+        relativePosition  % Position vector relative to the parent frame (pPf)
+        rotation          % Orientation of the frame represented as a 3x3 rotation matrix in global frame (gRf)
+        parent            % Reference to the parent Frame object (p)
+        children          % Array of references to the child Frame objects (c)
         label             % String label for the frame
 
         % The graphic handles are used for modifying the existing plot of
@@ -35,9 +35,13 @@ classdef CustomFrame < handle
             if nargin > 0
                 obj.relativePosition = relativePosition;
                 if isempty(parent)
+                    % gRf = identity
                     obj.rotation = eye(3);
                 else
+                    % gRf = gRp
                     obj.rotation = parent.rotation;
+                    % Register this frame as a child of the specified
+                    % parent frame
                     parent.children = [parent.children; obj];
                 end
                 obj.parent = parent;
@@ -51,9 +55,12 @@ classdef CustomFrame < handle
             % pos = getGlobalPosition(obj) returns a 3x1 vector specifying 
             % the frame's position in the global frame.
 
+            % Recursevily iterate backwards thorugh the kinematic chain
             if isempty(obj.parent)
+                % gPf = pPf
                 pos = obj.relativePosition;
             else
+                % gPf = gPp + gRp * pPf
                 pos = obj.parent.getGlobalPosition() + obj.parent.rotation * obj.relativePosition;
             end
         end
@@ -78,9 +85,11 @@ classdef CustomFrame < handle
             end
             
             % Apply the rotation to the object's current rotation matrix
+            % gRf = gRot(x/y/z) * gRf
             obj.rotation = rotMatrix * obj.rotation;
             
-            % Apply the same rotation to all child frames
+            % Apply the same rotation to all descendent frames
+            % Recursively iterate forward through the kinematic chain
             for i = 1:length(obj.children)
                 child = obj.children(i);
                 child.rotate(angle, axis_label);
@@ -92,20 +101,32 @@ classdef CustomFrame < handle
             obj.draw_frame(obj.rotation, obj.getGlobalPosition(), obj.label);
         end
     
-        function [ref_position, ref_rotation, ref_frame] = getInfo(obj,display_info, ref_frame)
+        function [ref_position, ref_rotation] = getInfo(obj,display_info, ref_frame)
             % This method provides information about a frame. The position
             % and rotation is returned relative to a given ref_frame.
 
             % If the ref_frame argument is missing or empty, use global frame
             if nargin < 3 || isempty(ref_frame)
                 ref_frame_label = 'global frame';
-                ref_frame = [];
                 ref_position = obj.getGlobalPosition;
                 ref_rotation = obj.rotation;
             else
                 % Compute position and rotation in the reference frame
                 ref_frame_label = ref_frame.label;
+
+                % The position of the frame represented in the reference
+                % frame (rPf) is the vector you need to go from the origin
+                % of the reference frame, in the coordinate systeme of the
+                % reference frame, to reach the frames origin.
+
+                %The position of the frame (rPf) is the global position of the frame (gPf) 
+                % subtracted by the global position of the reference frame (gPr)
+                % represented in the reference frame.
+
+                % rPf = gRr' * (gPf - gPr) 
                 ref_position = ref_frame.rotation' * (obj.getGlobalPosition - ref_frame.getGlobalPosition);
+
+                % rRf = gRr' * gRf
                 ref_rotation = ref_frame.rotation' * obj.rotation;
             end
                     
@@ -133,6 +154,7 @@ classdef CustomFrame < handle
                 else
                     fprintf('%s has no child frames\n', obj.label);
                 end
+                fprintf('\n\n');
             end
     
             return
