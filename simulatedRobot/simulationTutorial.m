@@ -1,3 +1,6 @@
+% This script serves as a basic tutorial on how the SimulatedRobot with
+% its Frames Joints and Links works.
+
 clear()
 clc
 close
@@ -97,6 +100,8 @@ simulatedRobot.display(1)
 
 
 
-
-
+%% Note regarding the forwardKinematics and getJacobian methods of simulatedRobot:
+% These methods assumes the robot has its normal composition of frames /
+% joints / links. Meaning these methods won't work in this scripts
+% configuration. See simulationExample for those.
 
