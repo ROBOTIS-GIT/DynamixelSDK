@@ -92,7 +92,7 @@ classdef CustomFrame < handle
             % Recursively iterate forward through the kinematic chain
             for i = 1:length(obj.children)
                 child = obj.children(i);
-                child.rotate(angle, axis_label);
+                child.rotate@CustomFrame(angle, axis_label);  % Explicitly call the rotate method of CustomFrame
             end
         end
 
