@@ -59,21 +59,32 @@ classdef CustomFrame < handle
         end
 
         function rotate(obj, angle, axis_label)
-            % This method rotates the frame around one of its axes by a certain
+            % This method rotates the frame around one of its local axes by a certain
             % angle (in radians). The rotation axis is given by the 'axis_label'
             % parameter and is in the frame's local coordinates.
+            
+            % Initialize rotation matrix
+            rotMatrix = eye(3);
+            
             switch lower(axis_label)
             case 'x'
-                axis_vec = obj.rotation(:, 1);
+                rotMatrix = rotx(angle);
             case 'y'
-                axis_vec = obj.rotation(:, 2);
+                rotMatrix = roty(angle);
             case 'z'
-                axis_vec = obj.rotation(:, 3);
+                rotMatrix = rotz(angle);
             otherwise
                 error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
             end
             
-            rotate_about_axis(obj, angle, axis_vec);
+            % Apply the rotation to the object's current rotation matrix
+            obj.rotation = rotMatrix * obj.rotation;
+            
+            % Apply the same rotation to all child frames
+            for i = 1:length(obj.children)
+                child = obj.children(i);
+                child.rotate(angle, axis_label);
+            end
         end
 
         function display(obj)
@@ -127,33 +138,6 @@ classdef CustomFrame < handle
             return
         end
       
-        function rotMatrix = rotate_about_axis(obj, angle, axis_vec)
-            % This is a helper method that performs the actual rotation of the
-            % frame. It uses Rodrigues' rotation formula to compute the rotation
-            % matrix given the rotation angle and the rotation axis vector (in
-            % global coordinates). This rotation matrix is then post-multiplied
-            % to the current rotation matrix of the frame. This method also
-            % recursively applies the same rotation to all child frames.
-            c = cos(angle);
-            s = sin(angle);
-            t = 1 - c;
-            x = axis_vec(1);
-            y = axis_vec(2);
-            z = axis_vec(3);
-            
-            % Using Rodrigues' rotation formula
-            rotMatrix = [t*x*x + c,   t*x*y - s*z, t*x*z + s*y;
-                   t*x*y + s*z, t*y*y + c,   t*y*z - s*x;
-                   t*x*z - s*y, t*y*z + s*x, t*z*z + c];
-
-
-            obj.rotation = rotMatrix * obj.rotation;
-            
-            for i = 1:length(obj.children)
-                child = obj.children(i);
-                child.rotate_about_axis(angle, axis_vec);
-            end
-        end
 
         function draw_frame(obj, rotation, globalPosition, label)
             % This method draws the frame in a 3D plot. It uses the 'quiver3' and
@@ -206,3 +190,19 @@ classdef CustomFrame < handle
     end
 end
 
+
+
+
+%% Definition of the standard rotational matrices
+
+function rotx = rotx(alpha)
+    rotx = [1 0 0; 0 cos(alpha) -sin(alpha); 0 sin(alpha) cos(alpha)];
+end
+
+function roty = roty(beta)
+    roty = [cos(beta) 0 sin(beta); 0 1 0; -sin(beta) 0 cos(beta)];
+end
+
+function rotz = rotz(gamma)
+    rotz = [cos(gamma) -sin(gamma) 0; sin(gamma) cos(gamma) 0; 0 0 1];
+end

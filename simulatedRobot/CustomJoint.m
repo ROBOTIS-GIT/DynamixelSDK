@@ -6,18 +6,14 @@ classdef CustomJoint < CustomFrame
     properties
         rotationAxisLabel  % The axis label that this joint can rotate around
         % the axis label refers to the local coordinate system
-        angle = 0; %Angle in the local coordinate system
+        angle = 0; % Joint Angle in the local coordinate system
     end
 
     methods
         function obj = CustomJoint(relativePosition, parent, label, rotationAxisLabel)
-            %Joint - Construct a Joint object.
-            % Joint(relativePosition, parent, label, rotationAxisLabel) creates a Joint object
-            % with the specified relative position, parent frame, label, and rotationAxisLabel.
-            % The frame's orientation is initialized to match the parent
-            % frame's orientation, or to the identity matrix if no parent 
-            % frame is provided. The rotationAxisLabel is initialized with
-            % the input rotationAxisLabel and can't be changed afterwards.
+            %A joint is just a Frame with a fixed rotation axis.
+            %rotation axis label defines around which local axis the joint
+            %is allowed to rotate. The rotation angle is stored.
             obj = obj@CustomFrame(relativePosition, parent, label); % Call the super class constructor
             obj.rotationAxisLabel = rotationAxisLabel;  % Initialize rotation axis label
         end
@@ -27,19 +23,8 @@ classdef CustomJoint < CustomFrame
             % rotation axis.
 
             obj.angle = mod(obj.angle + angle, 2*pi);
-            % The rotation axis is taken from the rotationAxisLabel property
-            switch lower(obj.rotationAxisLabel)
-            case 'x'
-                axis_vec = obj.rotation(:, 1);
-            case 'y'
-                axis_vec = obj.rotation(:, 2);
-            case 'z'
-                axis_vec = obj.rotation(:, 3);
-            otherwise
-                error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
-            end
-        
-            obj.rotate_about_axis(angle, axis_vec);
+       
+            obj.rotate@CustomFrame(angle, obj.rotationAxisLabel);
         end
 
         function setAngle(obj, desiredAngle)
@@ -47,7 +32,6 @@ classdef CustomJoint < CustomFrame
 
             % Convert the angles to the range [0, 2*pi] to ensure consistency
             desiredAngle = mod(desiredAngle, 2*pi);
-            obj.angle = mod(obj.angle, 2*pi);
         
             % Compute the difference between the desired angle and the current angle
             angleDiff = desiredAngle - obj.angle;

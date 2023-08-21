@@ -28,21 +28,31 @@ simulatedRobot = SimulatedRobot([joint1, joint2, joint3, joint4], [link1, link2,
 % simulatedRobot.display(draw_frames)
 simulatedRobot.display(1)
 
+
+%% Rotation and Setting of the Joint angles
 % Rotate joint 1 around its configured rotation axis (y)
 joint1.rotate(pi/8);
 simulatedRobot.display(1)
 
-%Rotate joint 1 again --> rotate further
-joint1.rotate(pi/8);
-simulatedRobot.display(1)
 
-% Set the angle of joint 4
-joint4.setAngle(pi/4);
-simulatedRobot.display(1)
 
-% Set the angle of joint 3
-joint3.setAngle(pi/4);
-simulatedRobot.display(1)
+
+
+% %Rotate joint 1 again --> rotate further
+% joint1.rotate(pi/8);
+% simulatedRobot.display(1)
+% 
+% % Set the angle of joint 4 --> setting the angle will rotate the joint
+% % to the desired angle (setting = absolute, rotating = relative)
+% joint4.setAngle(pi/4);
+% simulatedRobot.display(1)
+% 
+% % Set the angle of joint 3
+% joint3.setAngle(pi/4);
+% simulatedRobot.display(1)
+% 
+% 
+% 
 
 
 
