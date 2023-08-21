@@ -24,11 +24,28 @@ link5 = CustomLink(joint4, endeffector_frame, 'm');  % Magenta
 simulatedRobot = SimulatedRobot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, link5], [orig_frame, endeffector_frame]);
 
 % Display the robot in the default configuration
-clear = 0;
-draw_frames = 1;
-simulatedRobot.display(clear,draw_frames)
+
+% simulatedRobot.display(draw_frames)
+simulatedRobot.display(1)
 
 % Rotate joint 1 around its configured rotation axis (y)
+joint1.rotate(pi/8);
+simulatedRobot.display(1)
+
+%Rotate joint 1 again --> rotate further
+joint1.rotate(pi/8);
+simulatedRobot.display(1)
+
+% Set the angle of joint 4
+joint4.setAngle(pi/4);
+simulatedRobot.display(1)
+
+% Set the angle of joint 3
+joint3.setAngle(pi/4);
+simulatedRobot.display(1)
+
+
+
 
 
 

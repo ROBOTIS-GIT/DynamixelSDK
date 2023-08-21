@@ -207,7 +207,7 @@ classdef SimulatedRobot < handle
             obj.joints(4).angle = q(4);
         end
 
-        function display(obj, clear, draw_frames)
+        function display(obj, draw_frames)
             % The display method updates and displays all joints and links
 
             % Get the current figure handle
@@ -216,15 +216,7 @@ classdef SimulatedRobot < handle
             % If the figure does not exist, create a new one
             if isempty(fig)
                 fig = figure;
-            else
-                % Otherwise, clear the existing figure
-                if clear
-                    clf(fig);
-                end
             end
-        
-            % Set the figure to be the current figure
-            % figure(fig);
             
             hold on;
             grid on;

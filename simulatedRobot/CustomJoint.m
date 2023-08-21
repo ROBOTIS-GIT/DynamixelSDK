@@ -6,7 +6,7 @@ classdef CustomJoint < CustomFrame
     properties
         rotationAxisLabel  % The axis label that this joint can rotate around
         % the axis label refers to the local coordinate system
-        angle = 0;
+        angle = 0; %Angle in the local coordinate system
     end
 
     methods
