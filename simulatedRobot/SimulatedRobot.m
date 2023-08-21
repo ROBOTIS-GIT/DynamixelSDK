@@ -54,16 +54,11 @@ classdef SimulatedRobot < handle
             gamma = obj.joints(3).angle;
             delta = obj.joints(4).angle;
 
-            % Rotational Matrices
-            % Compare Technische Dynamik
-            % Central_Exercise_01_Relative_Kinematics.
-            % There the rotated Frame is on the left, therefore we have to
-            % transpose the Rotational Matrix (or simply use a negative
-            % sign before the angle).
-            R1 = roty(-alpha);
-            R2 = rotx(-beta);
-            R3 = rotz(-gamma);
-            R4 = rotx(-delta);
+            % Calculate the rotational matrices
+            R1 = roty(alpha);
+            R2 = rotx(beta);
+            R3 = rotz(gamma);
+            R4 = rotx(delta);
 
             % Distances
             xo1 = obj.joints(1).relativePosition;
@@ -249,24 +244,18 @@ end
 
 %% Definition of the standard rotational matrices
 
-function rotx = rotx(alpha)
-    
-    rotx = [1 0 0; 0 cos(alpha) sin(alpha); 0 -sin(alpha) cos(alpha)];
+%% Definition of the standard rotational matrices
 
+function rotx = rotx(alpha)
+    rotx = [1 0 0; 0 cos(alpha) -sin(alpha); 0 sin(alpha) cos(alpha)];
 end
 
 function roty = roty(beta)
-    
-    roty = [cos(beta) 0 -sin(beta); 0 1 0; sin(beta) 0 cos(beta)];
-
+    roty = [cos(beta) 0 sin(beta); 0 1 0; -sin(beta) 0 cos(beta)];
 end
 
 function rotz = rotz(gamma)
-    
-    rotz = [cos(gamma) sin(gamma) 0; -sin(gamma) cos(gamma) 0; 0 0 1];
-
+    rotz = [cos(gamma) -sin(gamma) 0; sin(gamma) cos(gamma) 0; 0 0 1];
 end
-
-
 
     

@@ -79,6 +79,10 @@ joint.setAngle(0)
 simulatedRobot.display(1)
 % The rotation is overwritten, previous rotation does not matter
 
+%% Rotate the joint again --> rotates further
+joint.rotate(pi/8) 
+simulatedRobot.display(1)
+% The rotation is added to the previous rotation
 
 
 
