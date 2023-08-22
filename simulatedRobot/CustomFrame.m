@@ -70,32 +70,20 @@ classdef CustomFrame < handle
             % angle (in radians). The rotation axis is given by the 'axis_label'
             % parameter and is in the frame's local coordinates.
             
-            % Determine the axis vector based on the axis_label
+            % Determine the rotation matrix based on the axis_label
             switch lower(axis_label)
             case 'x'
-                axis_vec = obj.rotation(:, 1);
+                rotMatrix = rotx(angle);
             case 'y'
-                axis_vec = obj.rotation(:, 2);
+                rotMatrix = roty(angle);
             case 'z'
-                axis_vec = obj.rotation(:, 3);
+                rotMatrix = rotz(angle);
             otherwise
                 error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
             end
             
-            % Compute the rotation matrix using Rodrigues' rotation formula
-            c = cos(angle);
-            s = sin(angle);
-            t = 1 - c;
-            x = axis_vec(1);
-            y = axis_vec(2);
-            z = axis_vec(3);
-            
-            rotMatrix = [t*x*x + c,   t*x*y - s*z, t*x*z + s*y;
-                         t*x*y + s*z, t*y*y + c,   t*y*z - s*x;
-                         t*x*z - s*y, t*y*z + s*x, t*z*z + c];
-            
             % Apply the rotation to the object's current rotation matrix
-            obj.rotation = rotMatrix * obj.rotation;
+            obj.rotation = obj.rotation * rotMatrix;
             
             % Apply the same rotation to all descendent frames recursively
             applyRotationToDescendants(obj, rotMatrix);
