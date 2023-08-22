@@ -82,7 +82,27 @@ classdef CustomFrame < handle
                 error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
             end
             
-            % Compute the rotation matrix using Rodrigues' rotation formula
+            % Compute the rotation matrix around the frames local axis using Rodrigues' rotation formula
+            % Rodrigues' rotation formula is used to rotate a vector in 3D space.
+            % Given an angle 'angle' and a rotation axis 'axis_vec', the formula
+            % calculates a rotation matrix 'rotMatrix'. This matrix, when multiplied
+            % with the original vector, gives the rotated vector.
+            % The formula uses trigonometric functions (cos and sin) and the axis
+            % vector components to compute the elements of 'rotMatrix'.
+            % 'c' is cos(angle), 's' is sin(angle), and 't' is 1 - cos(angle).
+            % 'x', 'y', and 'z' are the components of the axis vector 'axis_vec'.
+            % The formula ensures a smooth and computationally efficient rotation.
+
+            % Another approach would be to find the beginning of the
+            % kinematic chain (global/fixed frame) and update the complete
+            % forward kinematics using a composition of basis rotations.
+            % However this would require storing the basic rotation angles of
+            % every frame in the kinematic chain and computing the whole
+            % chain even when only the last frames would be affected by the
+            % rotation.
+
+            % Quaternions could also be used.
+
             c = cos(angle);
             s = sin(angle);
             t = 1 - c;
@@ -95,9 +115,8 @@ classdef CustomFrame < handle
                          t*x*z - s*y, t*y*z + s*x, t*z*z + c];
 
             
-
             
-            % Apply the rotation to the object's current rotation matrix
+            % Apply the rotation to the frame
             obj.rotation = rotMatrix * obj.rotation;
             
             % Apply the same rotation to all descendent frames recursively
@@ -177,7 +196,6 @@ classdef CustomFrame < handle
             return
         end
       
-
         function draw_frame(obj, rotation, globalPosition, label)
             % This method draws the frame in a 3D plot. It uses the 'quiver3' and
             % 'text' functions to draw the frame's axes and labels, respectively.
@@ -227,21 +245,4 @@ classdef CustomFrame < handle
             obj.textHandle = text(globalPosition(1), globalPosition(2), globalPosition(3), label);
         end
     end
-end
-
-
-
-
-%% Definition of the standard rotational matrices
-
-function rotx = rotx(alpha)
-    rotx = [1 0 0; 0 cos(alpha) -sin(alpha); 0 sin(alpha) cos(alpha)];
-end
-
-function roty = roty(beta)
-    roty = [cos(beta) 0 sin(beta); 0 1 0; -sin(beta) 0 cos(beta)];
-end
-
-function rotz = rotz(gamma)
-    rotz = [cos(gamma) -sin(gamma) 0; sin(gamma) cos(gamma) 0; 0 0 1];
 end

@@ -1,5 +1,7 @@
 % This script shows an example of the roboticArm in the kinematic
-% simulation
+% simulation. The arm moves to a non singularity position and then tries to
+% reach a desired endeffector position given in global coordinates. It uses
+% inverse kinematics together with a PID controller.
 
 clear()
 clc
@@ -24,14 +26,104 @@ link5 = CustomLink(joint4, endeffector_frame, 'm');  % Magenta
 %% Setup simulated robot
 simulatedRobot = SimulatedRobot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, link5], [orig_frame, endeffector_frame]);
 
-%% Move the robot to a non-singularity position
-for i = 1:100
-    for j = 1:4
-        simulatedRobot.joints(j).rotate(0.01)
-    end
 
-    simulatedRobot.display(0)
-    drawnow
+%% Initialize variables for visualization
+ref_positions_array = [];  % Array to store end-effector positions
+epsilon = 5;  % Radius for the scatter plot of the goal position
+
+% Desired position
+x_desired =  [-315.301974, -83.883586, 189.013096]';
+
+%% Move the robot to a non-singularity position
+disp("Moving the robot to a non-singularity position.")
+for i = 1:30
+    for j = 1:4
+        simulatedRobot.joints(j).rotate(0.003);
+    end
+    
+    % Get current end-effector position for trajectory visualization
+    x_current = simulatedRobot.forwardKinematicsNumeric;
+    ref_positions_array = [ref_positions_array, x_current];
+    
+    % Display the robot
+    simulatedRobot.display(0);
+    
+    % Plot the trajectory of the end-effector
+    plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
+    
+    % Plot the desired goal position
+    scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
+
+    
+    drawnow;
+end
+disp("Starting control loop.")
+pause(1)
+
+
+
+%% Use inverse kinematics to reach a goal position (Endeffector Position Control with PID)
+% PID gains
+Kp = 2;
+Ki = 0;
+Kd = 0;
+
+% Initialize error and integral terms
+error_integral = zeros(3,1);
+error_prev = zeros(3,1);
+
+while true
+    % Get current end-effector position
+    x_current = simulatedRobot.forwardKinematicsNumeric;
+
+
+    % Compute error
+    error = x_desired - x_current;
+    
+    % Compute integral and derivative of error
+    error_integral = error_integral + error;
+    error_derivative = error - error_prev;
+    
+    % Compute control input (PID)
+    u = Kp * error + Ki * error_integral + Kd * error_derivative;
+    
+    % Compute the Jacobian for the current robot configuration
+    J = simulatedRobot.getJacobianNumeric();
+    
+    % Compute joint velocities
+    q_dot = pinv(J) * u * 0.01;
+    
+    % Update joint angles based on computed joint velocities
+    for j = 1:4
+        angle = simulatedRobot.joints(j).angle;
+        simulatedRobot.joints(j).setAngle(angle + q_dot(j));
+    end
+    
+    % Update previous error
+    error_prev = error;
+    
+    % Store the current end-effector position for trajectory visualization
+    ref_positions_array = [ref_positions_array, x_current];
+    
+    % Print the distance to the goal
+    distance_to_goal = norm(error);
+    fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
+    
+    % Display the robot
+    simulatedRobot.display(0);
+    
+    % Plot the trajectory of the end-effector
+    plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
+    
+    % Plot the desired goal position
+    scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
+    
+    drawnow;
+    
+    % Break condition: stop if error is small
+    if norm(error) < 5 %mm
+        break;
+    end
 end
 
-
+disp('Reached the goal position.');
