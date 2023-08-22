@@ -64,15 +64,16 @@ pause(1)
 
 %% Use inverse kinematics to reach a goal position (Endeffector Position Control with PID)
 % PID gains
-Kp = 2;
-Ki = 0;
-Kd = 0;
+Kp = 1;
+Ki = 0.01;
+Kd = 0.1;
 
 % Initialize error and integral terms
 error_integral = zeros(3,1);
 error_prev = zeros(3,1);
 
-while true
+dt = 0.01;
+while 1
     % Get current end-effector position
     x_current = simulatedRobot.forwardKinematicsNumeric;
 
@@ -91,12 +92,12 @@ while true
     J = simulatedRobot.getJacobianNumeric();
     
     % Compute joint velocities
-    q_dot = pinv(J) * u * 0.01;
+    q_dot = pinv(J) * u;
     
     % Update joint angles based on computed joint velocities
     for j = 1:4
         angle = simulatedRobot.joints(j).angle;
-        simulatedRobot.joints(j).setAngle(angle + q_dot(j));
+        simulatedRobot.joints(j).setAngle(angle + q_dot(j)*dt);
     end
     
     % Update previous error
@@ -124,6 +125,8 @@ while true
     if norm(error) < 5 %mm
         break;
     end
+
+    pause(dt)
 end
 
 disp('Reached the goal position.');
