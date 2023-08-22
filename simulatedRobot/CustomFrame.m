@@ -66,33 +66,48 @@ classdef CustomFrame < handle
         end
 
         function rotate(obj, angle, axis_label)
-            % This method rotates the frame around one of its local axes by a certain
+            % This method rotates the frame around one of its axes by a certain
             % angle (in radians). The rotation axis is given by the 'axis_label'
             % parameter and is in the frame's local coordinates.
-            
-            % Initialize rotation matrix
-            rotMatrix = eye(3);
-            
             switch lower(axis_label)
             case 'x'
-                rotMatrix = rotx(angle);
+                axis_vec = obj.rotation(:, 1);
             case 'y'
-                rotMatrix = roty(angle);
+                axis_vec = obj.rotation(:, 2);
             case 'z'
-                rotMatrix = rotz(angle);
+                axis_vec = obj.rotation(:, 3);
             otherwise
                 error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
             end
             
-            % Apply the rotation to the object's current rotation matrix
-            % gRf = gRf * fRot(x/y/z)
-            obj.rotation = obj.rotation * rotMatrix;
+            rotate_about_axis(obj, angle, axis_vec);
+        end
+
+        function rotMatrix = rotate_about_axis(obj, angle, axis_vec)
+            % This is a helper method that performs the actual rotation of the
+            % frame. It uses Rodrigues' rotation formula to compute the rotation
+            % matrix given the rotation angle and the rotation axis vector (in
+            % global coordinates). This rotation matrix is then post-multiplied
+            % to the current rotation matrix of the frame. This method also
+            % recursively applies the same rotation to all child frames.
+            c = cos(angle);
+            s = sin(angle);
+            t = 1 - c;
+            x = axis_vec(1);
+            y = axis_vec(2);
+            z = axis_vec(3);
             
-            % Apply the same rotation to all descendent frames
-            % Recursively iterate forward through the kinematic chain
+            % Using Rodrigues' rotation formula
+            rotMatrix = [t*x*x + c,   t*x*y - s*z, t*x*z + s*y;
+                   t*x*y + s*z, t*y*y + c,   t*y*z - s*x;
+                   t*x*z - s*y, t*y*z + s*x, t*z*z + c];
+
+
+            obj.rotation = rotMatrix * obj.rotation;
+            
             for i = 1:length(obj.children)
                 child = obj.children(i);
-                child.rotate@CustomFrame(angle, axis_label);  % Explicitly call the rotate method of CustomFrame
+                child.rotate_about_axis(angle, axis_vec);
             end
         end
 
