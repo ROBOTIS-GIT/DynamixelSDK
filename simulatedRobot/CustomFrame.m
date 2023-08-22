@@ -64,49 +64,51 @@ classdef CustomFrame < handle
                 pos = obj.parent.getGlobalPosition() + obj.parent.rotation * obj.relativePosition;
             end
         end
-
-function rotate(obj, angle, axis_label)
-    % This method rotates the frame around one of its axes by a certain
-    % angle (in radians). The rotation axis is given by the 'axis_label'
-    % parameter and is in the frame's local coordinates.
-    
-    % Determine the axis vector based on the axis_label
-    switch lower(axis_label)
-    case 'x'
-        axis_vec = obj.rotation(:, 1);
-    case 'y'
-        axis_vec = obj.rotation(:, 2);
-    case 'z'
-        axis_vec = obj.rotation(:, 3);
-    otherwise
-        error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
-    end
-    
-    % Compute the rotation matrix using Rodrigues' rotation formula
-    c = cos(angle);
-    s = sin(angle);
-    t = 1 - c;
-    x = axis_vec(1);
-    y = axis_vec(2);
-    z = axis_vec(3);
-    
-    rotMatrix = [t*x*x + c,   t*x*y - s*z, t*x*z + s*y;
-                 t*x*y + s*z, t*y*y + c,   t*y*z - s*x;
-                 t*x*z - s*y, t*y*z + s*x, t*z*z + c];
-    
-    % Apply the rotation to the object's current rotation matrix
-    obj.rotation = rotMatrix * obj.rotation;
-    
-    % Apply the same rotation to all descendent frames
-    for i = 1:length(obj.children)
-        child = obj.children(i);
-        child.rotation = rotMatrix * child.rotation;  % Apply the same rotation matrix to the child
-    end
-end
-
-
-
-
+        
+        function rotate(obj, angle, axis_label)
+            % This method rotates the frame around one of its axes by a certain
+            % angle (in radians). The rotation axis is given by the 'axis_label'
+            % parameter and is in the frame's local coordinates.
+            
+            % Determine the axis vector based on the axis_label
+            switch lower(axis_label)
+            case 'x'
+                axis_vec = obj.rotation(:, 1);
+            case 'y'
+                axis_vec = obj.rotation(:, 2);
+            case 'z'
+                axis_vec = obj.rotation(:, 3);
+            otherwise
+                error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
+            end
+            
+            % Compute the rotation matrix using Rodrigues' rotation formula
+            c = cos(angle);
+            s = sin(angle);
+            t = 1 - c;
+            x = axis_vec(1);
+            y = axis_vec(2);
+            z = axis_vec(3);
+            
+            rotMatrix = [t*x*x + c,   t*x*y - s*z, t*x*z + s*y;
+                         t*x*y + s*z, t*y*y + c,   t*y*z - s*x;
+                         t*x*z - s*y, t*y*z + s*x, t*z*z + c];
+            
+            % Apply the rotation to the object's current rotation matrix
+            obj.rotation = rotMatrix * obj.rotation;
+            
+            % Apply the same rotation to all descendent frames recursively
+            applyRotationToDescendants(obj, rotMatrix);
+        end
+        
+        function applyRotationToDescendants(obj, rotMatrix)
+            % Recursive function to apply the rotation to all descendant frames
+            for i = 1:length(obj.children)
+                child = obj.children(i);
+                child.rotation = rotMatrix * child.rotation;
+                applyRotationToDescendants(child, rotMatrix);
+            end
+        end
 
         function display(obj)
             % This method just plots the frame in a 3D plot
