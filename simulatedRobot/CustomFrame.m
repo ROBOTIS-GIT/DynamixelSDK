@@ -71,89 +71,47 @@ classdef CustomFrame < handle
             % Frame f should be rotated around one of its own basis axis
             % (x/y/z). The descendent frames f_des should also be
             % rotated around the basis axis of frame f.
-            % Therefore this method should update the rotation matrix gRf (obj.rotatoin) of frame f
+            % Therefore this method should update the rotation matrix gRf (obj.rotation) of frame f
             % and all its descendent frames f_des.
             % The updated frame is denoted as f', the updated descendent
             % frames are denoted as f_des'.
-            % To achieve this update there exist two approaches:
-
-            use_rodrigues = false;
-            if use_rodrigues
-                %% Rodrigues formula
-                % This method utilizes rodrigues rotation formula to find R
-                % such that
-                % f' = R*f 
-                % and f_des' = R*f_des for all descendent frames.
-
-                % Rodrigues formula finds the Rotation Matrix R for a
-                % rotation around any axis v defined in global coordinates.
- 
-                switch lower(axis_label)
-                case 'x'
-                    % gRf contains the basis axis of f as columns defined
-                    % in global coordinates
-                    % Therefore is just a column of gRf.
-                    rotation_axis_vec = obj.rotation(:, 1);
-                case 'y'
-                    rotation_axis_vec = obj.rotation(:, 2);
-                case 'z'
-                    rotation_axis_vec = obj.rotation(:, 3);
-                otherwise
-                    error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
-                end
-    
-                c = cos(angle);
-                s = sin(angle);
-                t = 1 - c;
-                x = rotation_axis_vec(1);
-                y = rotation_axis_vec(2);
-                z = rotation_axis_vec(3);
-                
-                R =                [t*x*x + c,   t*x*y - s*z, t*x*z + s*y;
-                                     t*x*y + s*z, t*y*y + c,   t*y*z - s*x;
-                                     t*x*z - s*y, t*y*z + s*x, t*z*z + c];
-
-            else
-
-                %% Basic Transformations
-                % This approach uses the fact that frame f can only be
-                % rotated around a local basis axis. This rotation of
-                % frame f can easily be achieved by post-multiplying f with
-                % the respective basic transformation matrix fRf':
-                % f' = f * fRf'.
-                switch lower(axis_label)
-                case 'x'
-                    R_postmultiply = rotx(angle);
-                case 'y'
-                    R_postmultiply = roty(angle);
-                case 'z'
-                    R_postmultiply = rotz(angle);
-                otherwise
-                    error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
-                end
-
-                % As post-multiplying causes a rotation around the local
-                % axis, the descendent frames cannot simply also be
-                % postmultiplied fRf'. Doing so would only rotate f_des 
-                % around its own basis axis and not around the basis axis of f.
-
-                % Therefor we have to find R such that f' = R*f is the
-                % same as f' = f*R_postmultipy:
-                % --> R*f = f*R_postmultiply
-                % --> R = f * R_postmultiply * inv(f)
-
-
-                R = obj.rotation * R_postmultiply * inv(obj.rotation);
-                
-
-                                
+             
+            % The rotation can easily be achieved by post-multiplying f with
+            % the respective basic transformation matrix fRf':
+            % f' = f * fRf'.
+            switch lower(axis_label)
+            case 'x'
+                R_postmultiply = rotx(angle);
+            case 'y'
+                R_postmultiply = roty(angle);
+            case 'z'
+                R_postmultiply = rotz(angle);
+            otherwise
+                error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
             end
-                    
-                % f' = R*f 
-                obj.rotation = R * obj.rotation;
-    
-                % f_des' = R*f_des for all descendent frames
-                applyRotationToDescendants(obj, R);
+
+            % As post-multiplying causes a rotation around the local
+            % axis, the descendent frames cannot simply also be
+            % postmultiplied fRf'. Doing so would only rotate f_des 
+            % around its own basis axis and not around the basis axis of f.
+
+            % Therefor we have to find R such that f' = R*f is the
+            % same as f' = f*R_postmultipy:
+            % --> R*f = f*R_postmultiply
+            % --> R = f * R_postmultiply * inv(f)
+            % ---> R = f * R_postmultiply * tranpose(f) , since f is
+            % a rotational matrix and thus is orthogonal
+            
+            R = obj.rotation * R_postmultiply * transpose(obj.rotation);
+
+            % Re-Orthogonalize for numeric stability
+            R = orthogonalize(R);
+
+            % f' = R*f 
+            obj.rotation = R * obj.rotation;
+
+            % f_des' = R*f_des for all descendent frames
+            applyRotationToDescendants(obj, R);
 
         end
         
@@ -296,4 +254,19 @@ end
 
 function rotz = rotz(gamma)
     rotz = [cos(gamma) -sin(gamma) 0; sin(gamma) cos(gamma) 0; 0 0 1];
+end
+
+%% Orthogonalization for numerical stability:
+function A = orthogonalize(A)
+    % 1. Check if matrix A is orthogonal
+    isOrthogonal = isequal(round(A' * A, 10), eye(size(A, 1)));
+    
+    % 2. If it is not orthogonal, orthogonalize it
+    if ~isOrthogonal
+        % Perform singular value decomposition
+        [U, ~, V] = svd(A);
+        
+        % Compute orthogonal matrix
+        A = U * V';
+    end
 end
