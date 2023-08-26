@@ -66,61 +66,95 @@ classdef CustomFrame < handle
         end
         
         function rotate(obj, angle, axis_label)
-            % This method rotates the frame around one of its axes by a certain
-            % angle (in radians). The rotation axis is given by the 'axis_label'
-            % parameter and is in the frame's local coordinates.
             
-            % Determine the axis vector based on the axis_label
-            switch lower(axis_label)
-            case 'x'
-                axis_vec = obj.rotation(:, 1);
-            case 'y'
-                axis_vec = obj.rotation(:, 2);
-            case 'z'
-                axis_vec = obj.rotation(:, 3);
-            otherwise
-                error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
+            %% Kinematically correct rotation:
+            % Frame f should be rotated around one of its own basis axis
+            % (x/y/z). The descendent frames f_des should also be
+            % rotated around the basis axis of frame f.
+            % Therefore this method should update the rotation matrix gRf (obj.rotatoin) of frame f
+            % and all its descendent frames f_des.
+            % The updated frame is denoted as f', the updated descendent
+            % frames are denoted as f_des'.
+            % To achieve this update there exist two approaches:
+
+            use_rodrigues = false;
+            if use_rodrigues
+                %% Rodrigues formula
+                % This method utilizes rodrigues rotation formula to find R
+                % such that
+                % f' = R*f 
+                % and f_des' = R*f_des for all descendent frames.
+
+                % Rodrigues formula finds the Rotation Matrix R for a
+                % rotation around any axis v defined in global coordinates.
+ 
+                switch lower(axis_label)
+                case 'x'
+                    % gRf contains the basis axis of f as columns defined
+                    % in global coordinates
+                    % Therefore is just a column of gRf.
+                    rotation_axis_vec = obj.rotation(:, 1);
+                case 'y'
+                    rotation_axis_vec = obj.rotation(:, 2);
+                case 'z'
+                    rotation_axis_vec = obj.rotation(:, 3);
+                otherwise
+                    error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
+                end
+    
+                c = cos(angle);
+                s = sin(angle);
+                t = 1 - c;
+                x = rotation_axis_vec(1);
+                y = rotation_axis_vec(2);
+                z = rotation_axis_vec(3);
+                
+                R =                [t*x*x + c,   t*x*y - s*z, t*x*z + s*y;
+                                     t*x*y + s*z, t*y*y + c,   t*y*z - s*x;
+                                     t*x*z - s*y, t*y*z + s*x, t*z*z + c];
+
+            else
+
+                %% Basic Transformations
+                % This approach uses the fact that frame f can only be
+                % rotated around a local basis axis. This rotation of
+                % frame f can easily be achieved by post-multiplying f with
+                % the respective basic transformation matrix fRf':
+                % f' = f * fRf'.
+                switch lower(axis_label)
+                case 'x'
+                    R_postmultiply = rotx(angle);
+                case 'y'
+                    R_postmultiply = roty(angle);
+                case 'z'
+                    R_postmultiply = rotz(angle);
+                otherwise
+                    error('Invalid rotation axis_label. Use ''x'', ''y'', or ''z''.');
+                end
+
+                % As post-multiplying causes a rotation around the local
+                % axis, the descendent frames cannot simply also be
+                % postmultiplied fRf'. Doing so would only rotate f_des 
+                % around its own basis axis and not around the basis axis of f.
+
+                % Therefor we have to find R such that f' = R*f is the
+                % same as f' = f*R_postmultipy:
+                % --> R*f = f*R_postmultiply
+                % --> R = f * R_postmultiply * inv(f)
+
+
+                R = obj.rotation * R_postmultiply * inv(obj.rotation);
+                
+
+                                
             end
-            
-            % Compute the rotation matrix around the frames local axis using Rodrigues' rotation formula
-            % Rodrigues' rotation formula is used to rotate a vector in 3D space.
-            % Given an angle 'angle' and a rotation axis 'axis_vec', the formula
-            % calculates a rotation matrix 'rotMatrix'. This matrix, when multiplied
-            % with the original vector, gives the rotated vector.
-            % The formula uses trigonometric functions (cos and sin) and the axis
-            % vector components to compute the elements of 'rotMatrix'.
-            % 'c' is cos(angle), 's' is sin(angle), and 't' is 1 - cos(angle).
-            % 'x', 'y', and 'z' are the components of the axis vector 'axis_vec'.
-            % The formula ensures a smooth and computationally efficient rotation.
+                    
+                % f' = R*f 
+                obj.rotation = R * obj.rotation;
+    
+                % f_des' = R*f_des for all descendent frames
+                applyRotationToDescendants(obj, R);
 
-            % Another approach would be to find the beginning of the
-            % kinematic chain (global/fixed frame) and update the complete
-            % forward kinematics using a composition of basis rotations.
-            % However this would require storing the basic rotation angles of
-            % every frame in the kinematic chain and computing the whole
-            % chain even when only the last frames would be affected by the
-            % rotation.
-
-            % Quaternions could also be used.
-
-            c = cos(angle);
-            s = sin(angle);
-            t = 1 - c;
-            x = axis_vec(1);
-            y = axis_vec(2);
-            z = axis_vec(3);
-            
-            rotMatrix = [t*x*x + c,   t*x*y - s*z, t*x*z + s*y;
-                         t*x*y + s*z, t*y*y + c,   t*y*z - s*x;
-                         t*x*z - s*y, t*y*z + s*x, t*z*z + c];
-
-            
-            
-            % Apply the rotation to the frame
-            obj.rotation = rotMatrix * obj.rotation;
-            
-            % Apply the same rotation to all descendent frames recursively
-            applyRotationToDescendants(obj, rotMatrix);
         end
         
         function applyRotationToDescendants(obj, rotMatrix)
@@ -245,4 +279,21 @@ classdef CustomFrame < handle
             obj.textHandle = text(globalPosition(1), globalPosition(2), globalPosition(3), label);
         end
     end
+end
+
+
+
+%% Definition of the standard rotational matrices
+
+
+function rotx = rotx(alpha)
+    rotx = [1 0 0; 0 cos(alpha) -sin(alpha); 0 sin(alpha) cos(alpha)];
+end
+
+function roty = roty(beta)
+    roty = [cos(beta) 0 sin(beta); 0 1 0; -sin(beta) 0 cos(beta)];
+end
+
+function rotz = rotz(gamma)
+    rotz = [cos(gamma) -sin(gamma) 0; sin(gamma) cos(gamma) 0; 0 0 1];
 end

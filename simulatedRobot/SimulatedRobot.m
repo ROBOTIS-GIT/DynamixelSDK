@@ -244,7 +244,6 @@ end
 
 %% Definition of the standard rotational matrices
 
-%% Definition of the standard rotational matrices
 
 function rotx = rotx(alpha)
     rotx = [1 0 0; 0 cos(alpha) -sin(alpha); 0 sin(alpha) cos(alpha)];
