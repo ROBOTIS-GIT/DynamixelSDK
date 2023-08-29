@@ -72,8 +72,16 @@ Kd = 0.1;
 error_integral = zeros(3,1);
 error_prev = zeros(3,1);
 
+
+% Initialize variables to store total time for each method
+totalTime_numeric = 0;
+totalTime_symbolic = 0;
+numIterations = 0;
+J_sym = simulatedRobot.getJacobianSymbolic();
+
 dt = 0.01;
 while 1
+    numIterations = numIterations + 1;
     % Get current end-effector position
     x_current = simulatedRobot.forwardKinematicsNumeric;
 
@@ -89,7 +97,23 @@ while 1
     u = Kp * error + Ki * error_integral + Kd * error_derivative;
     
     % Compute the Jacobian for the current robot configuration
+    tic; % Start timer
     J = simulatedRobot.getJacobianNumeric();
+    elapsedTime_numeric = toc; % Stop timer and get elapsed time
+    totalTime_numeric = totalTime_numeric + elapsedTime_numeric; % Accumulate total time
+    
+
+    % Slower alternative: Compute Jacobian by substituting in the symbolic
+    % expression
+    tic; % Start timer
+    sAlpha = simulatedRobot.joints(1).angle;
+    sBeta = simulatedRobot.joints(2).angle;
+    sGamma = simulatedRobot.joints(3).angle;
+    sDelta = simulatedRobot.joints(4).angle;
+    J_from_symbolic_by_subs = subs(J_sym);
+    elapsedTime_symbolic = toc; % Stop timer and get elapsed time
+    totalTime_symbolic = totalTime_symbolic + elapsedTime_symbolic; % Accumulate total time
+
     
     % Compute joint velocities
     q_dot = pinv(J) * u;
@@ -128,5 +152,18 @@ while 1
 
     pause(dt)
 end
+
+% Calculate average time for each method
+averageTime_numeric = totalTime_numeric / numIterations;
+averageTime_symbolic = totalTime_symbolic / numIterations;
+
+% Calculate how much more time-intensive the symbolic variant is in percent
+percentage_increase = ((averageTime_symbolic - averageTime_numeric) / averageTime_numeric) * 100;
+
+% Display the average times
+fprintf('Average time for numeric method: %f seconds\n', averageTime_numeric);
+fprintf('Average time for symbolic method: %f seconds\n', averageTime_symbolic);
+fprintf('The symbolic method is %f%% more time-intensive than the numeric method.\n', percentage_increase);
+
 
 disp('Reached the goal position.');

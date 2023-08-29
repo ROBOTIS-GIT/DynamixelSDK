@@ -213,56 +213,18 @@ classdef Servos < handle
 
             % Get the present position
             dxl1_present_position = calllib(obj.lib_name, 'read4ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_PRESENT_POSITION);
-            if dxl1_present_position > 4294967295/2
+            if dxl1_present_position > 4294967294/2
                 % The position becomes negative
-                dxl1_present_position = -(4294967295 - dxl1_present_position);
+                dxl1_present_position = -(4294967294 - dxl1_present_position);
             end
             
             % Convert position to RAD according to dynamixel intern factor
             % (0.087891)
-            angle = dxl1_present_position * 0.087891 * pi/180;
+            angle = dxl1_present_position * 0.088 * pi/180;
 
             success = 1;
         end
     
-        function [velocity,success] = getVelocity(obj, ID)
-            % Receive the current velocity in rev/min. Uses the gear
-            % ratios of the servo.
-
-            ID = checkIdAvailable(obj, ID);
-
-            % Local Definitions
-            ADDR_PRO_PRESENT_VELOCITY = 128;
-
-            switch ID
-                case 1 
-                    gear_ratio = 2.4570; % has to be approximated
-                case 2
-                    gear_ratio = 1;
-                case 3
-                    gear_ratio = 57/23; % Bevel Gear Ratio
-                case 4
-                    gear_ratio = 57/23; % Bevel Gear Ratio
-                otherwise
-                    fprintf("Faulty ID \n");
-            end
-
-            % Receive the velocity
-            velocity = calllib(obj.lib_name, 'read4ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_PRESENT_VELOCITY);
-            
-              if velocity > 4294967295/2
-                  % The velocity becomes negative
-                  velocity = -(4294967295 - velocity);
-              end
-            
-            % Convert velocity accoring to gear_ratio and dynamixel
-            % internal factor (0.229)
-            velocity = (velocity * 0.229) / gear_ratio;
-
-            success = 1;
-
-        end
-
         function success = setVelocity(obj, ID, velocity)
 
             % Set a Servos velocity in rev/min. Uses the gear

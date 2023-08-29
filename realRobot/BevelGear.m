@@ -119,9 +119,9 @@ classdef BevelGear < handle
             secondServoRotation = obj.zeroAngleSecondComposingServo - angleSecondComposingServo;
 
             % Calculate the rotation around y as the difference between the
-            % composing servo rotations multiplied with the bevelFactor
-            bevelFactor = 1/5;
-            roty = (firstServoRotation - secondServoRotation) * bevelFactor;
+            % composing servo rotations multiplied with the transmission i
+            i = 1/5;
+            roty = (firstServoRotation - secondServoRotation) * i;
             
             success = 1;
         end
@@ -147,9 +147,9 @@ classdef BevelGear < handle
             secondServoRotation = obj.zeroAngleSecondComposingServo - angleSecondComposingServo;
 
             % Calculate the rotation around y as the negative sum between the
-            % composing servo rotations multiplied with the bevelFactor
-            bevelFactor = 1/5;
-            rotx = -(secondServoRotation + firstServoRotation ) * bevelFactor;
+            % composing servo rotations multiplied with the transmission i
+            i = 1/5;
+            rotx = -(secondServoRotation + firstServoRotation ) * i;
             
             success = 1;
         end
