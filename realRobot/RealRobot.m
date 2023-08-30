@@ -19,6 +19,9 @@ classdef RealRobot < handle
         %Transmission ratios
         i_shoulder = 5;
         i_elbow = 2.5;
+
+        % Conifugre maximum absolut joint velocities
+        maxJointVelocities = [2,2,10,10];
     end
 
     methods
@@ -85,12 +88,12 @@ classdef RealRobot < handle
         end
 
         function goToZeroPosition(obj)
-            % Uses a PID controller for the joint position to return to the previously stored zero
-            % position of the robot.
+            % Uses a PID controller for the servo position to return to the previously stored zero
+            % position.
 
             % Check if Zero Position has been set
             if isInf(sum(obj.ServoZeroPositions))
-                fprintf("Could not get Joint Angle, Zero position of the robot is not set. \n\n")
+                fprintf("Could not return to zero position, Zero position of the robot is not set. \n\n")
                 return
             end
 
@@ -104,68 +107,68 @@ classdef RealRobot < handle
             obj.torqueEnableDisable(1);
 
             % Initialize errors and gains for the PID controller. This
-            % controller tries to move the joints to their stored zero
-            % position by setting their velocity.
+            % controller tries to move the servos to their stored zero
+            % position by setting their servo.
             integralError = [0, 0, 0, 0];
             prevError = [0, 0, 0, 0];
             P_Gain = 15;  % Proportional gain
             I_Gain = 0;  % Integral gain
             D_Gain = 5;  % Derivative gain
     
-            % Store which joint has already converged to their zero
+            % Store which servo has already converged to their zero
             % angle
-            jointsConverged = [0, 0, 0, 0];
+            servosConverged = [0, 0, 0, 0];
 
     
             while 1
-                % Get current joint positions
-                jointAngles = obj.getJointAngles();
+                % Get current servo angles phi in RAD
+                servoAngles = [-inf, -inf, -inf, -inf];
+                for ID = 1:4
+                    servoAngles(ID) = obj.ServoChain.getServoAngle(ID);
+                end
    
                 % Calculate remaining errors
-                currentError = 0 - jointAngles; % As they should become 0
+                currentError = obj.ServoZeroPositions - servoAngles; % As they should become 0
                 integralError = integralError + currentError;
                 derivativeError = currentError - prevError;
                 prevError = currentError;
                
-                % Calculate and set the PID velocity for each joint
+                %Set velocites
+                PID_velocities = P_Gain * currentError + I_Gain * integralError + D_Gain * derivativeError;
                 for ID = 1:4
-                    PID_velocity = P_Gain * currentError(ID) + I_Gain * integralError(ID) + D_Gain * derivativeError(ID);
-                    obj.setJointVelocity(ID, PID_velocity);
+                    obj.ServoChain.setServoVelocity(ID, PID_velocities(ID))
                 end
     
                 % Set each joint as converged if their angle is within precision
                 for ID = 1:4
                     if abs(currentError(ID)) < precision
-                        jointsConverged(ID) = 1;
-                        obj.setJointVelocity(ID, 0);
+                        servosConverged(ID) = 1;
+                        obj.ServoChain.setServoVelocity(ID, 0);
                     end
                 end
                 
                 % If all joints converged disable the torque and return
                 if sum(jointsConverged) == 4
                     fprintf("All joints reset to zero pos. \n")
-    
-                    % Disable torque
                     obj.torqueEnableDisable(0);
+                    return
                 end
             end
         end
 
-        function setJointVelocity(obj,jointVelocities)
-            % Set the angular velocities q_dot of a specified Joint in rad/s.
+        function setJointVelocities(obj,jointVelocities)
+            % Set the angular velocities q_dot of all joints in rad/s.
 
             % joint1 : bevel rotation around fixed y-Axis
             % joint2 : bevel rotation around dependent x-Axis
             % joint3 : yaw rotation around z-Axis
             % joint4 : elbow rotatoin around x-Ax
-        
-            % Conifugre maximum absolut joint velocities
-            maxJointVelocities = [2,2,10,10];
+       
 
-            % Ensure velocities do not exceed the maximum joint speed
+            % Ensure velocities do not exceed the configued maximum joint speed
             for ID = 1:4
-                if abs(jointVelocities(ID)) > maxJointVelocities(ID)
-                    jointVelocities(ID) = maxJointVelocities(ID) * sign(jointVelocities(ID));
+                if abs(jointVelocities(ID)) > obj.maxJointVelocities(ID)
+                    jointVelocities(ID) = obj.maxJointVelocities(ID) * sign(jointVelocities(ID));
                 end
             end
 
