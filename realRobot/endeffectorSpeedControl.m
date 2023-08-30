@@ -34,36 +34,25 @@ realRobot = RealRobot();
 
 
 %% Main
-
-% Zero the robot and move to a non singularity position
+% Initial position setup
+realRobot.torqueEnableDisable(0);
+realRobot.setOperatingMode('velocity');
 realRobot.setZeroPositionToCurrentPosition;
 realRobot.torqueEnableDisable(1);
-realRobot.setJointVelocity(1,2);
-realRobot.setJointVelocity(2,2);
-realRobot.setJointVelocity(3,-4);
-realRobot.setJointVelocity(4,6);
+realRobot.setJointVelocities(0.2,0.2,-0.4,-0.6);
 pause(1)
-realRobot.setJointVelocity(1,0);
-realRobot.setJointVelocity(2,0);
-realRobot.setJointVelocity(3,0);
-realRobot.setJointVelocity(4,0);
+realRobot.setJointVelocities(0,0,0,0);
 
 
-% Create a velocity variable
-v = 100; % Modify this according to your needs
-
-
-ref_positions_array = [];
+trajectory = [];
 
 % Create a new figure and set the KeyPressFcn
 fig = figure('KeyPressFcn', @(fig_obj, eventDat) setappdata(fig_obj, 'key', eventDat.Key), ...
              'KeyReleaseFcn', @(fig_obj, eventDat) setappdata(fig_obj, 'key', ''));
 
-% Initialize x_dot
-x_dot = [0; 0; 0];
-
 % Create a velocity variable
-v = 500; % Modify this according to your needs
+v = 50; % [mm/s]
+draw_frames = 0;
 
 figure(fig);
 pause(0.5);  % wait for 0.5 seconds for the window to gain focus
@@ -92,49 +81,45 @@ while ~strcmp(getappdata(fig, 'key'), 'c')
         x_dot = [0; 0; 0];
     end
 
-    % Get current joint angles and set them to the simulated robot
-    simulatedRobot.joints(1).setAngle(realRobot.getJointAngle(1));
-    simulatedRobot.joints(2).setAngle(realRobot.getJointAngle(2));
-    simulatedRobot.joints(3).setAngle(realRobot.getJointAngle(3));
-    simulatedRobot.joints(4).setAngle(realRobot.getJointAngle(4));
+    % Update joint angles for the simulated robot
+    currentJointAngles = realRobot.getJointAngles();
+    for i = 1:4
+        simulatedRobot.joints(i).setAngle(currentJointAngles(i));
+    end
 
     % Calculate the Jacobian in the current (modeled robot = real robot) configuration numerically
     J = simulatedRobot.getJacobianNumeric;
 
-    % Stop if the current configuration approaches a singularity
+    % Check for singularity and elevation limit
     if cond(pinv(J)) > 15
-        realRobot.setJointVelocity(1,0);
-        realRobot.setJointVelocity(2,0);
-        realRobot.setJointVelocity(3,0);
-        realRobot.setJointVelocity(4,0);
-        disp('Warning: Close to singularity!');
+        disp('Warning: Close to singularity');
+        realRobot.goToZeroPosition();
         break
+    end
+    if rad2deg(realRobot.getBevelElevation) < 45
+        disp('Warning: Bevel elevation limit reached')
+        realRobot.goToZeroPosition();
+        break;
     end
 
     % Calculate respective joint velocity
     q_dot = pinv(J) * x_dot;
 
-    % Set the joint velocity to the real robot here
-    realRobot.setJointVelocity(1,q_dot(1));
-    realRobot.setJointVelocity(2,q_dot(2));
-    realRobot.setJointVelocity(3,q_dot(3));
-    realRobot.setJointVelocity(4,q_dot(4));
-
+    % Set the joint velocity to the real robot
+    realRobot.setJointVelocities(q_dot);
 
     % Visualize the simulated robot which
     % should be a mirror image of the real robot
-    clearFig = 0;
-    draw_frames = 0;
-    simulatedRobot.display(clearFig, draw_frames);
+    simulatedRobot.display(, draw_frames);
     drawnow
 
     % Get endeffector info for the trajectory
     display_info = 0;
-    [ref_position, ref_rotation, ref_frame] = endeffector_frame.getInfo(display_info);
+    x_current = simulatedRobot.forwardKinematics();
 
     % Append the endeffector postion to an array and plot the trajectory
-    ref_positions_array = [ref_positions_array ref_position];
-    plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
+    trajectory = [trajectory x_current];
+    plot3(trajectory(1,:),trajectory(2,:),trajectory(3,:),'k');
 
 end
 % Return to initial zero positoin

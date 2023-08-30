@@ -2,7 +2,7 @@ classdef RealRobot < handle
 
     properties
         
-        ServoZeroPositions = [-inf, -inf, -inf, -inf];
+        ServoZeroPositions = [-inf, -inf, -inf, -inf]; % RAD
         % [0] ShoulderServoOne --> located in x-direction
         % [1] ShoulderServoTwo
         % [2] YawServo
@@ -20,8 +20,8 @@ classdef RealRobot < handle
         i_shoulder = 5;
         i_elbow = 2.5;
 
-        % Conifugre maximum absolut joint velocities
-        maxJointVelocities = [2,2,10,10];
+        % Conifugre maximum absolut joint velocities % RAD/s
+        maxJointVelocities = [0.2,0.2,1,1];
     end
 
     methods

@@ -8,7 +8,6 @@ close
 addpath('C:\Users\samue\Documents\Git\DynamixelSDK\realRobot')
 addpath('C:\Users\samue\Documents\Git\DynamixelSDK\simulatedRobot')
 
-
 %% Setup Frames and Joints of the simulated robot
 orig_frame = CustomFrame([0; 0; 0], [], 'Origin');
 joint1 = CustomJoint([0; 0; 83.51], orig_frame, 'Joint 1', 'y');
@@ -24,13 +23,11 @@ link3 = CustomLink(joint2, joint3, 'b');  % Blue
 link4 = CustomLink(joint3, joint4, 'y');  % Yellow
 link5 = CustomLink(joint4, endeffector_frame, 'm');  % Magenta
 
-
 %% Setup simulated robot
 simulatedRobot = SimulatedRobot([joint1, joint2, joint3, joint4], [link1, link2, link3, link4, link5], [orig_frame, endeffector_frame]);
 
 %% Connect real robot
 realRobot = RealRobot();
-
 
 %% Main
 % Initial position setup
@@ -38,79 +35,62 @@ realRobot.torqueEnableDisable(0);
 realRobot.setOperatingMode('velocity');
 realRobot.setZeroPositionToCurrentPosition;
 realRobot.torqueEnableDisable(1);
-realRobot.setJointVelocity(1,2);
-realRobot.setJointVelocity(2,2);
-realRobot.setJointVelocity(3,-4);
-realRobot.setJointVelocity(4,6);
+realRobot.setJointVelocities(0.2,0.2,-0.4,-0.6);
 pause(1)
-realRobot.setJointVelocity(1,0);
-realRobot.setJointVelocity(2,0);
-realRobot.setJointVelocity(3,0);
-realRobot.setJointVelocity(4,0);
+realRobot.setJointVelocities(0,0,0,0);
+
+
+%% Params
 
 % Desired position
 x_desired =  [-315.301974, -83.883586, 189.013096]';
-ref_positions_array = [];
+trajectory = [];
 
 % PID gains
 P_gain = 10;
 D_gain = 4; 
 I_gain = 0; 
 
-% Initialize error parameters
+% Other
+epsilon = 5; %mm
+draw_frames = 0;
+max_speed = 70;  % [mm/s] Set the maximum endeffector speed as per your requirements.
+%%
+
+% Initialize variables
 x_error_integral = zeros(3,1); 
 x_error_previous = zeros(3,1); 
 x_error_derivative = zeros(3,1); 
-
-% Initialize joint angles for the simulated robot
-for i = 1:4
-    simulatedRobot.joints(i).setAngle(realRobot.getJointAngle(i));
-end
-
-% Display parameters
-epsilon = 5; %mm
-clearFig = 0;
-draw_frames = 0;
-
-% Display the simulated robot
-simulatedRobot.display(clearFig, draw_frames);
-scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
-
-pause(2)
-
-last_position_change = inf;
 reached_positions_counter = 0;
-
-% Initialize extra variables
 distance_to_goal_previous = inf;
 distance_not_changing_counter = 0;
 I_gain_enabled = false;
 
 while 1
     % Update joint angles for the simulated robot
-    for j = 1:4
-        simulatedRobot.joints(j).setAngle(realRobot.getJointAngle(j));
+    currentJointAngles = realRobot.getJointAngles();
+    for i = 1:4
+        simulatedRobot.joints(i).setAngle(currentJointAngles(i));
     end
 
     % Compute the Jacobian of the simulated robot
     J = simulatedRobot.getJacobianNumeric;
 
-    % Check for singularity condition and limit reached condition
+    % Check for singularity and elevation limit
     if cond(pinv(J)) > 15
         disp('Warning: Close to singularity');
-        realRobot.goToZeroPosition(0.5);
+        realRobot.goToZeroPosition();
         break
     end
     if rad2deg(realRobot.getBevelElevation) < 45
         disp('Warning: Bevel elevation limit reached')
-        realRobot.goToZeroPosition(0.5);
+        realRobot.goToZeroPosition();
         break;
     end
 
     % Compute the current position
     display_info = 0;
-    [ref_position, ~, ~] = endeffector_frame.getInfo(display_info);
-    x_current = ref_position;
+    x_current = simulatedRobot.forwardKinematicsNumeric();
     x_error = x_desired - x_current;
 
     % Print the distance to the goal
@@ -138,11 +118,9 @@ while 1
         reached_positions_counter = reached_positions_counter + 1;
         if reached_positions_counter > 5
             disp('Reached position within epsilon');
-            for i = 1:4
-                realRobot.setJointVelocity(i,0);
-            end
+            realRobot.setJointVelocities([0,0,0,0]);
             pause(2)
-            realRobot.goToZeroPosition(0.5);
+            realRobot.goToZeroPosition();
             break;
         end
     end
@@ -155,8 +133,7 @@ while 1
     % Update the error
     x_error_previous = x_error; 
 
-    % Cap the speed at a maximum value.
-    max_speed = 700;  % Set the maximum speed as per your requirements.
+    % Cap the speed endeffector speed a maximum value.
     if norm(x_dot) > max_speed
         x_dot = max_speed * (x_dot / norm(x_dot));
     end
@@ -164,18 +141,15 @@ while 1
     % Compute the joint velocities
     q_dot = pinv(J) * x_dot;
 
-
     % Set the joint velocities for the real robot
-    for j = 1:4
-        realRobot.setJointVelocity(j,q_dot(j));
-    end
+    realRobot.setJointVelocities(q_dot);
 
-    % Store the current position
-    ref_positions_array = [ref_positions_array ref_position];
+    % Store the current position at the end of the trajectory
+    trajectory = [trajectory x_current];
 
     % Display the simulated robot and the desired position
-    simulatedRobot.display(clearFig, draw_frames);
-    plot3(ref_positions_array(1,:),ref_positions_array(2,:),ref_positions_array(3,:),'k');
+    simulatedRobot.display(draw_frames);
+    plot3(trajectory(1,:),trajectory(2,:),trajectory(3,:),'k');
     scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
     drawnow
 end
