@@ -1,8 +1,8 @@
-classdef Servos < handle
-% The 'Servos' class provides an interface for interacting with connected servos. It is
+classdef ServoChain < handle
+% The 'ServoChain' class provides an interface for interacting with connected servos. It is
 % designed to establish a connection to a specified port and list all the servos available at that port.
-% The class allows the user to set and retrieve the angles of each connected servo. Additionally, it
-% provides functionality to enable and disable the torque for each servo.
+% The class allows the user to retrieve the angles of each connected servo and set their velocities.
+% Additionally, it provides functionality to enable and disable the torque for each servo.
 % The Servos class relies on the DynamixelSDK library, which is a C-based library. Throughout the class, 
 % numerous 'calllibrary()' functions are utilized, which necessitate the correct path to the DynamixelSDK 
 % library. To ensure the correct operation of the Servos class, it is essential that the absolute path to
@@ -21,7 +21,7 @@ classdef Servos < handle
     
     methods
         %Constructor
-        function obj = Servos(PORT)
+        function obj = ServoChain(PORT)
             % Hint: Get the correct Port string in your device manager e.g.
             % 'COM3', 'COM4'
 
@@ -35,10 +35,6 @@ classdef Servos < handle
             absolute_path = 'C:\Users\samue\Documents\Git\DynamixelSDK\c\';
             addpath(genpath([absolute_path, 'include\dynamixel_sdk\']))
             %%
-
-            %Local Definitions
-            MAX_ID = 10;
-            BAUDRATE = 1000000;
             
             %Checks your OS and adds the correct built library
             %Pre-built for windows, you need to build yourself on Linux and
@@ -71,6 +67,10 @@ classdef Servos < handle
                 end
             end
 
+            %Local Definitions
+            MAX_ID = 10;
+            BAUDRATE = 1000000;
+
             % Open port
             obj.port_num = calllib(obj.lib_name, 'portHandler', PORT);
             if (calllib(obj.lib_name, 'openPort', obj.port_num))
@@ -95,14 +95,16 @@ classdef Servos < handle
             %Scan available IDs
             % Try to broadcast ping the Dynamixel
             calllib(obj.lib_name, 'broadcastPing', obj.port_num, obj.PROTOCOL_VERSION);
-
+            
             fprintf('Detected Dynamixel : \n');
-            for id = 0 : MAX_ID
-              if calllib(obj.lib_name, 'getBroadcastPingResult', obj.port_num, obj.PROTOCOL_VERSION, id)
-                fprintf('Available ID: %d \n', id);
-                obj.availableIDs = [obj.availableIDs, id];
+            for ID = 0 : MAX_ID
+              if calllib(obj.lib_name, 'getBroadcastPingResult', obj.port_num, obj.PROTOCOL_VERSION, ID)
+                fprintf('Available ID: %d \n', ID);
+                % Store the available IDs
+                obj.availableIDs = [obj.availableIDs, ID];
               end
             end
+
         end
 
         %Destructor
@@ -112,20 +114,18 @@ classdef Servos < handle
                 unloadlibrary(obj.lib_name);
         end
 
-        function ID = checkIdAvailable(obj, id)
+        function checkIDAvailable(obj, ID)
             % Throws an error if the ID of a Servo is not available
 
-            if ismember(id, obj.availableIDs)
-                ID = id;
-            else
-                error('ID %d is not available, check Button in ON Position and Connection to Robot Arm', id);
+            if ~ismember(ID, obj.availableIDs)
+                error('Servo ID %d is not available', id);
             end
         end
         
-        function success = torqueEnableDisable(obj,ID,enable_bool)
+        function torqueEnableDisable(obj,ID,enable_bool)
             % Enable / Disable the Torque of a servo.
 
-            ID = checkIdAvailable(obj, ID);
+           checkIdAvailable(obj, ID);
 
             %Local Definitions
             ADDR_PRO_TORQUE_ENABLE       = 64;         % Control table address is different in Dynamixel model
@@ -135,46 +135,16 @@ classdef Servos < handle
             % Enable / Disable torque
             if(enable_bool)
                 calllib(obj.lib_name, 'write1ByteTxRx', obj.port_num, obj.PROTOCOL_VERSION, ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE);
-
             else
                 calllib(obj.lib_name, 'write1ByteTxRx', obj.port_num, obj.PROTOCOL_VERSION, ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_DISABLE);
-            end
-    
-            switch enable_bool
-                case 1 
-                    enable_string = "enabled";
-                case 0 
-                    enable_string = "disabled";
-            end
-
-            % Check if torque is disabled/enabled correctly
-            VALUE = calllib(obj.lib_name, 'read1ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_TORQUE_ENABLE);
-            if VALUE == enable_bool
-                success = 1;
-                % fprintf("Torque of Servo with ID %d %s successfully \n", ID, enable_string);
-            else
-                success = 0;
-                fprintf("Torque of Servo with ID %d could not be set \n", ID);
             end
 
         end
 
-        function success = setOperatingMode(obj, ID, modeString)
+        function setOperatingMode(obj, ID, modeString)
             % Set the operating mode of a Servo
 
-            ID = checkIdAvailable(obj, ID);
-
-            %Local Definitions
-            ADDR_PRO_OP_MODE = 11;
-
-            % Check if torque of the servo is disabled
-            ADDR_PRO_TORQUE_ENABLE       = 64;         % Control table address is different in Dynamixel model
-            VALUE = calllib(obj.lib_name, 'read1ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_TORQUE_ENABLE);
-            if VALUE ~= 0
-                success = 0;
-                fprintf("Failed to set Operating Mode of Servo with ID %d: Disable Torque first. \n", ID);
-                return
-            end
+            checkIdAvailable(obj, ID);
 
             switch modeString
                 case 'position'
@@ -182,110 +152,61 @@ classdef Servos < handle
                 case 'velocity'
                     OP_MODE = 1;
                 otherwise
-                    frpintf('Invalid Operating Mode. Use ''position'', or ''velocity''.');
-                    success = 0;
-                    return
+                    error('Error setting servo operating mode: Invalid mode. Use ''position'', or ''velocity .');
             end
+
+            %Local Definitions
+            ADDR_PRO_OP_MODE = 11;
 
             % Set the Operating Mode
             calllib(obj.lib_name, 'write1ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_OP_MODE, OP_MODE);
-                  
-            % Check if the Operating Mode was set successfully
-            VALUE = calllib(obj.lib_name, 'read1ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_OP_MODE);
-            if VALUE == OP_MODE
-                % fprintf("Successfully set Operation mode of Servo with ID %d to %s \n", ID, modeString)
-                success = 1;
-            else
-                fprintf("Failed to set Operation mode of Servo with ID %d \n", ID);
-                success = 0;
-            end
-
         end
 
-        function [angle, success] = getAngle(obj,ID)
+        function [servoAngle] = getServoAngle(obj,ID)
             %Receive the current Position of a servo in RAD. Can be multi
             %rotation and supports negative angles.
 
-            ID = checkIdAvailable(obj, ID);
+           checkIdAvailable(obj, ID);
 
             %Local Definitions
             ADDR_PRO_PRESENT_POSITION    = 132;
 
             % Get the present position
+            % This should give a value in 4 byte (256^4) continuous range
             dxl1_present_position = calllib(obj.lib_name, 'read4ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_PRESENT_POSITION);
-            if dxl1_present_position > 4294967294/2
-                % The position becomes negative
-                dxl1_present_position = -(4294967294 - dxl1_present_position);
-            end
             
-            % Convert position to RAD according to dynamixel intern factor
-            % (0.087891)
-            angle = dxl1_present_position * 0.088 * pi/180;
+            % A value of (256^4) / 2 is zero, values bigger are positive,
+            % values smaller are negative.
+            dxl1_present_position = dxl1_present_position - (256^4) / 2;
 
-            success = 1;
+            % Convert raw position to RAD according to dynamixel intern factor
+            servoAngle = dxl1_present_position * 0.088 * pi/180;
+
         end
     
-        function success = setVelocity(obj, ID, velocity)
+        function setServoVelocity(obj, ID, servoVelocity)
+            %Set the current Position of a servo in RAD/s. Supports
+            %negative velocities.
 
-            % Set a Servos velocity in rev/min. Uses the gear
-            % ratios of the servo.
-            
-
-            ID = checkIdAvailable(obj, ID);
+            % Set a Servos velocity in rev/min
+           checkIdAvailable(obj, ID);
 
             % Local Definitions
             ADDR_PRO_GOAL_VELOCITY      = 104;
- 
-            switch ID
-                case 1 
-                    gear_ratio = 2.4570; % has to be approximated
-                case 2
-                    gear_ratio = 1;
-                case 3
-                    gear_ratio = 57/23; % Bevel Gear Ratio
-                case 4
-                    gear_ratio = 57/23; % Bevel Gear Ratio
-                otherwise
-                    fprintf("Faulty ID \n");
-            end
-
-            % Check if the operating mode of the servo with the given
-            % ID is set to velocity control
-            ADDR_PRO_OP_MODE = 11;
-            VALUE = calllib(obj.lib_name, 'read1ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_OP_MODE);
-            if VALUE ~= 1
-                success = 0;
-                fprintf("Control mode of the Servo with ID %d is not set to velocity. Use setOperatingMode method first. \n", ID);
-                return
-            end
-
-            % Check if torque of the servo is enabled
-            ADDR_PRO_TORQUE_ENABLE       = 64;         % Control table address is different in Dynamixel model
-            VALUE = calllib(obj.lib_name, 'read1ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_TORQUE_ENABLE);
-            if VALUE ~= 1
-                success = 0;
-                fprintf("Torque of the Servo with ID %d is not enabled. Use torqueEnableDisable method first. \n", ID);
-                return
-            end
 
             % Set the velocity. Uses gear_ratio and dynamixel internal factor (0.229)
-            VELOCITY_VAL = 1/0.229 * velocity * gear_ratio; % Convert velocity to decimal
-            %Floor VELOCITY_VAL since dynamixel accepts only integers here
-            VELOCITY_VAL = floor(VELOCITY_VAL);
-            if VELOCITY_VAL <0
-                VELOCITY_VAL = 4294967296 + VELOCITY_VAL;
-            end
+            VELOCITY_VAL = (servoVelocity*60)/0.229; % Convert rad/s to decimal 
+
+            %Round VELOCITY_VAL since dynamixel accepts only integers here
+            VELOCITY_VAL = round(VELOCITY_VAL);
+
+            % VELOCITY_VAL is a value in 4 byte (256^4) continuous range
+            % A value of (256^4) / 2 is zero, values bigger are positive,
+            % values smaller are negative.
+            VELOCITY_VAL = VELOCITY_VAL + (256^4)/2;
+            
             calllib(obj.lib_name, 'write4ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_GOAL_VELOCITY, VELOCITY_VAL);
             
-            %Check if the goal velocity is set correctly.
-            VALUE = calllib(obj.lib_name, 'read4ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_GOAL_VELOCITY);
-            if VALUE == VELOCITY_VAL
-                % fprintf("Successfully set velocity of Servo with ID %d \n", ID);
-                success = 1;
-            else
-                fprintf("Could not set velocity of Servo with ID %d \n", ID);
-                success = 0;
-            end
         end
     end
 end
