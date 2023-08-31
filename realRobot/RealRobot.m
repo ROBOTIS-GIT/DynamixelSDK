@@ -78,8 +78,8 @@ classdef RealRobot < handle
 
         end
 
-        function [elevation] = getBevelElevation(obj)
-            % Calculate the elevation of the bevel gear in spherical
+        function [elevation] = getShoulderElevation(obj)
+            % Calculate the elevation of the shoulder joint in spherical
             % coordinates in RAD from the jointAngles
             jointAngles = obj.getJointAngles();
 
