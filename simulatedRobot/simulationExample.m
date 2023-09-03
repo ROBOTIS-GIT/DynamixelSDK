@@ -32,14 +32,18 @@ ref_positions_array = [];  % Array to store end-effector positions
 epsilon = 5;  % Radius for the scatter plot of the goal position
 
 % Desired position
-x_desired =  [-315.301974, -83.883586, 189.013096]';
+x_desired =  [-400, -400, 300]';
 
 %% Move the robot to a non-singularity position
 disp("Moving the robot to a non-singularity position.")
-for i = 1:30
-    for j = 1:4
-        simulatedRobot.joints(j).rotate(0.003);
-    end
+for i = 1:50
+
+    simulatedRobot.joints(1).rotate(0.006);
+    simulatedRobot.joints(2).rotate(0.006);
+    simulatedRobot.joints(3).rotate(0.01);
+    simulatedRobot.joints(4).rotate(0.01);
+
+    
     
     % Get current end-effector position for trajectory visualization
     x_current = simulatedRobot.forwardKinematicsNumeric;
@@ -103,20 +107,27 @@ while 1
     totalTime_numeric = totalTime_numeric + elapsedTime_numeric; % Accumulate total time
     
 
-    % Slower alternative: Compute Jacobian by substituting in the symbolic
-    % expression
-    tic; % Start timer
-    sAlpha = simulatedRobot.joints(1).angle;
-    sBeta = simulatedRobot.joints(2).angle;
-    sGamma = simulatedRobot.joints(3).angle;
-    sDelta = simulatedRobot.joints(4).angle;
-    J_from_symbolic_by_subs = subs(J_sym);
-    elapsedTime_symbolic = toc; % Stop timer and get elapsed time
-    totalTime_symbolic = totalTime_symbolic + elapsedTime_symbolic; % Accumulate total time
+    % % Slower alternative: Compute Jacobian by substituting in the symbolic
+    % % expression
+    % tic; % Start timer
+    % sAlpha = simulatedRobot.joints(1).angle;
+    % sBeta = simulatedRobot.joints(2).angle;
+    % sGamma = simulatedRobot.joints(3).angle;
+    % sDelta = simulatedRobot.joints(4).angle;
+    % J_from_symbolic_by_subs = subs(J_sym);
+    % elapsedTime_symbolic = toc; % Stop timer and get elapsed time
+    % totalTime_symbolic = totalTime_symbolic + elapsedTime_symbolic; % Accumulate total time
 
     
     % Compute joint velocities
-    q_dot = pinv(J) * u;
+    pinvJ = pinv(J);
+    q_dot = pinvJ * u;
+
+    % Check for singularity
+    if norm(J)*norm(pinvJ) > 25
+        disp('Warning: Close to singularity');
+        break
+    end
     
     % Update joint angles based on computed joint velocities
     for j = 1:4
@@ -153,17 +164,17 @@ while 1
     pause(dt)
 end
 
-% Calculate average time for each method
-averageTime_numeric = totalTime_numeric / numIterations;
-averageTime_symbolic = totalTime_symbolic / numIterations;
-
-% Calculate how much more time-intensive the symbolic variant is in percent
-percentage_increase = ((averageTime_symbolic - averageTime_numeric) / averageTime_numeric) * 100;
-
-% Display the average times
-fprintf('Average time for numeric method: %f seconds\n', averageTime_numeric);
-fprintf('Average time for symbolic method: %f seconds\n', averageTime_symbolic);
-fprintf('The symbolic method is %f%% more time-intensive than the numeric method.\n', percentage_increase);
-
+% % Calculate average time for each method
+% averageTime_numeric = totalTime_numeric / numIterations;
+% averageTime_symbolic = totalTime_symbolic / numIterations;
+% 
+% % Calculate how much more time-intensive the symbolic variant is in percent
+% percentage_increase = ((averageTime_symbolic - averageTime_numeric) / averageTime_numeric) * 100;
+% 
+% % Display the average times
+% fprintf('Average time for numeric method: %f seconds\n', averageTime_numeric);
+% fprintf('Average time for symbolic method: %f seconds\n', averageTime_symbolic);
+% fprintf('The symbolic method is %f%% more time-intensive than the numeric method.\n', percentage_increase);
+% 
 
 disp('Reached the goal position.');
