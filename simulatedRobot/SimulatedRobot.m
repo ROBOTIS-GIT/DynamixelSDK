@@ -202,6 +202,16 @@ classdef SimulatedRobot < handle
             obj.joints(4).angle = q(4);
         end
 
+
+
+        function [elevation] = getShoulderElevation(obj)
+            % Calculate the elevation of the shoulder joint in spherical
+            % coordinates in RAD from the jointAngles
+
+            % Calculate the elevation using a trignometric formula
+            elevation = pi/2 - acos(cos(obj.joints(2).angle)*cos(obj.joints(1).angle));           
+        end
+
         function display(obj, draw_frames)
             % The display method updates and displays all joints and links
 

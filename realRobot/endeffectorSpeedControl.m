@@ -96,7 +96,7 @@ while ~strcmp(getappdata(fig, 'key'), 'c')
         realRobot.goToZeroPosition();
         break
     end
-    if rad2deg(realRobot.getShoulderElevation) < 45
+    if rad2deg(simulatedRobot.getShoulderElevation) < 45
         disp('Warning: Shoulder joint minimum elevation limit reached')
         realRobot.goToZeroPosition();
         break;

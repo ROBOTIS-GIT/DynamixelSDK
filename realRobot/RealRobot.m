@@ -78,15 +78,6 @@ classdef RealRobot < handle
 
         end
 
-        function [elevation] = getShoulderElevation(obj)
-            % Calculate the elevation of the shoulder joint in spherical
-            % coordinates in RAD from the jointAngles
-            jointAngles = obj.getJointAngles();
-
-            % Calculate the elevation using a trignometric formula
-            elevation = pi/2 - acos(cos(jointAngles(2))*cos(jointAngles(1)));           
-        end
-
         function goToZeroPosition(obj)
             % Uses a PID controller for the servo position to return to the previously stored zero
             % position.
