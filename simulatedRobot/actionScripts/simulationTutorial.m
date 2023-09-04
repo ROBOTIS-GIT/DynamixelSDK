@@ -5,6 +5,14 @@ clear()
 clc
 close
 
+% Get the full path of the current script
+currentScriptFullPath = mfilename('fullpath');
+% Get the parent folder
+[parentFolder, ~, ~] = fileparts(fileparts(currentScriptFullPath));
+% Add the parent folder to the MATLAB path
+addpath(parentFolder);
+
+
 
 %% Create an origin frame (frame = coordinate system)
 orig_frame = CustomFrame([0; 0; 0], [], 'Origin');

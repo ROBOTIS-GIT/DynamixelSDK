@@ -7,6 +7,14 @@ clear()
 clc
 close
 
+% Get the full path of the current script
+currentScriptFullPath = mfilename('fullpath');
+% Get the parent folder
+[parentFolder, ~, ~] = fileparts(fileparts(currentScriptFullPath));
+% Add the parent folder to the MATLAB path
+addpath(parentFolder);
+
+
 %% Setup Frames and Joints of the simulated robot
 orig_frame = CustomFrame([0; 0; 0], [], 'Origin');
 joint1 = CustomJoint([0; 0; 83.51], orig_frame, 'Joint 1', 'y');

@@ -3,6 +3,15 @@ clear()
 clc
 close
 
+
+% Get the full path of the current script
+currentScriptFullPath = mfilename('fullpath');
+% Get the parent folder
+[parentFolder, ~, ~] = fileparts(fileparts(currentScriptFullPath));
+% Add the parent folder to the MATLAB path
+addpath(parentFolder);
+
+
 %% Setup Frames and Joints of the simulated robot
 orig_frame = CustomFrame([0; 0; 0], [], 'Origin');
 joint1 = CustomJoint([0; 0; 83.51], orig_frame, 'Joint 1', 'y');
@@ -132,7 +141,7 @@ for i = 1:size(positions_array, 2)
         
         % Print the distance to the goal
         distance_to_goal = norm(error);
-        fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
+        % fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
         
         % Display the robot
         simulatedRobot.display(0);
@@ -141,8 +150,12 @@ for i = 1:size(positions_array, 2)
         plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
         
         % Plot the desired goal position
-        scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
-        
+        if i >= 5 && i <=7
+            scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'r', 'filled');
+        else
+            scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
+        end
+
         drawnow;
         
         % Break condition: stop if error is small
@@ -154,6 +167,7 @@ for i = 1:size(positions_array, 2)
 
     end
 
+    %Display shoulder elevation for each point
 
 end
 

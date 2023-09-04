@@ -5,6 +5,14 @@ clear
 clc
 close
 
+% Get the full path of the current script
+currentScriptFullPath = mfilename('fullpath');
+% Get the parent folder
+[parentFolder, ~, ~] = fileparts(fileparts(currentScriptFullPath));
+% Add the parent folder to the MATLAB path
+addpath(parentFolder);
+
+
 addpath('C:\Users\samue\Documents\Git\DynamixelSDK\realRobot')
 addpath('C:\Users\samue\Documents\Git\DynamixelSDK\simulatedRobot')
 
