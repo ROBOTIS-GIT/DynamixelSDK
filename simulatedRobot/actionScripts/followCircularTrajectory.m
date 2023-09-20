@@ -49,13 +49,13 @@ for i = 1:50
     
     % Get current end-effector position for trajectory visualization
     x_current = simulatedRobot.forwardKinematicsNumeric;
-    ref_positions_array = [ref_positions_array, x_current];
+    % ref_positions_array = [ref_positions_array, x_current];
     
     % Display the robot
     simulatedRobot.display(0);
     
     % Plot the trajectory of the end-effector
-    plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
+    % plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
     
 
     drawnow;
@@ -94,7 +94,7 @@ error_integral = zeros(3,1);
 error_prev = zeros(3,1);
 dt = 0.02;
 
-
+distance_to_origin_array = [];
 for i = 1:size(positions_array, 2)
 
     x_desired = positions_array(:, i);
@@ -136,26 +136,26 @@ for i = 1:size(positions_array, 2)
         % Update previous error
         error_prev = error;
         
-        % Store the current end-effector position for trajectory visualization
-        ref_positions_array = [ref_positions_array, x_current];
+        if i > 1
+            % Store the current end-effector position for trajectory visualization
+            ref_positions_array = [ref_positions_array, x_current];
+            % Plot the trajectory of the end-effector
+            plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
+        end
         
-        % Print the distance to the goal
-        distance_to_goal = norm(error);
-        % fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
         
         % Display the robot
         simulatedRobot.display(0);
         
-        % Plot the trajectory of the end-effector
-        plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
-        
-        % Calculate how far the goal point is away from the x-y plane origin
-        distance_goal_origin_xy = sqrt((x_desired(1)^2+x_desired(2)^2));
-        disp(distance_goal_origin_xy)
+
+        % Calculate how far the end effector is away from [0;0;585.7100]
+        distance_vec = [0;0;585.71] - x_current;
+
+        distance_to_origin_array = [distance_to_origin_array norm(distance_vec)];
 
         % Plot the desired goal position
         % Goals with more then 200 mm from origin x-y are colored red
-        if distance_goal_origin_xy > 200
+        if 0 %distance_goal_origin_xy > 200
             scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'r', 'filled');
         else
             scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
@@ -171,8 +171,5 @@ for i = 1:size(positions_array, 2)
         pause(dt)
 
     end
-
-    %Display shoulder elevation for each point
-
 end
 
