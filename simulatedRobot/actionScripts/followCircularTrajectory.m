@@ -149,8 +149,13 @@ for i = 1:size(positions_array, 2)
         % Plot the trajectory of the end-effector
         plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
         
+        % Calculate how far the goal point is away from the x-y plane origin
+        distance_goal_origin_xy = sqrt((x_desired(1)^2+x_desired(2)^2));
+        disp(distance_goal_origin_xy)
+
         % Plot the desired goal position
-        if i >= 5 && i <=7
+        % Goals with more then 200 mm from origin x-y are colored red
+        if distance_goal_origin_xy > 200
             scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'r', 'filled');
         else
             scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
