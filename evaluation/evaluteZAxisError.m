@@ -1,6 +1,6 @@
 clear
 close all
-clc
+
 
 %% Loading
 
@@ -13,60 +13,96 @@ load('C:\Users\samue\Desktop\Semesterarbeit\First_Testing_Robotic_Arm\before_cal
 recordedPositions = out.pos_amree;
 recordedOrientations = out.orient_arm_ee;
 
-clc
-
-% Read out the position of the robot pointing straight up in global
-% coordinates
-% plot3(recordedPositions.data(:,1),recordedPositions.data(:,2),recordedPositions.data(:,3))
-
+%Load the calculated distance from [0; 0; 500];
+load('C:\Users\samue\Desktop\dist_to_orig_array.mat', 'distance_to_origin_array')
+distanceOrigin = distance_to_origin_array';
 
 % Cut away everything from the recordedPositions except the circle
-% cutRecordedPositions = recordedPositions.data(3000:(end-5000),:); % for 55
-cutRecordedPositions = recordedPositions.data(2000:(end-3000),:);
-% plot3(cutRecordedPositions(:,1), cutRecordedPositions(:,2), cutRecordedPositions(:,3));
+recordedPositions = recordedPositions.data(2000:(end-3000),:);
+
+calculatedPositions = calculatedPositions(:,5:end)';
+
+clc
+
+clearvars -except calculatedPositions recordedPositions distanceOrigin
 
 
-clearvars -except calculatedPositions cutRecordedPositions x_offset y_offset
+%% Upsampling
 
+% Number of rows for each array
+n_calculatedPositions = size(calculatedPositions, 1);
+n_distanceOrigin = size(distanceOrigin, 1);
+n_recordedPositions = size(recordedPositions, 1);
 
-%Scale the calculatedPositions to meter
-calculatedPositions = calculatedPositions/1000;
+% Create original index vectors for calculatedPositions and distanceOrigin
+original_index_calculatedPositions = linspace(1, n_recordedPositions, n_calculatedPositions);
+original_index_distanceOrigin = linspace(1, n_recordedPositions, n_distanceOrigin);
 
-%Cut away everything from the calculatedPositions except the circle
-calculatedPositions = calculatedPositions(:,5:(end));
+% Create target index vector based on the size of recordedPositions
+target_index = 1:n_recordedPositions;
+
+% Interpolate to upsample calculatedPositions
+calculatedPositions = interp1(original_index_calculatedPositions, calculatedPositions, target_index, 'linear', 'extrap');
+
+% Interpolate to upsample distanceOrigin
+distanceOrigin = interp1(original_index_distanceOrigin, distanceOrigin, target_index, 'linear', 'extrap')';
+
+clearvars -except calculatedPositions recordedPositions distanceOrigin
+
+%% Extraction
+
+calculated_z = calculatedPositions(:,3)/1000;
+recorded_z = recordedPositions(:,3);
 
 %Move the calculataedPositions to the same location as the
 % %recordedPositions (offset can be read out in the commented out plot above)
-calculatedPositions(1,:) = calculatedPositions(1,:) - 1.80;
-calculatedPositions(2,:) = calculatedPositions(2,:) + 0.53;
-calculatedPositions(3,:) = calculatedPositions(3,:) + 0.05;
+calculated_z = calculated_z + 0.05;
 
-calculatedPositions = calculatedPositions';
+%Convert distanceOrigin to meters
+distanceOrigin = distanceOrigin/1000;
+    
+clearvars -except calculated_z recorded_z distanceOrigin
 
-% Generate new x-axis values for upsampling
-new_x = linspace(1, length(calculatedPositions), length(cutRecordedPositions));
+%% Error calculation of the z-Value
 
-% Use interp1 to upsample calculatedPositions
-upsampled_calculatedPositions = interp1(1:length(calculatedPositions), calculatedPositions(:,3), new_x, 'linear');
+% Calculate the smoothed error in the z-value
+z_error = abs(calculated_z - recorded_z);
+z_error = smooth(z_error,2000);
 
-% Plot only z with increased line width
-plot(cutRecordedPositions(:,3), 'LineWidth', 2);
-hold on
-plot(upsampled_calculatedPositions, 'LineWidth', 2);
+clearvars -except z_error distanceOrigin
 
-grid on
-xlabel("time   [ms]")
-ylabel("Z   [m]")
 
-% Add a legend with increased font size
-lgd = legend('Recorded Positions', 'Calculated Positions', 'Location', 'best');
-lgd.FontSize = 36;
+%% Plotting
 
-% Set x-axis limits
-xlim([0 25000]);
+% Create a new figure
+figure;
 
-% Increase the font size of the axis tick labels
-ax = gca;
-ax.FontSize = 26;
+% Create a new figure
+figure;
+
+% Create a new figure
+figure;
+
+% Get the default color order
+default_colors = get(groot, 'defaultAxesColorOrder');
+
+% First subplot: Plotting distanceOrigin
+subplot(2, 1, 1);  % 2 rows, 1 column, first plot
+plot(distanceOrigin*100, 'Color', default_colors(1, :), 'LineWidth', 1.5);
+title('Distance from Origin', 'FontSize', 16);
+xlabel('time [ms]', 'FontSize', 14);
+ylabel('Distance [cm]', 'FontSize', 14);
+grid on;
+set(gca, 'FontSize', 12);
+
+% Second subplot: Plotting the error in Z-Value
+subplot(2, 1, 2);  % 2 rows, 1 column, second plot
+plot(z_error*100, 'Color', default_colors(2, :), 'LineWidth', 1.5);
+title('Sag in z-Axis', 'FontSize', 16);
+xlabel('time [ms]', 'FontSize', 14);
+ylabel('Error [cm]', 'FontSize', 14);
+grid on;
+set(gca, 'FontSize', 12);
+
 
 

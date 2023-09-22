@@ -95,81 +95,93 @@ error_prev = zeros(3,1);
 dt = 0.02;
 
 distance_to_origin_array = [];
-for i = 1:size(positions_array, 2)
 
-    x_desired = positions_array(:, i);
-
-    while 1
-        % Get current end-effector position
-        x_current = simulatedRobot.forwardKinematicsNumeric;
+for k = 1:1
+    for i = 1:size(positions_array, 2)
+        plot_once = 1;
     
+        x_desired = positions_array(:, i);
     
-        % Compute error
-        error = x_desired - x_current;
+        while 1
+            % Get current end-effector position
+            x_current = simulatedRobot.forwardKinematicsNumeric;
         
-        % Compute integral and derivative of error
-        error_integral = error_integral + error;
-        error_derivative = error - error_prev;
         
-        % Compute control input (PID)
-        u = Kp * error + Ki * error_integral + Kd * error_derivative;
-        
-        % Compute the Jacobian for the current robot configuration
-        J = simulatedRobot.getJacobianNumeric();
-
-        % Compute joint velocities
-        pinvJ = pinv(J);
-        q_dot = pinvJ * u;
+            % Compute error
+            error = x_desired - x_current;
+            
+            % Compute integral and derivative of error
+            error_integral = error_integral + error;
+            error_derivative = error - error_prev;
+            
+            % Compute control input (PID)
+            u = Kp * error + Ki * error_integral + Kd * error_derivative;
+            
+            % Compute the Jacobian for the current robot configuration
+            J = simulatedRobot.getJacobianNumeric();
     
-        % Check for singularity
-        if norm(J)*norm(pinvJ) > 25
-            disp('Warning: Close to singularity');
-            break
-        end
+            % Compute joint velocities
+            pinvJ = pinv(J);
+            q_dot = pinvJ * u;
         
-        % Update joint angles based on computed joint velocities
-        for j = 1:4
-            angle = simulatedRobot.joints(j).angle;
-            simulatedRobot.joints(j).setAngle(angle + q_dot(j)*dt);
-        end
-        
-        % Update previous error
-        error_prev = error;
-        
-        if i > 1
-            % Store the current end-effector position for trajectory visualization
-            ref_positions_array = [ref_positions_array, x_current];
-            % Plot the trajectory of the end-effector
-            plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
-        end
-        
-        
-        % Display the robot
-        simulatedRobot.display(0);
-        
-
-        % Calculate how far the end effector is away from [0;0;585.7100]
-        distance_vec = [0;0;585.71] - x_current;
-
-        distance_to_origin_array = [distance_to_origin_array norm(distance_vec)];
-
-        % Plot the desired goal position
-        % Goals with more then 200 mm from origin x-y are colored red
-        if 0 %distance_goal_origin_xy > 200
-            scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'r', 'filled');
-        else
-            scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
-        end
-
-        drawnow;
-        
-        % Break condition: stop if error is small
-        if norm(error) < 5 %mm
-            break;
-        end
+            % Check for singularity
+            if norm(J)*norm(pinvJ) > 25
+                disp('Warning: Close to singularity');
+                break
+            end
+            
+            % Update joint angles based on computed joint velocities
+            for j = 1:4
+                angle = simulatedRobot.joints(j).angle;
+                simulatedRobot.joints(j).setAngle(angle + q_dot(j)*dt);
+            end
+            
+            % Update previous error
+            error_prev = error;
+            
+            if i > 1 
+                % Store the current end-effector position for trajectory visualization
+                ref_positions_array = [ref_positions_array, x_current];
+                % Plot the trajectory of the end-effector
+                plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
+            end
+            
+            
+            % Display the robot
+            simulatedRobot.display(0);
+            
     
-        pause(dt)
+            % Calculate how far the end effector is away from [0;0;585.7100]
+            distance_vec_desired = [0;0;500] - x_desired;
+        
+            % Plot the desired goal position
+            % Goals with more then 200 mm from origin x-y are colored red
+            if plot_once
+                if norm(distance_vec_desired)>200 %distance_goal_origin_xy > 200
+                    scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'r', 'filled');
+                else
+                    scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
+                end
+                plot_once = 0;
+            end
+    
+            drawnow;
+            
+            % Break condition: stop if error is small
+            if norm(error) < 5 %mm
+                break;
+            end
 
+            % Calculate an array containing the current distance of the
+            % endeffector to [0 0 500]
+            if i > 1
+                distance_vec = [0;0;500] - x_current;
+                distance = norm(distance_vec);
+                distance_to_origin_array =  [distance_to_origin_array   distance];
+            end
+            
+            pause(dt)
+    
+        end
     end
 end
-
