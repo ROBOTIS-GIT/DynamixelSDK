@@ -20,35 +20,10 @@ epsilon = 5;  % Radius for the scatter plot of the goal position
 x_desired =  [-400, -400, 300]';
 
 %% Move the robot to a non-singularity position
-disp("Moving the robot to a non-singularity position.")
-for i = 1:50
-
-    simulatedRobot.joints(1).rotate(0.006);
-    simulatedRobot.joints(2).rotate(0.006);
-    simulatedRobot.joints(3).rotate(0.01);
-    simulatedRobot.joints(4).rotate(0.01);
-
-    
-    
-    % Get current end-effector position for trajectory visualization
-    x_current = simulatedRobot.forwardKinematicsNumeric;
-    ref_positions_array = [ref_positions_array, x_current];
-    
-    % Display the robot
-    simulatedRobot.display(0);
-    
-    % Plot the trajectory of the end-effector
-    plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
-    
-    % Plot the desired goal position
-    scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
-
-    
-    drawnow;
-end
-disp("Starting control loop.")
-pause(1)
-
+simulatedRobot.moveInitPos(0);
+simulatedRobot.display(0)
+% Plot the desired goal position
+scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
 
 
 %% Use inverse kinematics to reach a goal position (Endeffector Position Control with PID)
@@ -136,9 +111,7 @@ while 1
     % Plot the trajectory of the end-effector
     plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
     
-    % Plot the desired goal position
-    scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
-    
+
     drawnow;
     
     % Break condition: stop if error is small

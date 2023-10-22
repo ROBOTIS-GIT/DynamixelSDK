@@ -29,6 +29,7 @@ classdef SimulatedRobot < handle
         axis_set = 0; % Store if the axis property of the plot has already been set once.
         % This saves compute compared to setting it repeatedly in the
         % display method.
+        dh_params % An array of DH parameters for each joint.
     end
 
     methods
@@ -55,6 +56,19 @@ classdef SimulatedRobot < handle
             obj.joints =  [joint1, joint2, joint3, joint4];
             obj.links = [link1, link2, link3, link4, link5];
             obj.frames = [orig_frame, endeffector_frame];
+
+            %% Setup DH Parameters for the simulated robot
+            % Assume:
+            % - Theta values will be variable and initially set to 0.
+            % - The link lengths and offsets are deduced from your joint positions.
+            % - The alpha (twist) values are assumed based on common configurations (and may need to be modified).
+            
+            dh1 = struct('theta', 0, 'd', 83.51, 'a', 0, 'alpha', pi/2);  % Joint 1
+            dh2 = struct('theta', 0, 'd', 0, 'a', 0, 'alpha', -pi/2);    % Joint 2
+            dh3 = struct('theta', 0, 'd', 119.35, 'a', 0, 'alpha', 0);   % Joint 3
+            dh4 = struct('theta', 0, 'd', 163.99, 'a', 0, 'alpha', -pi/2); % Joint 4
+
+            obj.dh_params = [dh1, dh2, dh3, dh4];
             
         end
 
@@ -265,6 +279,26 @@ classdef SimulatedRobot < handle
                 title('Simulated Robot');
                 obj.axis_set = 1;
             end
+        end
+
+        function moveInitPos(obj,display)
+
+            disp("Moving the robot to a non-singularity position.")
+            for i = 1:50
+            
+                obj.joints(1).rotate(0.006);
+                obj.joints(2).rotate(0.006);
+                obj.joints(3).rotate(0.01);
+                obj.joints(4).rotate(0.01);
+            
+                if display
+                    % Display the robot
+                    obj.display(0);  
+                    drawnow;
+                end
+
+            end
+
         end
 
     end

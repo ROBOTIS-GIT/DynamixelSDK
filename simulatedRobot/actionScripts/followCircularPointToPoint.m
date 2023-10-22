@@ -13,30 +13,9 @@ ref_positions_array = [];  % Array to store end-effector positions
 
 
 %% Move the robot to a non-singularity position
-disp("Moving the robot to a non-singularity position.")
-for i = 1:50
+simulatedRobot.moveInitPos(0);
+simulatedRobot.display(0)
 
-    simulatedRobot.joints(1).rotate(0.006);
-    simulatedRobot.joints(2).rotate(0.006);
-    simulatedRobot.joints(3).rotate(0.01);
-    simulatedRobot.joints(4).rotate(0.01);
-
-    
-    
-    % Get current end-effector position for trajectory visualization
-    x_current = simulatedRobot.forwardKinematicsNumeric;
-    % ref_positions_array = [ref_positions_array, x_current];
-    
-    % Display the robot
-    simulatedRobot.display(0);
-    
-    % Plot the trajectory of the end-effector
-    % plot3(ref_positions_array(1,:), ref_positions_array(2,:), ref_positions_array(3,:), 'k');
-    
-
-    drawnow;
-end
-disp("Starting control loop.")
 
 % Number of points
 n_points = 10;
@@ -56,6 +35,8 @@ z = center(3) * ones(size(theta));
 % Create the positions array
 positions_array = [x; y; z];
 
+
+
 %% Use inverse kinematics to reach a goal position (Endeffector Position Control with PID)
 % PID gains
 Kp = 8;
@@ -71,6 +52,10 @@ error_prev = zeros(3,1);
 dt = 0.02;
 
 distance_to_origin_array = [];
+
+%Plot the goal positions
+scatter3(x, y, z, (epsilon^2) * pi, 'g', 'filled');
+
 
 for k = 1:1
     for i = 1:size(positions_array, 2)
