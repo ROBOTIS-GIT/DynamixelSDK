@@ -84,15 +84,15 @@ while 1
 
     % Alternatively to the singulartiy check:
     % Filter out impossible workspace velocities using J * J'
-    u = (J * J')/norm(J * J') * u;
+    % u = (J * J')/norm(J * J') * u;
 
     q_dot = pinvJ * u;
 
     % Check for singularity
-    % if norm(J)*norm(pinvJ) > 25
-    %     disp('Warning: Close to singularity');
-    %     break
-    % end
+    if norm(J)*norm(pinvJ) > 25
+        disp('Warning: Close to singularity');
+        break
+    end
     
     % Update joint angles based on computed joint velocities
     for j = 1:4
