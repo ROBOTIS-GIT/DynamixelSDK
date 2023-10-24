@@ -55,6 +55,5 @@ classdef CustomLink < handle
                 obj.lineHandle.ZData = [startPos(3), endPos(3)];
             end
         end
-
     end
 end

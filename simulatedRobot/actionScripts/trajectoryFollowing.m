@@ -1,6 +1,6 @@
 % This script shows an example of the roboticArm in the kinematic
 % simulation. The arm moves to a non singularity position and then tries to
-% follow a trajectory
+% follow a trajectory.
 
 clear()
 clc
@@ -36,9 +36,6 @@ v_d = zeros(size(x_d));
 for i = 1:num_points-1
     v_d(:,i) = (x_d(:,i+1) - x_d(:,i)) / dt;
 end
-
-ref_positions_array = zeros(3,num_points);  % Array to store end-effector positions
-
 
 % Using backward difference for the last point
 v_d(:,num_points) = (x_d(:,num_points) - x_d(:,num_points-1)) / dt;

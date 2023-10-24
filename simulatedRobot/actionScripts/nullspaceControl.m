@@ -1,3 +1,9 @@
+%This script shows an example of the roboticArm in the kinematic
+% simulation. The arm moves to a non singularity position and then tries to
+% reach a desired endeffector position. It shall use the Nullspace operator
+% to perform additional task (orientation of the endeffector, better
+% configurations, avoid singularities, etc...)
+
 clear()
 clc
 close
@@ -41,7 +47,7 @@ while 1
     
     % Update joint angles based on computed joint velocities
     for j = 1:4
-        simulatedRobot.joints(j).rotate(q_dot(j)*dt);
+        simulatedRobot.joints(j).setAngle(simulatedRobot.joints(j).angle + q_dot(j)*dt);
     end
     
     % Print the distance to the goal
@@ -86,37 +92,13 @@ while 1
     
     % Update joint angles based on computed joint velocities
     for j = 1:4
-        simulatedRobot.joints(j).rotate(q_dot(j)*dt);
+        simulatedRobot.joints(j).setAngle(simulatedRobot.joints(j).angle + q_dot(j)*dt);
     end
 
-    % Calculate the Endeffector Rotation matrix from Basis Rotations
-    q = [simulatedRobot.joints(1).angle; simulatedRobot.joints(2).angle; simulatedRobot.joints(3).angle; simulatedRobot.joints(4).angle];
-    
-
-    g_A_E_calc = roty(q(1))*rotx(q(2))*rotz(q(3))*rotx(q(4));
-    endeffectorFrame = simulatedRobot.frames(end);
-    g_A_E_frame = endeffectorFrame.rotation;
-
-    if ~(g_A_E_frame == g_A_E_frame)
-        disp("Error")
-    end
-    
     % Display the robot and the endeffector frame
     simulatedRobot.display(1);
-    % endeffectorFrame.display();
     drawnow
     
 
 end
 
-function rotx = rotx(alpha)
-    rotx = [1 0 0; 0 cos(alpha) -sin(alpha); 0 sin(alpha) cos(alpha)];
-end
-
-function roty = roty(beta)
-    roty = [cos(beta) 0 sin(beta); 0 1 0; -sin(beta) 0 cos(beta)];
-end
-
-function rotz = rotz(gamma)
-    rotz = [cos(gamma) -sin(gamma) 0; sin(gamma) cos(gamma) 0; 0 0 1];
-end
