@@ -27,12 +27,7 @@ classdef CustomLink < handle
             obj.lineHandle = [];
             obj.color = color;  % Set the color property
         end
-        
-        % The display method updates the display of the link. It
-        % just calls the update method to redraw the link.
-        function display(obj)
-            obj.update();
-        end
+       
         
         % The update method redraws the link. If there was a previous line
         % drawn (i.e., lineHandle is not empty and is valid), it updates
@@ -40,7 +35,7 @@ classdef CustomLink < handle
         % creates a new line. The line is drawn from the global position of
         % the startFrame to the global position of the endFrame, and its
         % handle is saved in lineHandle for future reference.
-        function update(obj)
+        function display(obj)
             startPos = obj.startFrame.getGlobalPosition;
             endPos = obj.endFrame.getGlobalPosition;
             if isempty(obj.lineHandle) || ~isvalid(obj.lineHandle)

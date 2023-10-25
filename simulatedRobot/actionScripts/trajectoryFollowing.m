@@ -33,8 +33,8 @@ x_d(3,:) = Z_mean + Z_amplitude * sin(k * theta);  % z-coordinates
 v_d = zeros(size(x_d));
 
 % Using forward differences for all but the last point
-for i = 1:num_points-1
-    v_d(:,i) = (x_d(:,i+1) - x_d(:,i)) / dt;
+for timesteps = 1:num_points-1
+    v_d(:,timesteps) = (x_d(:,timesteps+1) - x_d(:,timesteps)) / dt;
 end
 
 % Using backward difference for the last point
@@ -42,8 +42,8 @@ v_d(:,num_points) = (x_d(:,num_points) - x_d(:,num_points-1)) / dt;
 
 %Calc max speed in mm/s
 max_speed = 0;
-for i = 1:num_points
-    speed = sqrt(v_d(:,i)'*v_d(:,i));
+for timesteps = 1:num_points
+    speed = sqrt(v_d(:,timesteps)'*v_d(:,timesteps));
     if speed >= max_speed
         max_speed = speed;
     end
@@ -59,26 +59,17 @@ simulatedRobot.display(0)
 
 %% Trajectory following
 Kp = 1;
-
-t_exectution = 0;
-t_desired = 0;
-
-outerTic = tic; % Start the outer timer
-
-for i = 1:num_points
-
-    t_desired = t_desired+dt;
-
-    innerTic = tic; % Start the inner timer
-
+outerTic = tic;
+for timesteps = 1:num_points
+    
     x_current = simulatedRobot.forwardKinematicsNumeric();
     
     %Pos Error
-    x_e = x_d(:,i)-x_current;
+    x_e = x_d(:,timesteps)-x_current;
 
     fprintf("Position Error: %.f mm\n", norm(x_e));
 
-    v_d_eff = x_e*Kp + v_d(:,i);
+    v_d_eff = x_e*Kp + v_d(:,timesteps);
 
     J = simulatedRobot.getJacobianNumeric;
     q_dot = pinv(J)*v_d_eff;
@@ -91,22 +82,11 @@ for i = 1:num_points
 
     % Display the robot
     simulatedRobot.display(0);
-    % Plot the path
-    drawnow;
-
-
-    loop_time = toc(innerTic); % Measure time for the inner loop
-
-    t_exectution = t_exectution+loop_time;
-
-    % If the exectution is faster than the desired time
-    if(t_desired>t_exectution)
-        % Wait
-        pause(t_desired-t_exectution);
-        t_exectution = t_desired;
+    drawnow limitrate
+    
+    % Wait if too fast
+    if toc(outerTic) < timesteps*dt
+        pause(timesteps*dt-toc(outerTic))
     end
-
+    
 end
-
-outerTimeElapsed = toc(outerTic); % Measure time for the outer loop
-disp(['Total outer loop time: ', num2str(outerTimeElapsed), ' seconds.']);

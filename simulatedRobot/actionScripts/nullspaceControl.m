@@ -26,8 +26,11 @@ x_desired =  [-300, -300, 300]';
 epsilon = 5;
 scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
 
+outerTic = tic;
 dt = 0.01;
+timesteps = 0;
 while 1
+    timesteps = timesteps +1;
     % Get current end-effector position
     x_current = simulatedRobot.forwardKinematicsNumeric;
 
@@ -56,7 +59,9 @@ while 1
     
     % Display the robot
     simulatedRobot.display(0);
-    drawnow
+    
+    % Instead of drawnow use pause
+    pause(0.005);
     
     % Break condition: stop if error is small
     if norm(error) < 5 %mm
@@ -64,12 +69,21 @@ while 1
         break;
     end
 
+    % Wait if too fast
+    if toc(outerTic) < timesteps*dt
+        pause(timesteps*dt-toc(outerTic))
+    end
+
+
 end
 
 %% Use nullspace operator to manipulate other stuff
+disp("Nullspace Control:")
+outerTic = tic;
 dt = 0.01;
-disp("Nullspace Ctrl:")
+timesteps = 0;
 while 1
+    timesteps = timesteps +1;
     % Get current end-effector position
     x_current = simulatedRobot.forwardKinematicsNumeric;
 
@@ -97,7 +111,13 @@ while 1
 
     % Display the robot and the endeffector frame
     simulatedRobot.display(1);
-    drawnow
+    drawnow limitrate
+
+    % Wait if too fast
+    if toc(outerTic) < timesteps*dt
+        pause(timesteps*dt-toc(outerTic))
+    end
+
     
 
 end

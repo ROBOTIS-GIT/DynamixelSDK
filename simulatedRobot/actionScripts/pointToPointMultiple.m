@@ -47,17 +47,18 @@ epsilon = 5; %mm
 % Initialize error and integral terms
 error_integral = zeros(3,1);
 error_prev = zeros(3,1);
-dt = 0.02;
 
 %Plot the goal positions
 scatter3(x, y, z, (epsilon^2) * pi, 'g', 'filled');
 
-for i = 1:size(waypoints, 2)
-    plot_once = 1;
-
-    x_desired = waypoints(:, i);
-
+for k = 1:size(waypoints, 2)
+    x_desired = waypoints(:, k);
+    
+    outerTic = tic;
+    dt = 0.01;
+    timesteps = 0;
     while 1
+        timesteps = timesteps +1;
         % Get current end-effector position
         x_current = simulatedRobot.forwardKinematicsNumeric;
     
@@ -100,11 +101,17 @@ for i = 1:size(waypoints, 2)
        
         % Display the robot
         simulatedRobot.display(0);
-        drawnow;
+        drawnow limitrate
         
         % Break condition: go to next waypoint if error is small
         if norm(error) < 5 %mm
             break;
-        end    
+        end
+
+        % Wait if too fast
+        if toc(outerTic) < timesteps*dt
+            pause(timesteps*dt-toc(outerTic))
+        end
+
     end
 end

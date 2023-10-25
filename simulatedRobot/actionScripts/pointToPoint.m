@@ -34,8 +34,11 @@ Kd = 0.1;
 error_integral = zeros(3,1);
 error_prev = zeros(3,1);
 
+outerTic = tic;
 dt = 0.01;
+timesteps = 0;
 while 1
+    timesteps = timesteps +1;
     % Get current end-effector position
     x_current = simulatedRobot.forwardKinematicsNumeric;
 
@@ -87,13 +90,18 @@ while 1
     
     % Plot the trajectory of the end-effector
     plot3(tcp_positions(1,:), tcp_positions(2,:), tcp_positions(3,:), 'k');
-    drawnow;
+    drawnow limitrate
     
     % Break condition: stop if error is small
     if norm(error) < 5 %mm
         break;
     end
 
-    pause(dt)
+    % Wait if too fast
+    if toc(outerTic) < timesteps*dt
+        pause(timesteps*dt-toc(outerTic))
+    end
+
+
 end
 

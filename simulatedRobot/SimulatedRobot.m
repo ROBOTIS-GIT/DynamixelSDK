@@ -261,7 +261,8 @@ classdef SimulatedRobot < handle
                 if display
                     % Display the robot
                     obj.display(0);  
-                    drawnow;
+                   drawnow limitrate
+
                 end
             end
             obj.display(0)
