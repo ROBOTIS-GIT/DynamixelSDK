@@ -20,27 +20,29 @@ x_desired =  [-400, -400, 300]';
 
 %% Move the robot to a non-singularity position
 simulatedRobot.moveInitPos(0);
-simulatedRobot.display(0)
+simulatedRobot.draw(0)
 % Plot the desired goal position
-scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
+scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'm', 'filled');
 
 %% Use inverse kinematics to reach a goal position (Endeffector Position Control with PID)
 % PID gains
-Kp = 1;
-Ki = 0.01;
-Kd = 0.1;
+Kp = 3;
+Ki = 0;
+Kd = 0;
 
 % Initialize error and integral terms
 error_integral = zeros(3,1);
 error_prev = zeros(3,1);
 
+max_timesteps = 10000;
+tcp_positions = zeros(3,max_timesteps);
 outerTic = tic;
 dt = 0.01;
-timesteps = 0;
-while 1
-    timesteps = timesteps +1;
+for timesteps = 1:max_timesteps
+
     % Get current end-effector position
     x_current = simulatedRobot.forwardKinematicsNumeric;
+    tcp_positions(:,timesteps) = x_current;
 
     % Compute error
     error = x_desired - x_current;
@@ -75,19 +77,15 @@ while 1
     
     % Update previous error
     error_prev = error;
-    
-    % Store the current end-effector position for trajectory visualization
-    tcp_positions = [tcp_positions, x_current];
-    
+        
     % Print the distance to the goal
     distance_to_goal = norm(error);
     fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
     
     % Display the robot
-    simulatedRobot.display(0);
-    
-    % Plot the trajectory of the end-effector
-    plot3(tcp_positions(1,:), tcp_positions(2,:), tcp_positions(3,:), 'k');
+    plot3(tcp_positions(1,1:timesteps), tcp_positions(2,1:timesteps), tcp_positions(3,1:timesteps), 'k');
+    simulatedRobot.draw(0);
+    simulatedRobot.frames(end).draw;
     drawnow limitrate
     
     % Break condition: stop if error is small
@@ -99,7 +97,6 @@ while 1
     if toc(outerTic) < timesteps*dt
         pause(timesteps*dt-toc(outerTic))
     end
-
 
 end
 

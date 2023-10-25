@@ -13,7 +13,7 @@ classdef SimulatedRobot < handle
         joints  % An array of Joint objects, defining the joints of the robot
         links   % An array of Link objects, defining the physical connections between joints
         frames % An array of Frame objects, defining additional frames of the robot
-        axis_set = 0; % Store if the axis property of the plot has already been set once.
+        fig
         % This saves compute compared to setting it repeatedly in the
         % display method.
     end
@@ -32,11 +32,15 @@ classdef SimulatedRobot < handle
             endeffector_frame = CustomFrame([0;0;218.86], joint4, 'Endeffector');
             
             %% Setup Links of the simulated robot
-            link1 = CustomLink(orig_frame, joint1, 'r');  % Red
-            link2 = CustomLink(joint1, joint2, 'g');  % Green
-            link3 = CustomLink(joint2, joint3, 'b');  % Blue
-            link4 = CustomLink(joint3, joint4, 'y');  % Yellow
-            link5 = CustomLink(joint4, endeffector_frame, 'm');  % Magenta
+            numLinks = 5; % Number of links
+            grayLevels = linspace(0.2, 0.8, numLinks);  % Define a range of grayscale values. Start from 0.2 (dark) to 0.8 (lighter)
+            
+            link1 = CustomLink(orig_frame, joint1, repmat(grayLevels(1), 1, 3));  % Link 1 with first grayscale value
+            link2 = CustomLink(joint1, joint2, repmat(grayLevels(2), 1, 3));  % Link 2 with second grayscale value
+            link3 = CustomLink(joint2, joint3, repmat(grayLevels(3), 1, 3));  % and so on...
+            link4 = CustomLink(joint3, joint4, repmat(grayLevels(4), 1, 3));
+            link5 = CustomLink(joint4, endeffector_frame, repmat(grayLevels(5), 1, 3));
+
 
             obj.joints =  [joint1, joint2, joint3, joint4];
             obj.links = [link1, link2, link3, link4, link5];
@@ -206,44 +210,46 @@ classdef SimulatedRobot < handle
             elevation = pi/2 - acos(cos(q(2))*cos(q(1)));           
         end
 
-        function display(obj, draw_frames)
-            % The display method updates and displays all joints and links
+        function draw(obj, draw_frames)
 
-            % Get the current figure handle
-            fig = findobj('type', 'figure');
-            
-            % If the figure does not exist, create a new one
-            if isempty(fig)
-                fig = figure;
-            end
-            
-            hold on;
-            grid on;
-            for i = 1:length(obj.joints)
-                if draw_frames
-                    obj.joints(i).display();
-                end
-            end
-            for i = 1:length(obj.links)
-                obj.links(i).display();
-            end
-            for i = 1:length(obj.frames)
-                if draw_frames
-                    obj.frames(i).display();
-                end
-            end
-            if obj.axis_set == 0
-                view(-25, 40);
+            % The display method updates and displays all joints and links
+            if isempty(obj.fig)
+                obj.fig = figure;
+
+                hold on
+                view(-30, 25);
                 axis equal;
                 xlabel('X');
                 ylabel('Y');
                 zlabel('Z');
                 title('Simulated Robot');
-                obj.axis_set = 1;
+                grid on;
+              
+                
+                % Set fixed axis limits
+                xlim([-400, 400]); % X limits from -500 to 500
+                ylim([-400, 400]); % Y limits from -500 to 500
+                zlim([0, 600]);   % Z limits from 0 to 1000
+                
             end
+
+            if draw_frames
+                for i = 1:length(obj.joints)
+                        obj.joints(i).draw;
+                end
+               for i = 1:length(obj.frames)
+                    obj.frames(i).draw;
+                end
+            end
+
+            for i = 1:length(obj.links)
+                obj.links(i).draw;
+            end
+
+
         end
 
-        function moveInitPos(obj,display)
+        function moveInitPos(obj,animate)
 
             disp("Moving the robot to a non-singularity position.")
             for i = 1:50
@@ -251,14 +257,14 @@ classdef SimulatedRobot < handle
                 q_increment = [0.006;0.006;0.01;0.01];
                 obj.setQ(obj.getQ + q_increment);
                 
-                if display
+                if animate
                     % Display the robot
-                    obj.display(0);  
+                    obj.draw(0);  
                    drawnow limitrate
 
                 end
             end
-            obj.display(0)
+            obj.draw(0)
         end
     end
 end

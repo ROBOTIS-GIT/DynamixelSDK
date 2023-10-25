@@ -20,10 +20,11 @@ classdef CustomFrame < handle
         xHandle           % Graphics handle for X axis
         yHandle           % Graphics handle for Y axis
         zHandle           % Graphics handle for Z axis
-        textHandle        % Graphics handle for the frame label
         xTextHandle       % Graphics handle for X axis label
         yTextHandle       % Graphics handle for Y axis label
         zTextHandle       % Graphics handle for Z axis label
+        textHandle        % Graphics handle for the frame label
+
     end
 
     methods
@@ -67,56 +68,44 @@ classdef CustomFrame < handle
             end
         end
 
-        function display(obj)
-
-            % This method draws the frame in a 3D plot. It uses the 'quiver3' and
-            % 'text' functions to draw the frame's axes and labels, respectively.
-            % The 'rotation' and 'globalPosition' arguments provide the rotation
-            % matrix and global position of the frame. The 'label' argument is the
-            % label of the frame.
+        function draw(obj)
             colors = ['r', 'g', 'b'];
             axis_labels = {'X', 'Y', 'Z'};
+            max_robot_dimension = 500;  % Update based on your robot size
+            scale_factor = max_robot_dimension / 10;
             
-            max_robot_dimension = 500;  % Update this based on your robot size
-            scale_factor = max_robot_dimension / 20;  % Scale factor for the frames
-            
-            % Delete the previous plotted objects before replotting
-            if ~isempty(obj.xHandle) && isvalid(obj.xHandle)
-                delete(obj.xHandle);
-            end
-            if ~isempty(obj.yHandle) && isvalid(obj.yHandle)
-                delete(obj.yHandle);
-            end
-            if ~isempty(obj.zHandle) && isvalid(obj.zHandle)
-                delete(obj.zHandle);
-            end
-            if ~isempty(obj.textHandle) && isvalid(obj.textHandle)
-                delete(obj.textHandle);
-            end
-            if ~isempty(obj.xTextHandle) && isvalid(obj.xTextHandle) % Added
-                delete(obj.xTextHandle);
-            end
-            if ~isempty(obj.yTextHandle) && isvalid(obj.yTextHandle) % Added
-                delete(obj.yTextHandle);
-            end
-            if ~isempty(obj.zTextHandle) && isvalid(obj.zTextHandle) % Added
-                delete(obj.zTextHandle);
-            end
-
             globalPosition = obj.getGlobalPosition;
             
-            % Plot each axis and save the graphics handle
-            obj.xHandle = quiver3(globalPosition(1), globalPosition(2), globalPosition(3), scale_factor*obj.rotation(1,1), scale_factor*obj.rotation(2,1), scale_factor*obj.rotation(3,1), 'Color', colors(1));
-            obj.yHandle = quiver3(globalPosition(1), globalPosition(2), globalPosition(3), scale_factor*obj.rotation(1,2), scale_factor*obj.rotation(2,2), scale_factor*obj.rotation(3,2), 'Color', colors(2));
-            obj.zHandle = quiver3(globalPosition(1), globalPosition(2), globalPosition(3), scale_factor*obj.rotation(1,3), scale_factor*obj.rotation(2,3), scale_factor*obj.rotation(3,3), 'Color', colors(3));
+            handles = {obj.xHandle, obj.yHandle, obj.zHandle, obj.xTextHandle, obj.yTextHandle, obj.zTextHandle, obj.textHandle};
             
-            % Plot color legend and save the graphics handle
-            obj.xTextHandle = text(globalPosition(1) + scale_factor*obj.rotation(1,1), globalPosition(2) + scale_factor*obj.rotation(2,1), globalPosition(3) + scale_factor*obj.rotation(3,1), axis_labels{1}, 'Color', colors(1), 'FontWeight', 'bold'); 
-            obj.yTextHandle = text(globalPosition(1) + scale_factor*obj.rotation(1,2), globalPosition(2) + scale_factor*obj.rotation(2,2), globalPosition(3) + scale_factor*obj.rotation(3,2), axis_labels{2}, 'Color', colors(2), 'FontWeight', 'bold'); 
-            obj.zTextHandle = text(globalPosition(1) + scale_factor*obj.rotation(1,3), globalPosition(2) + scale_factor*obj.rotation(2,3), globalPosition(3) + scale_factor*obj.rotation(3,3), axis_labels{3}, 'Color', colors(3), 'FontWeight', 'bold'); 
-            
-            % Plot label and save the graphics handle
-            obj.textHandle = text(globalPosition(1), globalPosition(2), globalPosition(3), obj.label);
+            for i = 1:3
+                % Calculate the end position of the line for the current axis
+                endPos = globalPosition + scale_factor * obj.rotation(:, i);
+                
+                % Check if the handle exists and is valid
+                if isempty(handles{i}) || ~isvalid(handles{i})
+                    % Create a new line using plot3
+                    handles{i} = plot3([globalPosition(1), endPos(1)], ...
+                                       [globalPosition(2), endPos(2)], ...
+                                       [globalPosition(3), endPos(3)], ...
+                                       'Color', colors(i), LineWidth=2);
+                else
+                    % Update the existing line's data
+                    handles{i}.XData = [globalPosition(1), endPos(1)];
+                    handles{i}.YData = [globalPosition(2), endPos(2)];
+                    handles{i}.ZData = [globalPosition(3), endPos(3)];
+                end
+        
+                % Update the text data for axis labels
+                % if isempty(handles{i+3}) || ~isvalid(handles{i+3})
+                %     handles{i+3} = text(endPos(1), endPos(2), endPos(3), axis_labels{i}, 'Color', colors(i), 'FontWeight', 'bold');
+                % else
+                %     handles{i+3}.Position = endPos;
+                % end
+            end
+        
+            % Assign the updated handles back to the object properties
+            [obj.xHandle, obj.yHandle, obj.zHandle, obj.xTextHandle, obj.yTextHandle, obj.zTextHandle, ~] = handles{:};
         end
     end
 end

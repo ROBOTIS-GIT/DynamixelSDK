@@ -49,19 +49,21 @@ error_integral = zeros(3,1);
 error_prev = zeros(3,1);
 
 %Plot the goal positions
-scatter3(x, y, z, (epsilon^2) * pi, 'g', 'filled');
+scatter3(x, y, z, (epsilon^2) * pi, 'm', 'filled');
 
 for k = 1:size(waypoints, 2)
     x_desired = waypoints(:, k);
     
+    max_timesteps = 10000;
+    tcp_positions = zeros(3,max_timesteps);
     outerTic = tic;
     dt = 0.01;
-    timesteps = 0;
-    while 1
-        timesteps = timesteps +1;
+    for timesteps = 1:max_timesteps
+
         % Get current end-effector position
         x_current = simulatedRobot.forwardKinematicsNumeric;
-    
+        tcp_positions(:,timesteps) = x_current;
+
         % Compute error
         error = x_desired - x_current;
         
@@ -92,13 +94,10 @@ for k = 1:size(waypoints, 2)
         % Update previous error
         error_prev = error;
  
-        % Store the current end-effector position for trajectory visualization
-        tcp_positions = [tcp_positions, x_current];
-        % Plot the trajectory of the end-effector
-        plot3(tcp_positions(1,:), tcp_positions(2,:), tcp_positions(3,:), 'k');
-       
         % Display the robot
-        simulatedRobot.display(0);
+        plot3(tcp_positions(1,1:timesteps), tcp_positions(2,1:timesteps), tcp_positions(3,1:timesteps), 'k');
+        simulatedRobot.draw(0);
+        simulatedRobot.frames(end).draw;
         drawnow limitrate
         
         % Break condition: go to next waypoint if error is small

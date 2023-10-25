@@ -15,7 +15,7 @@ simulatedRobot = SimulatedRobot();
 
 %% Move the robot to a non-singularity initial position
 simulatedRobot.moveInitPos(0);
-simulatedRobot.display(0)
+simulatedRobot.draw(0)
 
 
 %% Use inverse jacobian to reach a goal position
@@ -24,65 +24,19 @@ x_desired =  [-300, -300, 300]';
 
 % Plot the desired goal position
 epsilon = 5;
-scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
+scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'm', 'filled');
 
-outerTic = tic;
-dt = 0.01;
-timesteps = 0;
-while 1
-    timesteps = timesteps +1;
-    % Get current end-effector position
-    x_current = simulatedRobot.forwardKinematicsNumeric;
-
-    % Compute error
-    error = x_desired - x_current;
-    
-    % Compute control input (PID)
-    Kp = 1;
-    u = Kp * error;
-    
-    % Compute the Jacobian for the current robot configuration
-    J = simulatedRobot.getJacobianNumeric();    
-    
-    % Compute pseudo inverse
-    pinvJ = pinv(J);
-    q_dot = pinvJ * u;
-    
-    % Update joint angles based on computed joint velocities
-    q = simulatedRobot.getQ;
-    simulatedRobot.setQ(q + q_dot*dt)
-    
-    % Print the distance to the goal
-    distance_to_goal = norm(error);
-    fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
-    
-    % Display the robot
-    simulatedRobot.display(0);
-    drawnow limitrate
-    
-    % Break condition: stop if error is small
-    if norm(error) < 5 %mm
-        disp('Reached the goal position.');
-        break;
-    end
-
-    % Wait if too fast
-    if toc(outerTic) < timesteps*dt
-        pause(timesteps*dt-toc(outerTic))
-    end
-
-
-end
 
 %% Use nullspace operator to manipulate other stuff
-disp("Nullspace Control:")
+max_timesteps = 10000;
+tcp_positions = zeros(3,max_timesteps);
 outerTic = tic;
-dt = 0.01;
-timesteps = 0;
-while 1
-    timesteps = timesteps +1;
+dt = 0.003;
+
+for timesteps = 1:max_timesteps
     % Get current end-effector position
     x_current = simulatedRobot.forwardKinematicsNumeric;
+    tcp_positions(:,timesteps) = x_current;
 
     % Compute error
     error = x_desired - x_current;
@@ -102,12 +56,13 @@ while 1
     q_dot = pinvJ * u;
     
     % Update joint angles based on computed joint velocities
-    % Update joint angles based on computed joint velocities
     q = simulatedRobot.getQ;
     simulatedRobot.setQ(q + q_dot*dt)
 
-    % Display the robot and the endeffector frame
-    simulatedRobot.display(1);
+    % Display the robot
+    % plot3(tcp_positions(1,1:timesteps), tcp_positions(2,1:timesteps), tcp_positions(3,1:timesteps), 'k');
+    simulatedRobot.draw(0);
+    simulatedRobot.frames(end).draw;
     drawnow limitrate
 
     % Wait if too fast

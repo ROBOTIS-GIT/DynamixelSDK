@@ -35,7 +35,7 @@ classdef CustomLink < handle
         % creates a new line. The line is drawn from the global position of
         % the startFrame to the global position of the endFrame, and its
         % handle is saved in lineHandle for future reference.
-        function display(obj)
+        function draw(obj)
             startPos = obj.startFrame.getGlobalPosition;
             endPos = obj.endFrame.getGlobalPosition;
             if isempty(obj.lineHandle) || ~isvalid(obj.lineHandle)

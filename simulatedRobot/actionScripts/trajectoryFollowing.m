@@ -50,19 +50,23 @@ for timesteps = 1:num_points
 end
 fprintf("Max Endeffector Speed in the trajectory is : %.2f km/h\n\n", (max_speed/1000)*3.6);
 
+Kp = 1;
+
+simulatedRobot.moveInitPos(0);
+simulatedRobot.draw(0)
+
 % Plot the desired trajectory
 plot3(x_d(1,:),x_d(2,:),x_d(3,:));
 
-simulatedRobot.moveInitPos(0);
-simulatedRobot.display(0)
-
-
 %% Trajectory following
-Kp = 1;
+tcp_positions = zeros(3,num_points);
 outerTic = tic;
+dt = 0.01;
 for timesteps = 1:num_points
     
-    x_current = simulatedRobot.forwardKinematicsNumeric();
+    % Get current end-effector position
+    x_current = simulatedRobot.forwardKinematicsNumeric;
+    tcp_positions(:,timesteps) = x_current;
     
     %Pos Error
     x_e = x_d(:,timesteps)-x_current;
@@ -78,10 +82,14 @@ for timesteps = 1:num_points
     q = simulatedRobot.getQ;
     simulatedRobot.setQ(q + q_dot*dt)
 
-
     % Display the robot
-    simulatedRobot.display(0);
+    % if mod(timesteps,30) == 0
+    %     scatter3(tcp_positions(1,timesteps), tcp_positions(2,timesteps), tcp_positions(3,timesteps), 'k');
+    % end
+    simulatedRobot.draw(0);
+    simulatedRobot.frames(end).draw;
     drawnow limitrate
+
     
     % Wait if too fast
     if toc(outerTic) < timesteps*dt
@@ -89,3 +97,5 @@ for timesteps = 1:num_points
     end
     
 end
+
+toc(outerTic)
