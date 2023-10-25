@@ -86,11 +86,9 @@ for k = 1:size(waypoints, 2)
         end
         
         % Update joint angles based on computed joint velocities
-        for j = 1:4
-            angle = simulatedRobot.joints(j).angle;
-            simulatedRobot.joints(j).setAngle(angle + q_dot(j)*dt);
-        end
-        
+        q = simulatedRobot.getQ;
+        simulatedRobot.setQ(q + q_dot*dt)
+            
         % Update previous error
         error_prev = error;
  

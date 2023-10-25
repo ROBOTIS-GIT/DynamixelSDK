@@ -49,9 +49,8 @@ while 1
     q_dot = pinvJ * u;
     
     % Update joint angles based on computed joint velocities
-    for j = 1:4
-        simulatedRobot.joints(j).setAngle(simulatedRobot.joints(j).angle + q_dot(j)*dt);
-    end
+    q = simulatedRobot.getQ;
+    simulatedRobot.setQ(q + q_dot*dt)
     
     % Print the distance to the goal
     distance_to_goal = norm(error);
@@ -59,9 +58,7 @@ while 1
     
     % Display the robot
     simulatedRobot.display(0);
-    
-    % Instead of drawnow use pause
-    pause(0.005);
+    drawnow limitrate
     
     % Break condition: stop if error is small
     if norm(error) < 5 %mm
@@ -105,9 +102,9 @@ while 1
     q_dot = pinvJ * u;
     
     % Update joint angles based on computed joint velocities
-    for j = 1:4
-        simulatedRobot.joints(j).setAngle(simulatedRobot.joints(j).angle + q_dot(j)*dt);
-    end
+    % Update joint angles based on computed joint velocities
+    q = simulatedRobot.getQ;
+    simulatedRobot.setQ(q + q_dot*dt)
 
     % Display the robot and the endeffector frame
     simulatedRobot.display(1);
@@ -117,8 +114,6 @@ while 1
     if toc(outerTic) < timesteps*dt
         pause(timesteps*dt-toc(outerTic))
     end
-
     
-
 end
 

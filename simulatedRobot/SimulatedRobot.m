@@ -22,6 +22,7 @@ classdef SimulatedRobot < handle
         % Constructor method for Robot
         function obj = SimulatedRobot()
 
+
             %% Setup Frames and Joints of the simulated robot
             orig_frame = CustomFrame([0; 0; 0], [], 'Origin');
             joint1 = CustomJoint([0; 0; 83.51], orig_frame, 'Joint 1', 'y');
@@ -43,6 +44,16 @@ classdef SimulatedRobot < handle
             
         end
 
+        function q = getQ(obj)
+            q = [obj.joints(1).angle; obj.joints(2).angle; obj.joints(3).angle; obj.joints(4).angle];
+        end
+
+        function setQ(obj,q)
+            for i = 1:4
+                obj.joints(i).setAngle(q(i));
+            end
+        end
+
         function [oxE] = forwardKinematicsNumeric(obj)
             %This method is written for the 4 joint robot configuration of the real robot. A
             %general method with n-joints is not available yet.
@@ -51,17 +62,13 @@ classdef SimulatedRobot < handle
             %Frame (global coordinates) using the joint angles and given
             %dimensions. It does so by using rotational matrizes.
 
-            %Get joint angles
-            alpha = obj.joints(1).angle;
-            beta = obj.joints(2).angle;
-            gamma = obj.joints(3).angle;
-            delta = obj.joints(4).angle;
+            q = obj.getQ;
 
             % Calculate the rotational matrices
-            R1 = roty(alpha);
-            R2 = rotx(beta);
-            R3 = rotz(gamma);
-            R4 = rotx(delta);
+            R1 = roty(q(1));
+            R2 = rotx(q(2));
+            R3 = rotz(q(3));
+            R4 = rotx(q(4));
 
             % Distances
             xo1 = obj.joints(1).relativePosition;
@@ -153,13 +160,7 @@ classdef SimulatedRobot < handle
             % smooth or if 'delta_q' is not small enough. 
 
             % Get current joint angles
-            alpha = obj.joints(1).angle;
-            beta = obj.joints(2).angle;
-            gamma = obj.joints(3).angle;
-            delta = obj.joints(4).angle;
-        
-            % Vector of joint angles
-            q = [alpha, beta, gamma, delta];
+            q = obj.getQ;
         
             % Small change in joint angles
             delta_q = 1e-6;
@@ -178,19 +179,13 @@ classdef SimulatedRobot < handle
                 q_minus(i) = q_minus(i) - delta_q;
         
                 % Update joint angles
-                obj.joints(1).angle = q_plus(1);
-                obj.joints(2).angle = q_plus(2);
-                obj.joints(3).angle = q_plus(3);
-                obj.joints(4).angle = q_plus(4);
+                obj.setQ(q_plus);
         
                 % Compute forward kinematics
                 oxE_plus = obj.forwardKinematicsNumeric;
         
                 % Update joint angles
-                obj.joints(1).angle = q_minus(1);
-                obj.joints(2).angle = q_minus(2);
-                obj.joints(3).angle = q_minus(3);
-                obj.joints(4).angle = q_minus(4);
+                obj.setQ(q_minus);
         
                 % Compute forward kinematics
                 oxE_minus = obj.forwardKinematicsNumeric;
@@ -199,10 +194,7 @@ classdef SimulatedRobot < handle
                 J(:, i) = (oxE_plus - oxE_minus) / (2 * delta_q);
             end
             % Reset joint angles to original values
-            obj.joints(1).angle = q(1);
-            obj.joints(2).angle = q(2);
-            obj.joints(3).angle = q(3);
-            obj.joints(4).angle = q(4);
+            obj.setQ(q);
         end
 
         function [elevation] = getShoulderElevation(obj)
@@ -210,7 +202,8 @@ classdef SimulatedRobot < handle
             % coordinates in RAD from the jointAngles
 
             % Calculate the elevation using a trignometric formula
-            elevation = pi/2 - acos(cos(obj.joints(2).angle)*cos(obj.joints(1).angle));           
+            q = obj.getQ;
+            elevation = pi/2 - acos(cos(q(2))*cos(q(1)));           
         end
 
         function display(obj, draw_frames)
@@ -254,10 +247,10 @@ classdef SimulatedRobot < handle
 
             disp("Moving the robot to a non-singularity position.")
             for i = 1:50
-                obj.joints(1).setAngle(obj.joints(1).angle+0.006);
-                obj.joints(2).setAngle(obj.joints(1).angle+0.006);
-                obj.joints(3).setAngle(obj.joints(1).angle+0.01);
-                obj.joints(4).setAngle(obj.joints(1).angle+0.01);
+
+                q_increment = [0.006;0.006;0.01;0.01];
+                obj.setQ(obj.getQ + q_increment);
+                
                 if display
                     % Display the robot
                     obj.display(0);  

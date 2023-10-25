@@ -69,11 +69,9 @@ while 1
     %     break
     % end
     
-    % Update joint angles based on integrated joint velocities
-    for j = 1:4
-        angle = simulatedRobot.joints(j).angle;
-        simulatedRobot.joints(j).setAngle(angle + q_dot(j)*dt);
-    end
+    % Update joint angles based on computed joint velocities
+    q = simulatedRobot.getQ;
+    simulatedRobot.setQ(q + q_dot*dt)
     
     % Update previous error
     error_prev = error;

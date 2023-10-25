@@ -75,10 +75,9 @@ for timesteps = 1:num_points
     q_dot = pinv(J)*v_d_eff;
 
     % Update joint angles based on computed joint velocities
-    for j = 1:4
-        angle = simulatedRobot.joints(j).angle;
-        simulatedRobot.joints(j).setAngle(angle + q_dot(j)*dt);
-    end
+    q = simulatedRobot.getQ;
+    simulatedRobot.setQ(q + q_dot*dt)
+
 
     % Display the robot
     simulatedRobot.display(0);
