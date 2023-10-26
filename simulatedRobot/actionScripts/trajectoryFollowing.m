@@ -63,7 +63,6 @@ Kp = 1;
 
 tcp_positions = zeros(3,num_points);
 outerTic = tic;
-dt = 0.01;
 for timesteps = 1:num_points
     
     % Get current end-effector position
@@ -82,15 +81,19 @@ for timesteps = 1:num_points
 
     % Compute pseudo inverse
     pinvJ = pinv(J);
+
+    % Alternatively to the singulartiy check:
+    % Filter out impossible workspace velocities using J * J'
+    v_d_eff = (J * J')/norm(J * J') * v_d_eff;
     
     % Compute desired joint velocities
     q_dot = pinvJ*v_d_eff;
 
     % Check for singularity
-    if norm(J)*norm(pinvJ) > 25
-        disp('Warning: Close to singularity');
-        break
-    end
+    % if norm(J)*norm(pinvJ) > 25
+    %     disp('Warning: Close to singularity');
+    %     break
+    % end
 
     % Update joint angles based on computed joint velocities
     q = sr.getQ;
