@@ -66,7 +66,7 @@ dt = 0.01;
 for timesteps = 1:num_points
     
     % Get current end-effector position
-    x_current = simulatedRobot.forwardKinematicsNumeric;
+    x_current = SimulatedRobot.forwardKinematicsNumeric(simulatedRobot.getQ);
     tcp_positions(:,timesteps) = x_current;
     
     %Pos Error
@@ -76,7 +76,7 @@ for timesteps = 1:num_points
 
     v_d_eff = x_e*Kp + v_d(:,timesteps);
 
-    J = simulatedRobot.getJacobianNumeric;
+    J = SimulatedRobot.getJacobianNumeric(simulatedRobot.getQ);
     q_dot = pinv(J)*v_d_eff;
 
     % Update joint angles based on computed joint velocities

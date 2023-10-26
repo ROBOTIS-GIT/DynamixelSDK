@@ -34,7 +34,7 @@ dt = 0.01;
 
 for timesteps = 1:max_timesteps
     % Get current end-effector position
-    x_current = simulatedRobot.forwardKinematicsNumeric;
+    x_current = SimulatedRobot.forwardKinematicsNumeric(simulatedRobot.getQ);
     tcp_positions(:,timesteps) = x_current;
 
     % Compute error
@@ -45,7 +45,7 @@ for timesteps = 1:max_timesteps
     u = Kp * error;
     
     % Compute the Jacobian for the current robot configuration
-    J = simulatedRobot.getJacobianNumeric();    
+    J = SimulatedRobot.getJacobianNumeric(simulatedRobot.getQ);    
     
     % Compute pseudo inverse
     pinvJ = pinv(J);
@@ -64,12 +64,10 @@ for timesteps = 1:max_timesteps
     % alpha = 0.1;
     % q_dot = pinvJ * u - alpha*N*q;
 
-
     % % 2 
     alpha = 10;
     z_desired = [sin(timesteps/100); -sin(timesteps/100); cos(timesteps/100)];
     z_desired = z_desired/norm(z_desired);
-
 
     % Small change in joint angles
     delta_q = 1e-6;
@@ -97,21 +95,14 @@ for timesteps = 1:max_timesteps
 
     q_dot = pinvJ * u - alpha*N*dHdQ';
 
-
-
-
-
-
     % % 3. maximize bevel elevation --> straight line start to finish
     % % alpha = 1; % use -1 to minimize elevation
     % % dHdQ = [(cos(q(2))*sin(q(1)))/sqrt(1-(cos(q(2))*cos(q(1)))^2), (cos(q(1))*sin(q(2)))/sqrt(1-(cos(q(2))*cos(q(1)))^2), 0, 0];
     % % q_dot = pinvJ * u - alpha*N*dHdQ';
     % 
 
-
     % do nothing with the nullspace --> straight line start to finish
     % q_dot = pinvJ * u;
-
 
 
     %%
@@ -122,7 +113,7 @@ for timesteps = 1:max_timesteps
     % Display the robot
     % plot3(tcp_positions(1,1:timesteps), tcp_positions(2,1:timesteps), tcp_positions(3,1:timesteps), 'k');
     simulatedRobot.draw(0);
-    % simulatedRobot.frames(end).draw;
+    simulatedRobot.frames(end).draw;
     drawnow limitrate
 
     % Print the distance to the goal
@@ -130,7 +121,7 @@ for timesteps = 1:max_timesteps
     % fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
 
     % Print bevel elevation
-    % elevation = simulatedRobot.getShoulderElevation;
+    % elevation = SimulatedRobot.getShoulderElevation(simulatedRobot.getQ);
     % fprintf('Shoulder Elevation: %.2f ° \n', elevation*180/pi);
 
     % Print H(q)
@@ -146,21 +137,10 @@ end
 % Compute H(q) = 1/2 * (z(q) - z_desired) ^2
 function H = computeH(q,z_desired)
     
-    g_A_tcp = roty(q(1)) * rotx(q(2)) * rotz(q(3)) * rotx(q(4));
+    g_A_tcp = SimulatedRobot.roty(q(1)) * SimulatedRobot.rotx(q(2)) * SimulatedRobot.rotz(q(3)) * SimulatedRobot.rotx(q(4));
     z_q = g_A_tcp * [0;0;1];
     H = 1/2 * ((z_q(1)-z_desired(1))^2 + (z_q(2)-z_desired(2))^2 + (z_q(3)-z_desired(3))^2);
     
-    function rotx = rotx(alpha)
-        rotx = [1 0 0; 0 cos(alpha) -sin(alpha); 0 sin(alpha) cos(alpha)];
-    end
-    
-    function roty = roty(beta)
-        roty = [cos(beta) 0 sin(beta); 0 1 0; -sin(beta) 0 cos(beta)];
-    end
-    
-    function rotz = rotz(gamma)
-        rotz = [cos(gamma) -sin(gamma) 0; sin(gamma) cos(gamma) 0; 0 0 1];
-    end
 end
 
 

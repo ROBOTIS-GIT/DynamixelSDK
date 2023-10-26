@@ -49,57 +49,6 @@ classdef SimulatedRobot < handle
             arrayfun(@(joint, angle) joint.setAngle(angle), obj.joints, q');
         end
 
-        function [oxE] = forwardKinematicsNumeric(obj)
-            q = obj.getQ;
-            R = {SimulatedRobot.roty(q(1)), SimulatedRobot.rotx(q(2)), SimulatedRobot.rotz(q(3)), SimulatedRobot.rotx(q(4))};
-            x = horzcat(obj.joints.relativePosition, obj.frames(2).relativePosition);
-            oxE = R{1} * (R{2} * (R{3} * (R{4} * x(:,5) + x(:,4)) + x(:,3)) + x(:,2)) + x(:,1);
-        end
-
-        function J = getJacobianNumeric(obj)
-            % Computes the Jacobian matrix numerically, relating joint velocities to end-effector velocities.
-            % Uses finite differences on forward kinematics by perturbing joint angles with 'delta_q'. 
-            % Numerical methods may offer speed advantages over symbolic ones, but precision can vary.
-        
-            % Get current joint angles
-            q = obj.getQ;
-            
-            % Small change in joint angles
-            delta_q = 1e-6;
-            
-            % Initialize Jacobian matrix
-            J = zeros(3, 4);
-            
-            % For each joint angle
-            for i = 1:4
-                % Perturb joint angle i
-                q_plus = q;
-                q_plus(i) = q_plus(i) + delta_q;
-                q_minus = q;
-                q_minus(i) = q_minus(i) - delta_q;
-                
-                % Compute forward kinematics for q_plus
-                obj.setQ(q_plus);
-                oxE_plus = obj.forwardKinematicsNumeric;
-                
-                % Compute forward kinematics for q_minus
-                obj.setQ(q_minus);
-                oxE_minus = obj.forwardKinematicsNumeric;
-                
-                % Compute derivative
-                J(:, i) = (oxE_plus - oxE_minus) / (2 * delta_q);
-            end
-            % Reset joint angles to original values
-            obj.setQ(q);
-        end
-
-        function [elevation] = getShoulderElevation(obj)
-            % Calculate the elevation of the shoulder joint in spherical
-            % coordinates in RAD from q
-            q = obj.getQ;
-            elevation = pi/2 - acos(cos(q(2))*cos(q(1)));           
-        end
-
         function draw(obj, draw_frames)
             % The display method updates and displays all joints and links
             % Activates hold on, no hold off
@@ -129,6 +78,51 @@ classdef SimulatedRobot < handle
     end
 
     methods (Static)
+
+        function [elevation] = getShoulderElevation(q)
+            % Calculate the elevation of the shoulder joint in spherical
+            % coordinates in RAD from q
+            elevation = pi/2 - acos(cos(q(2))*cos(q(1)));           
+        end
+
+        function [oxE] = forwardKinematicsNumeric(q)
+            R = {SimulatedRobot.roty(q(1)), SimulatedRobot.rotx(q(2)), SimulatedRobot.rotz(q(3)), SimulatedRobot.rotx(q(4))};
+            x = [    0         0         0         0         0
+                     0         0         0         0         0
+                83.5100         0  119.3500  163.9900  218.8600];
+            oxE = R{1} * (R{2} * (R{3} * (R{4} * x(:,5) + x(:,4)) + x(:,3)) + x(:,2)) + x(:,1);
+        end
+
+        function J = getJacobianNumeric(q)
+            % Computes the Jacobian matrix numerically, relating joint velocities to end-effector velocities.
+            % Uses finite differences on forward kinematics by perturbing joint angles with 'delta_q'. 
+            % Numerical methods may offer speed advantages over symbolic ones, but precision can vary.
+            
+            % Small change in joint angles
+            delta_q = 1e-6;
+            
+            % Initialize Jacobian matrix
+            J = zeros(3, 4);
+            
+            % For each joint angle
+            parfor i = 1:4
+                % Perturb joint angle i
+                q_plus = q;
+                q_plus(i) = q_plus(i) + delta_q;
+                q_minus = q;
+                q_minus(i) = q_minus(i) - delta_q;
+                
+                % Compute forward kinematics for q_plus
+                oxE_plus = SimulatedRobot.forwardKinematicsNumeric(q_plus);
+                
+                % Compute forward kinematics for q_minus
+                oxE_minus = SimulatedRobot.forwardKinematicsNumeric(q_minus);
+                
+                % Compute derivative
+                J(:, i) = (oxE_plus - oxE_minus) / (2 * delta_q);
+            end
+        end
+
         %% Definition of the standard rotational matrices
         function rotx = rotx(alpha)
             rotx = [1 0 0; 0 cos(alpha) -sin(alpha); 0 sin(alpha) cos(alpha)];

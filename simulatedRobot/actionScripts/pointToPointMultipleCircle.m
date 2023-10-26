@@ -62,7 +62,7 @@ for k = 1:size(waypoints, 2)
     for timesteps = 1:max_timesteps
 
         % Get current end-effector position
-        x_current = simulatedRobot.forwardKinematicsNumeric;
+        x_current = SimulatedRobot.forwardKinematicsNumeric(simulatedRobot.getQ);
         tcp_positions(:,timesteps) = x_current;
 
         % Compute error
@@ -76,7 +76,7 @@ for k = 1:size(waypoints, 2)
         u = Kp * error + Ki * error_integral + Kd * error_derivative;
         
         % Compute the Jacobian for the current robot configuration
-        J = simulatedRobot.getJacobianNumeric();
+        J = SimulatedRobot.getJacobianNumeric(simulatedRobot.getQ);
 
         % Compute joint velocities
         pinvJ = pinv(J);
