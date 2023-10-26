@@ -8,14 +8,14 @@ clear()
 clc
 close
 
-addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\simulatedRobot')
+addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot')
 
 %% Setup simulated robot
-simulatedRobot = SimulatedRobot();
+sr = SimulatedRobot();
 
 %% Move the robot to a non-singularity initial position
-simulatedRobot.setQ([0.3; 0.3; 0.5; 0.5])
-simulatedRobot.draw(0)
+sr.setQ([0.3; 0.3; 0.5; 0.5])
+sr.draw(0)
 
 %% Use inverse jacobian to reach a goal position
 % Desired position
@@ -34,7 +34,7 @@ dt = 0.01;
 
 for timesteps = 1:max_timesteps
     % Get current end-effector position
-    x_current = SimulatedRobot.forwardKinematicsNumeric(simulatedRobot.getQ);
+    x_current = SimulatedRobot.forwardKinematicsNumeric(sr.getQ);
     tcp_positions(:,timesteps) = x_current;
 
     % Compute error
@@ -45,7 +45,7 @@ for timesteps = 1:max_timesteps
     u = Kp * error;
     
     % Compute the Jacobian for the current robot configuration
-    J = SimulatedRobot.getJacobianNumeric(simulatedRobot.getQ);    
+    J = SimulatedRobot.getJacobianNumeric(sr.getQ);    
     
     % Compute pseudo inverse
     pinvJ = pinv(J);
@@ -58,7 +58,7 @@ for timesteps = 1:max_timesteps
 
     % Calculate Nullspace Operator
     N = (eye(4) - pinvJ * J);
-    q = simulatedRobot.getQ;
+    q = sr.getQ;
 
     % 1. 
     % alpha = 0.1;
@@ -108,12 +108,12 @@ for timesteps = 1:max_timesteps
     %%
    
     % Update joint angles based on computed joint velocities
-    simulatedRobot.setQ(q + q_dot*dt)
+    sr.setQ(q + q_dot*dt)
 
     % Display the robot
     % plot3(tcp_positions(1,1:timesteps), tcp_positions(2,1:timesteps), tcp_positions(3,1:timesteps), 'k');
-    simulatedRobot.draw(0);
-    simulatedRobot.frames(end).draw;
+    sr.draw(0);
+    sr.frames(end).draw;
     drawnow limitrate
 
     % Print the distance to the goal
@@ -121,7 +121,7 @@ for timesteps = 1:max_timesteps
     % fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
 
     % Print bevel elevation
-    % elevation = SimulatedRobot.getShoulderElevation(simulatedRobot.getQ);
+    % elevation = SimulatedRobot.getShoulderElevation(sr.getQ);
     % fprintf('Shoulder Elevation: %.2f ° \n', elevation*180/pi);
 
     % Print H(q)

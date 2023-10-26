@@ -5,8 +5,8 @@ clear
 clc
 close
 
-addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\realRobot')
-addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\simulatedRobot')
+addpath('C:\Users\samue\Documents\Git\DynamixelSDK\RealRobot')
+addpath('C:\Users\samue\Documents\Git\DynamixelSDK\SimulatedRobot')
 
 %% Setup simulated robot
 simulatedRobot = SimulatedRobot();

@@ -6,10 +6,10 @@ clear()
 clc
 close
 
-addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\simulatedRobot')
+addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot')
 
 %% Setup simulated robot
-simulatedRobot = SimulatedRobot();
+sr = SimulatedRobot();
 
 %% Initialize variables for visualization
 epsilon = 5;  % Radius for the scatter plot of the goal position
@@ -18,8 +18,8 @@ epsilon = 5;  % Radius for the scatter plot of the goal position
 x_desired =  [-400, -400, 300]';
 
 %% Set the robot to a non-singularity position
-simulatedRobot.setQ([0.3; 0.3; 0.5; 0.5])
-simulatedRobot.draw(0)
+sr.setQ([0.3; 0.3; 0.5; 0.5])
+sr.draw(0)
 
 % Plot the desired goal position
 scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'm', 'filled');
@@ -41,7 +41,7 @@ dt = 0.01;
 for timesteps = 1:max_timesteps
 
     % Get current end-effector position
-    x_current = SimulatedRobot.forwardKinematicsNumeric(simulatedRobot.getQ);
+    x_current = SimulatedRobot.forwardKinematicsNumeric(sr.getQ);
     tcp_positions(:,timesteps) = x_current;
 
     % Compute error
@@ -55,7 +55,7 @@ for timesteps = 1:max_timesteps
     u = Kp * error + Ki * error_integral + Kd * error_derivative;
     
     % Compute the Jacobian for the current robot configuration
-    J = SimulatedRobot.getJacobianNumeric(simulatedRobot.getQ);
+    J = SimulatedRobot.getJacobianNumeric(sr.getQ);
 
     % Compute joint velocities
     pinvJ = pinv(J);
@@ -72,8 +72,8 @@ for timesteps = 1:max_timesteps
     % end
     
     % Update joint angles based on computed joint velocities
-    q = simulatedRobot.getQ;
-    simulatedRobot.setQ(q + q_dot*dt)
+    q = sr.getQ;
+    sr.setQ(q + q_dot*dt)
     
     % Update previous error
     error_prev = error;
@@ -84,8 +84,8 @@ for timesteps = 1:max_timesteps
     
     % Display the robot
     plot3(tcp_positions(1,1:timesteps), tcp_positions(2,1:timesteps), tcp_positions(3,1:timesteps), 'k');
-    simulatedRobot.draw(0);
-    simulatedRobot.frames(end).draw;
+    sr.draw(0);
+    sr.frames(end).draw;
     drawnow limitrate
     
     % Break condition: stop if error is small

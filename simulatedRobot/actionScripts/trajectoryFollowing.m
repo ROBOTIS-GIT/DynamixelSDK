@@ -6,10 +6,10 @@ clear()
 clc
 close
 
-addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\simulatedRobot')
+addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot')
 
 %% Setup simulated robot
-simulatedRobot = SimulatedRobot();
+sr = SimulatedRobot();
 
 %% Create a trajectory
 % Parameters
@@ -53,8 +53,8 @@ fprintf("Max Endeffector Speed in the trajectory is : %.2f km/h\n\n", (max_speed
 Kp = 1;
 
 %% Set the robot to a non-singularity position
-simulatedRobot.setQ([0.3; 0.3; 0.5; 0.5])
-simulatedRobot.draw(0)
+sr.setQ([0.3; 0.3; 0.5; 0.5])
+sr.draw(0)
 
 % Plot the desired trajectory
 plot3(x_d(1,:),x_d(2,:),x_d(3,:));
@@ -66,7 +66,7 @@ dt = 0.01;
 for timesteps = 1:num_points
     
     % Get current end-effector position
-    x_current = SimulatedRobot.forwardKinematicsNumeric(simulatedRobot.getQ);
+    x_current = SimulatedRobot.forwardKinematicsNumeric(sr.getQ);
     tcp_positions(:,timesteps) = x_current;
     
     %Pos Error
@@ -76,19 +76,19 @@ for timesteps = 1:num_points
 
     v_d_eff = x_e*Kp + v_d(:,timesteps);
 
-    J = SimulatedRobot.getJacobianNumeric(simulatedRobot.getQ);
+    J = SimulatedRobot.getJacobianNumeric(sr.getQ);
     q_dot = pinv(J)*v_d_eff;
 
     % Update joint angles based on computed joint velocities
-    q = simulatedRobot.getQ;
-    simulatedRobot.setQ(q + q_dot*dt)
+    q = sr.getQ;
+    sr.setQ(q + q_dot*dt)
 
     % Display the robot
     % if mod(timesteps,30) == 0
     %     scatter3(tcp_positions(1,timesteps), tcp_positions(2,timesteps), tcp_positions(3,timesteps), 'k');
     % end
-    simulatedRobot.draw(0);
-    simulatedRobot.frames(end).draw;
+    sr.draw(0);
+    sr.frames(end).draw;
     drawnow limitrate
 
     
