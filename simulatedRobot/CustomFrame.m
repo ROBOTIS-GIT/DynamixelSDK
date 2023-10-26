@@ -1,111 +1,89 @@
 classdef CustomFrame < handle
 
-    % CustomFrame - A class to visualize a coordinate frame in 3D space.
-    % The Frame object holds information about its position and orientation.
-    % It also contains a list of its child frames and its parent.
-    % The frame's position is stored in the relativePosition
-    % property and the frame's orientation is stored as a 3x3 rotation 
-    % matrix in the rotation property. The orientation is represented in 
-    % the origin frame, i.e., it's a global rotation.
-
     properties
-        relativePosition  % Position vector relative to the parent frame, in parent frame (prf)
-        rotation          % Orientation of the frame represented as a 3x3 rotation matrix in global frame (gAf)
+        relativePosition  % Position vector relative to the parent frame
+        rotation          % Orientation of the frame represented as a 3x3 rotation matrix
         parent            % Reference to the parent Frame object
         children          % Array of references to the child Frame objects
         label             % String label for the frame
 
-        % The graphic handles are used for modifying the existing plot of
-        % the frame instead of redrawing it every time which is faster.
-        xHandle           % Graphics handle for X axis
-        yHandle           % Graphics handle for Y axis
-        zHandle           % Graphics handle for Z axis
-        xTextHandle       % Graphics handle for X axis label
-        yTextHandle       % Graphics handle for Y axis label
-        zTextHandle       % Graphics handle for Z axis label
+        % Graphics handles in arrays
+        axisHandles       % Graphics handles for X, Y, Z axes
+        axisTextHandles   % Graphics handles for X, Y, Z axis labels
         textHandle        % Graphics handle for the frame label
-
+    end
+    properties(Constant)
+        AXES_COLORS = ['r', 'g', 'b'];
+        AXIS_LABELS = {'X', 'Y', 'Z'};
+        MAX_ROBOT_DIMENSION = 500; % Update based on your robot size
     end
 
     methods
         function obj = CustomFrame(relativePosition, parent, label)
-           %Frame - Construct a Frame object.
-            % Frame(relativePosition, parent, label) creates a Frame object
-            % with the specified relative position, parent frame, and label.
-            % The frame's orientation is initialized to match the parent
-            % frame's orientation, or to the identity matrix if no parent 
-            % frame is provided.
             if nargin > 0
                 obj.relativePosition = relativePosition;
                 if isempty(parent)
-                    % gRf = identity
                     obj.rotation = eye(3);
                 else
-                    % gRf = gRp
                     obj.rotation = parent.rotation;
-                    % Register this frame as a child of the specified
-                    % parent frame
-                    parent.children = [parent.children; obj];
                 end
                 obj.parent = parent;
                 obj.label = label;
+                if ~isempty(parent)
+                    parent.children = [parent.children; obj];
+                end
             end
             obj.children = [];
+            
+            % Initialize graphics handle arrays with empty handles
+            obj.axisHandles = [gobjects(1,1), gobjects(1,1), gobjects(1,1)];
+            obj.axisTextHandles = [gobjects(1,1), gobjects(1,1), gobjects(1,1)];
         end
-        
-        function pos = getGlobalPosition(obj)
-            %getGlobalPosition - Calculate the frame's position in the global frame.
-            % pos = getGlobalPosition(obj) returns a 3x1 vector specifying 
-            % the frame's position in the global frame.
 
-            % Recursevily iterate backwards thorugh the kinematic chain
+        function pos = getGlobalPosition(obj)
             if isempty(obj.parent)
-                % gPf = pPf
                 pos = obj.relativePosition;
             else
-                % gPf = gPp + gRp * pPf
                 pos = obj.parent.getGlobalPosition() + obj.parent.rotation * obj.relativePosition;
             end
         end
 
         function draw(obj)
-            colors = ['r', 'g', 'b'];
-            axis_labels = {'X', 'Y', 'Z'};
-            max_robot_dimension = 500;  % Update based on your robot size
-            scale_factor = max_robot_dimension / 10;
-            
-            globalPosition = obj.getGlobalPosition;
-            
-            handles = {obj.xHandle, obj.yHandle, obj.zHandle, obj.xTextHandle, obj.yTextHandle, obj.zTextHandle, obj.textHandle};
+            scale_factor = obj.MAX_ROBOT_DIMENSION / 10;
+            globalPosition = obj.getGlobalPosition();
             
             for i = 1:3
-                % Calculate the end position of the line for the current axis
                 endPos = globalPosition + scale_factor * obj.rotation(:, i);
                 
-                % Check if the handle exists and is valid
-                if isempty(handles{i}) || ~isvalid(handles{i})
-                    % Create a new line using plot3
-                    handles{i} = plot3([globalPosition(1), endPos(1)], ...
-                                       [globalPosition(2), endPos(2)], ...
-                                       [globalPosition(3), endPos(3)], ...
-                                       'Color', colors(i), LineWidth=2);
-                else
-                    % Update the existing line's data
-                    handles{i}.XData = [globalPosition(1), endPos(1)];
-                    handles{i}.YData = [globalPosition(2), endPos(2)];
-                    handles{i}.ZData = [globalPosition(3), endPos(3)];
-                end
-        
-                % Update the text data for axis labels
-                % if isempty(handles{i+3}) || ~isvalid(handles{i+3})
-                %     handles{i+3} = text(endPos(1), endPos(2), endPos(3), axis_labels{i}, 'Color', colors(i), 'FontWeight', 'bold');
-                % else
-                %     handles{i+3}.Position = endPos;
-                % end
+                % Draw or update the axis line
+                obj.axisHandles(i) = CustomFrame.drawLineOrRefresh(obj.axisHandles(i), globalPosition, endPos, obj.AXES_COLORS(i));
+    
+                % Draw or update the axis label
+                % obj.axisTextHandles(i) = CustomFrame.drawTextOrRefresh(obj.axisTextHandles(i), endPos, obj.AXIS_LABELS{i}, obj.AXES_COLORS(i));
             end
-        
-            % Assign the updated handles back to the object properties
-            [obj.xHandle, obj.yHandle, obj.zHandle, obj.xTextHandle, obj.yTextHandle, obj.zTextHandle, ~] = handles{:};
+        end
+    end
+
+    methods(Static)
+        function handle = drawLineOrRefresh(handle, startPos, endPos, color)
+            if isempty(handle) || ~isvalid(handle) || isa(handle, 'matlab.graphics.GraphicsPlaceholder')
+                handle = plot3([startPos(1), endPos(1)], ...
+                               [startPos(2), endPos(2)], ...
+                               [startPos(3), endPos(3)], ...
+                               'Color', color, 'LineWidth', 2);
+            else
+                handle.XData = [startPos(1), endPos(1)];
+                handle.YData = [startPos(2), endPos(2)];
+                handle.ZData = [startPos(3), endPos(3)];
+            end
+        end
+    
+        function handle = drawTextOrRefresh(handle, position, label, color)
+            if isempty(handle) || ~isvalid(handle)
+                handle = text(position(1), position(2), position(3), label, 'Color', color, 'FontWeight', 'bold');
+            else
+                handle.Position = position;
+            end
         end
     end
 end
