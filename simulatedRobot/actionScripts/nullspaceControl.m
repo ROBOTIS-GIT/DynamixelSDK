@@ -50,11 +50,15 @@ for timesteps = 1:max_timesteps
     % Compute pseudo inverse
     pinvJ = pinv(J);
 
+    % Filter out singularity movements
+    u = (J * J')/norm(J * J') * u;
+
+
     %% Nullspace Operator
     % Possible additional optimization goals:
     % 1. Penalize high joint angles (maybe quadratic, towards the max more, specific joints more)
     % 2. Desire a specific z-Axis of the TCP
-    % 3. Penalize low bevel gear elevations
+    % 3. Penalize low shoulder gear elevations
 
     % Calculate Nullspace Operator
     N = (eye(4) - pinvJ * J);
@@ -65,53 +69,52 @@ for timesteps = 1:max_timesteps
     % q_dot = pinvJ * u - alpha*N*q;
 
     % % 2 
-    alpha = 10;
-    z_desired = [sin(timesteps/100); -sin(timesteps/100); cos(timesteps/100)];
-    z_desired = z_desired/norm(z_desired);
+    % alpha = 10;
+    % z_desired = [sin(timesteps/100); -sin(timesteps/100); cos(timesteps/100)];
+    % z_desired = z_desired/norm(z_desired);
+    % 
+    % % Small change in joint angles
+    % delta_q = 1e-6;
+    % 
+    % % Initialize dHdQ
+    % dHdQ = [0, 0, 0, 0];
+    % 
+    % % For each joint angle
+    % for i = 1:4
+    %     % Add small change to joint i
+    %     q_plus = q;
+    %     q_plus(i) = q_plus(i) + delta_q;
+    % 
+    %     % Subtract small change from joint i
+    %     q_minus = q;
+    %     q_minus(i) = q_minus(i) - delta_q;
+    % 
+    %     % Compute H(q) = 1/2 * (z(q) - z_desired) ^2
+    %     H_plus = computeH(q_plus,z_desired);
+    %     H_minus = computeH(q_minus,z_desired);
+    % 
+    %     % Compute derivative
+    %     dHdQ(i) = (H_plus - H_minus) / (2 * delta_q);
+    % end
+    % 
+    % q_dot = pinvJ * u - alpha*N*dHdQ';
 
-    % Small change in joint angles
-    delta_q = 1e-6;
-
-    % Initialize dHdQ
-    dHdQ = [0, 0, 0, 0];
-
-    % For each joint angle
-    for i = 1:4
-        % Add small change to joint i
-        q_plus = q;
-        q_plus(i) = q_plus(i) + delta_q;
-
-        % Subtract small change from joint i
-        q_minus = q;
-        q_minus(i) = q_minus(i) - delta_q;
-
-        % Compute H(q) = 1/2 * (z(q) - z_desired) ^2
-        H_plus = computeH(q_plus,z_desired);
-        H_minus = computeH(q_minus,z_desired);
-
-        % Compute derivative
-        dHdQ(i) = (H_plus - H_minus) / (2 * delta_q);
-    end
-
+    % % 3. maximize shoulder elevation --> straight line start to finish
+    alpha = 1; % use -1 to minimize elevation
+    dHdQ = [(cos(q(2))*sin(q(1)))/sqrt(1-(cos(q(2))*cos(q(1)))^2), (cos(q(1))*sin(q(2)))/sqrt(1-(cos(q(2))*cos(q(1)))^2), 0, 0];
     q_dot = pinvJ * u - alpha*N*dHdQ';
 
-    % % 3. maximize bevel elevation --> straight line start to finish
-    % % alpha = 1; % use -1 to minimize elevation
-    % % dHdQ = [(cos(q(2))*sin(q(1)))/sqrt(1-(cos(q(2))*cos(q(1)))^2), (cos(q(1))*sin(q(2)))/sqrt(1-(cos(q(2))*cos(q(1)))^2), 0, 0];
-    % % q_dot = pinvJ * u - alpha*N*dHdQ';
-    % 
 
     % do nothing with the nullspace --> straight line start to finish
     % q_dot = pinvJ * u;
 
 
     %%
-   
     % Update joint angles based on computed joint velocities
     sr.setQ(q + q_dot*dt)
 
     % Display the robot
-    % plot3(tcp_positions(1,1:timesteps), tcp_positions(2,1:timesteps), tcp_positions(3,1:timesteps), 'k');
+    plot3(tcp_positions(1,1:timesteps), tcp_positions(2,1:timesteps), tcp_positions(3,1:timesteps), 'k');
     sr.draw(0);
     sr.frames(end).draw;
     drawnow limitrate
@@ -120,9 +123,9 @@ for timesteps = 1:max_timesteps
     % distance_to_goal = norm(error);
     % fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
 
-    % Print bevel elevation
-    % elevation = SimulatedRobot.getShoulderElevation(sr.getQ);
-    % fprintf('Shoulder Elevation: %.2f ° \n', elevation*180/pi);
+    % Print shoulder elevation
+    elevation = SimulatedRobot.getShoulderElevation(sr.getQ);
+    fprintf('Shoulder Elevation: %.2f ° \n', elevation*180/pi);
 
     % Print H(q)
     % fprintf('H(q) = %.2f \n', computeH(q,z_desired))
