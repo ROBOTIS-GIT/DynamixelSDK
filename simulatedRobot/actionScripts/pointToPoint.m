@@ -11,20 +11,17 @@ addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot')
 %% Setup simulated robot
 sr = SimulatedRobot();
 
-%% Initialize variables for visualization
-epsilon = 5;  % Radius for the scatter plot of the goal position
-
-% Desired position
-x_desired =  [-400, -400, 300]';
 
 %% Set the robot to a non-singularity position
 sr.setQ([0.3; 0.3; 0.5; 0.5])
 sr.draw(0)
 
-% Plot the desired goal position
+% Desired position and allowed deviation in [mm]
+x_desired =  [-400, -400, 300]';
+epsilon = 5;
 scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'm', 'filled');
 
-%% Use inverse kinematics to reach a goal position (Endeffector Position Control with PID)
+%% Control Loop
 % PID gains
 Kp = 3;
 Ki = 0;
@@ -57,7 +54,7 @@ for timesteps = 1:max_timesteps
     % Compute the Jacobian for the current robot configuration
     J = SimulatedRobot.getJacobianNumeric(sr.getQ);
 
-    % Compute joint velocities
+    % Compute pseudo inverse
     pinvJ = pinv(J);
 
     % Alternatively to the singulartiy check:

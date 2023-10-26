@@ -13,26 +13,27 @@ addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot')
 %% Setup simulated robot
 sr = SimulatedRobot();
 
-%% Move the robot to a non-singularity initial position
+
+%% Set the robot to a non-singularity position
 sr.setQ([0.3; 0.3; 0.5; 0.5])
 sr.draw(0)
 
-%% Use inverse jacobian to reach a goal position
-% Desired position
-x_desired =  [-300, -300, 300]';
 
-% Plot the desired goal position
+% Desired position and allowed deviation in [mm]
+x_desired =  [-300, -300, 300]';
 epsilon = 5;
 scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'm', 'filled');
 
+%% Control Loop
+% P  gain
+Kp = 1;
 
-%% Use nullspace operator to manipulate other stuff
 max_timesteps = 10000;
 tcp_positions = zeros(3,max_timesteps);
 outerTic = tic;
 dt = 0.01;
-
 for timesteps = 1:max_timesteps
+
     % Get current end-effector position
     x_current = SimulatedRobot.forwardKinematicsNumeric(sr.getQ);
     tcp_positions(:,timesteps) = x_current;
@@ -40,8 +41,7 @@ for timesteps = 1:max_timesteps
     % Compute error
     error = x_desired - x_current;
     
-    % Compute control input (PID)
-    Kp = 1;
+    % Compute control input (P)
     u = Kp * error;
     
     % Compute the Jacobian for the current robot configuration
@@ -125,7 +125,7 @@ for timesteps = 1:max_timesteps
     % fprintf('Shoulder Elevation: %.2f ° \n', elevation*180/pi);
 
     % Print H(q)
-    fprintf('H(q) = %.2f \n', computeH(q,z_desired))
+    % fprintf('H(q) = %.2f \n', computeH(q,z_desired))
 
     % Wait if too fast
     if toc(outerTic) < timesteps*dt

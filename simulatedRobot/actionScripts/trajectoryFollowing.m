@@ -11,8 +11,12 @@ addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot')
 %% Setup simulated robot
 sr = SimulatedRobot();
 
-%% Create a trajectory
-% Parameters
+
+%% Set the robot to a non-singularity position
+sr.setQ([0.3; 0.3; 0.5; 0.5])
+sr.draw(0)
+
+%% Create trajectory
 R = 120;                 % [mm] Radius of the circle
 Z_mean = 400;            % [mm] Mean value of z
 Z_amplitude = 50;        % [mm] Amplitude of the sine wave (change based on desired amplitude)
@@ -40,26 +44,23 @@ end
 % Using backward difference for the last point
 v_d(:,num_points) = (x_d(:,num_points) - x_d(:,num_points-1)) / dt;
 
-%Calc max speed in mm/s
-max_speed = 0;
-for timesteps = 1:num_points
-    speed = sqrt(v_d(:,timesteps)'*v_d(:,timesteps));
-    if speed >= max_speed
-        max_speed = speed;
-    end
-end
-fprintf("Max Endeffector Speed in the trajectory is : %.2f km/h\n\n", (max_speed/1000)*3.6);
-
-Kp = 1;
-
-%% Set the robot to a non-singularity position
-sr.setQ([0.3; 0.3; 0.5; 0.5])
-sr.draw(0)
+% %Calc max speed in mm/s
+% max_speed = 0;
+% for timesteps = 1:num_points
+%     speed = sqrt(v_d(:,timesteps)'*v_d(:,timesteps));
+%     if speed >= max_speed
+%         max_speed = speed;
+%     end
+% end
+% fprintf("Max Endeffector Speed in the trajectory is : %.2f km/h\n\n", (max_speed/1000)*3.6);
 
 % Plot the desired trajectory
 plot3(x_d(1,:),x_d(2,:),x_d(3,:));
 
-%% Trajectory following
+%% Control Loop
+% P  gain
+Kp = 1;
+
 tcp_positions = zeros(3,num_points);
 outerTic = tic;
 dt = 0.01;
@@ -69,34 +70,42 @@ for timesteps = 1:num_points
     x_current = SimulatedRobot.forwardKinematicsNumeric(sr.getQ);
     tcp_positions(:,timesteps) = x_current;
     
-    %Pos Error
+    % Compute Error
     x_e = x_d(:,timesteps)-x_current;
-
     fprintf("Position Error: %.f mm\n", norm(x_e));
 
+    % Compute effective workspace velocity
     v_d_eff = x_e*Kp + v_d(:,timesteps);
 
+    % Compute Jacobian
     J = SimulatedRobot.getJacobianNumeric(sr.getQ);
-    q_dot = pinv(J)*v_d_eff;
+
+    % Compute pseudo inverse
+    pinvJ = pinv(J);
+    
+    % Compute desired joint velocities
+    q_dot = pinvJ*v_d_eff;
+
+    % Check for singularity
+    if norm(J)*norm(pinvJ) > 25
+        disp('Warning: Close to singularity');
+        break
+    end
 
     % Update joint angles based on computed joint velocities
     q = sr.getQ;
     sr.setQ(q + q_dot*dt)
 
     % Display the robot
-    % if mod(timesteps,30) == 0
-    %     scatter3(tcp_positions(1,timesteps), tcp_positions(2,timesteps), tcp_positions(3,timesteps), 'k');
-    % end
+    plot3(tcp_positions(1,1:timesteps), tcp_positions(2,1:timesteps), tcp_positions(3,1:timesteps), 'k');
     sr.draw(0);
     sr.frames(end).draw;
     drawnow limitrate
 
-    
     % Wait if too fast
     if toc(outerTic) < timesteps*dt
         pause(timesteps*dt-toc(outerTic))
     end
     
 end
-
 toc(outerTic)

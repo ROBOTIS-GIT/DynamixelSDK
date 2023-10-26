@@ -10,15 +10,11 @@ addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot')
 sr = SimulatedRobot();
 
 
-%% Initialize variables for visualization
-tcp_positions = [];  % Array to store end-effector positions
-
-
 %% Set the robot to a non-singularity position
 sr.setQ([0.3; 0.3; 0.5; 0.5])
 sr.draw(0)
 
-% Number of points
+%% Create Waypoint List
 n_points = 10;
 % Radius of the circle in mm
 radius = 150;  
@@ -36,21 +32,22 @@ z = center(3) * ones(size(theta));
 % Create the waypoint array
 waypoints = [x; y; z];
 
-%% Use inverse kinematics to reach a goal position (Endeffector Position Control with PID)
+% Allowed deviation in [mm]
+epsilon = 5;
+
+%Plot all goal positions
+scatter3(x, y, z, (epsilon^2) * pi, 'm', 'filled');
+
+%% Control Loop
 % PID gains
 Kp = 8;
 Ki = 0;
 Kd = 0.1;
 
-% Display parameters
-epsilon = 5; %mm
-
 % Initialize error and integral terms
 error_integral = zeros(3,1);
 error_prev = zeros(3,1);
 
-%Plot the goal positions
-scatter3(x, y, z, (epsilon^2) * pi, 'm', 'filled');
 
 for k = 1:size(waypoints, 2)
     x_desired = waypoints(:, k);
@@ -78,8 +75,10 @@ for k = 1:size(waypoints, 2)
         % Compute the Jacobian for the current robot configuration
         J = SimulatedRobot.getJacobianNumeric(sr.getQ);
 
-        % Compute joint velocities
+        % Compute pseudo inverse
         pinvJ = pinv(J);
+
+        % Compute desired joint velocities
         q_dot = pinvJ * u;
     
         % Check for singularity
@@ -110,6 +109,5 @@ for k = 1:size(waypoints, 2)
         if toc(outerTic) < timesteps*dt
             pause(timesteps*dt-toc(outerTic))
         end
-
     end
 end
