@@ -14,8 +14,9 @@ simulatedRobot = SimulatedRobot();
 tcp_positions = [];  % Array to store end-effector positions
 
 
-%% Move the robot to a non-singularity position
-simulatedRobot.moveInitPos(0);
+%% Set the robot to a non-singularity position
+simulatedRobot.setQ([0.3; 0.3; 0.5; 0.5])
+simulatedRobot.draw(0)
 
 % Number of points
 n_points = 10;

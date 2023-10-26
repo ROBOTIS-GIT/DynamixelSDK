@@ -10,7 +10,6 @@ addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\simulatedRobot')
 
 %% Setup simulated robot
 simulatedRobot = SimulatedRobot();
-tcp_positions = [];  % Array to store end-effector trajectory
 
 %% Initialize variables for visualization
 epsilon = 5;  % Radius for the scatter plot of the goal position
@@ -18,9 +17,10 @@ epsilon = 5;  % Radius for the scatter plot of the goal position
 % Desired position
 x_desired =  [-400, -400, 300]';
 
-%% Move the robot to a non-singularity position
-simulatedRobot.moveInitPos(0);
+%% Set the robot to a non-singularity position
+simulatedRobot.setQ([0.3; 0.3; 0.5; 0.5])
 simulatedRobot.draw(0)
+
 % Plot the desired goal position
 scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'm', 'filled');
 

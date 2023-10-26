@@ -211,8 +211,9 @@ classdef SimulatedRobot < handle
         end
 
         function draw(obj, draw_frames)
-
+            
             % The display method updates and displays all joints and links
+            % Activates hold on, no hold off
             if isempty(obj.fig)
                 obj.fig = figure;
 
@@ -249,23 +250,6 @@ classdef SimulatedRobot < handle
 
         end
 
-        function moveInitPos(obj,animate)
-
-            disp("Moving the robot to a non-singularity position.")
-            for i = 1:50
-
-                q_increment = [0.006;0.006;0.01;0.01];
-                obj.setQ(obj.getQ + q_increment);
-                
-                if animate
-                    % Display the robot
-                    obj.draw(0);  
-                   drawnow limitrate
-
-                end
-            end
-            obj.draw(0)
-        end
     end
 end
 

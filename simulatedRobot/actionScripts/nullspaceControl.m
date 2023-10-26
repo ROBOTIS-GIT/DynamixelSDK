@@ -14,9 +14,8 @@ addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\simulatedRobot')
 simulatedRobot = SimulatedRobot();
 
 %% Move the robot to a non-singularity initial position
-simulatedRobot.moveInitPos(0);
+simulatedRobot.setQ([0.3; 0.3; 0.5; 0.5])
 simulatedRobot.draw(0)
-
 
 %% Use inverse jacobian to reach a goal position
 % Desired position

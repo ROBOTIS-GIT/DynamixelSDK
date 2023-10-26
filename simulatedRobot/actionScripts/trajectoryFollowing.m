@@ -52,7 +52,8 @@ fprintf("Max Endeffector Speed in the trajectory is : %.2f km/h\n\n", (max_speed
 
 Kp = 1;
 
-simulatedRobot.moveInitPos(0);
+%% Set the robot to a non-singularity position
+simulatedRobot.setQ([0.3; 0.3; 0.5; 0.5])
 simulatedRobot.draw(0)
 
 % Plot the desired trajectory
