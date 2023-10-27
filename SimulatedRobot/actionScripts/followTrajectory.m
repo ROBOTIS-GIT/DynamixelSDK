@@ -1,27 +1,28 @@
-% This script shows an example of the roboticArm in the kinematic
-% simulation. The arm moves to a non singularity position and then tries to
-% follow a trajectory.
-
 clear()
 clc
 close
 
 addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot')
 
-%% Setup simulated robot
+%% Setup simulated robot and controller
 sr = SimulatedRobot();
-
+controller = NullspaceController();
 
 %% Set the robot to a non-singularity position
 sr.setQ([0.3; 0.3; 0.5; 0.5])
 sr.draw(0)
 
+%% Desired position and allowed deviation in [mm]
+% x_desired =  [300; 400; 400];
+% z_desired = [-1;0;0];
+% scatter3(x_desired(1), x_desired(2), x_desired(3), (5^2) * pi, 'm', 'filled');
+
 %% Create trajectory
 R = 120;                 % [mm] Radius of the circle
 Z_mean = 400;            % [mm] Mean value of z
 Z_amplitude = 50;        % [mm] Amplitude of the sine wave (change based on desired amplitude)
-k = 5;                   % Number of waves per full circle
-t_total = 10;            % [s] time for whole trajectory
+k = 2;                   % Number of waves per full circle
+t_total = 20;            % [s] time for whole trajectory
 dt = 0.01;               % [s] Time increment between points of the trajectory
 
 % Calculate number of points based on total time and time increment
@@ -58,57 +59,31 @@ v_d(:,num_points) = (x_d(:,num_points) - x_d(:,num_points-1)) / dt;
 plot3(x_d(1,:),x_d(2,:),x_d(3,:));
 
 %% Control Loop
-% P  gain
-Kp = 1;
-
+loopBeginTime = tic;
+t = 0;
+n = 1;
 tcp_positions = zeros(3,num_points);
-outerTic = tic;
-for timesteps = 1:num_points
+while n < num_points
+    t = t + dt;
+    tcp_positions(:,n) = sr.forwardKinematicsNumeric(sr.getQ);
+
+    q_dot = controller.computeDesiredJointVelocity(sr, x_d(:,n), NaN , 0);
+    sr.setQ(sr.getQ + q_dot*dt)
     
-    % Get current end-effector position
-    x_current = SimulatedRobot.forwardKinematicsNumeric(sr.getQ);
-    tcp_positions(:,timesteps) = x_current;
-    
-    % Compute Error
-    x_e = x_d(:,timesteps)-x_current;
-    fprintf("Position Error: %.f mm\n", norm(x_e));
-
-    % Compute effective workspace velocity
-    v_d_eff = x_e*Kp + v_d(:,timesteps);
-
-    % Compute Jacobian
-    J = SimulatedRobot.getJacobianNumeric(sr.getQ);
-
-    % Compute pseudo inverse
-    pinvJ = pinv(J);
-
-    % Alternatively to the singulartiy check:
-    % Filter out impossible workspace velocities using J * J'
-    v_d_eff = (J * J')/norm(J * J') * v_d_eff;
-    
-    % Compute desired joint velocities
-    q_dot = pinvJ*v_d_eff;
-
-    % Check for singularity
-    % if norm(J)*norm(pinvJ) > 25
-    %     disp('Warning: Close to singularity');
-    %     break
-    % end
-
-    % Update joint angles based on computed joint velocities
-    q = sr.getQ;
-    sr.setQ(q + q_dot*dt)
-
+        
     % Display the robot
-    plot3(tcp_positions(1,1:timesteps), tcp_positions(2,1:timesteps), tcp_positions(3,1:timesteps), 'k');
+    plot3(tcp_positions(1,1:n), tcp_positions(2,1:n), tcp_positions(3,1:n), 'k');
     sr.draw(0);
     sr.frames(end).draw;
     drawnow limitrate
 
-    % Wait if too fast
-    if toc(outerTic) < timesteps*dt
-        pause(timesteps*dt-toc(outerTic))
+    % Wait if simulation is faster than real time
+    passedRealTime = toc(loopBeginTime);
+    if passedRealTime < t
+        pause(t-passedRealTime)
     end
-    
+    n = n +1;
+
+
 end
-toc(outerTic)
+
