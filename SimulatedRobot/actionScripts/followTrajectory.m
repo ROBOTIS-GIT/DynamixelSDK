@@ -72,7 +72,7 @@ while n < num_points
     t = t + dt;
     tcp_positions(:,n) = sr.forwardKinematicsNumeric(sr.getQ);
 
-    q_dot = controller.computeDesiredJointVelocity(sr, x_d(:,n), NaN , v_d(:,n));
+    q_dot = controller.computeDesiredJointVelocity(sr, x_d(:,n), [1;0;0] , v_d(:,n));
     sr.setQ(sr.getQ + q_dot*dt)
         
     % Display the robot
@@ -82,7 +82,7 @@ while n < num_points
     drawnow limitrate
 
     % Disp elevation
-    % fprintf("Elevation = %.2f\n", rad2deg(sr.getShoulderElevation(sr.getQ)));
+    fprintf("Elevation = %.2f\n", rad2deg(sr.getShoulderElevation(sr.getQ)));
 
     % Wait if simulation is faster than real time
     passedRealTime = toc(loopBeginTime);

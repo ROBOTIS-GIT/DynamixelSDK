@@ -8,10 +8,7 @@ classdef NullspaceController < handle
         delta_q_numeric_diff = 0.001; % Perturbation of q for the numeric estimation of the gradient in H(q)
         exponential_factor_elevation_cost = 20; % The cost of smaller elevations is exponentially growing with this factor
         delta_matrix % Pre-allocated perturbation matrix
-
-        % curr not working
-        weight_alpha_nakamura = 0.01; % The factor for decreasing the focus on nullspace tasks
-        use_nakamura = false; % Use nakamura algorithm for calculating q_dot instead of pseudo inverse of jacobian
+        use_nakamura = true; % Use nakamura algorithm for calculating q_dot instead of pseudo inverse of jacobian
 
     end
     
@@ -47,11 +44,6 @@ classdef NullspaceController < handle
                 q_dot = obj.computeQdotNakamura(J, v_d_eff, dHdQ);
             else
                 q_dot = obj.computeQdotPseudoinverse(J, v_d_eff, dHdQ);
-                disp("q_dot pseudoinverse: ");
-                disp(q_dot);
-                disp("q_dot nakamura: ")
-                disp(obj.computeQdotNakamura(J, v_d_eff, dHdQ));
-
             end
             
             % Limit joint speeds
@@ -63,7 +55,7 @@ classdef NullspaceController < handle
 
         % Nakamura method for computing Qdot (curr not working)
         function q_dot = computeQdotNakamura(~, J, u, dHdQ)
-                z = dHdQ';
+                z = -dHdQ';
                 B = J * J';
                 p = u - J*z;
                 lambda = linsolve(B,p);
