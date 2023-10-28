@@ -4,7 +4,11 @@ classdef NullspaceController < handle
         Kp = 5;
         q_dot_max = [0.4; 0.4; 0.8; 0.8];
         elevation_min = deg2rad(50);
-        weight_z = 10;
+
+        weight_z = 0;
+        weight_preffered_config = 1;
+        weight_elevation = 0;
+
         delta_q_numeric_diff = 0.001;
         exponential_factor_elevation_cost = 20;
         use_nakamura = true;
@@ -29,6 +33,8 @@ classdef NullspaceController < handle
             addParameter(p, 'use_nakamura', obj.use_nakamura);
             addParameter(p, 'q_min', obj.q_min);
             addParameter(p, 'q_max', obj.q_max);
+            addParameter(p, 'weight_preffered_config', obj.weight_preffered_config);
+            addParameter(p, 'weight_elevation', obj.weight_elevation);
 
             parse(p, varargin{:});
             
@@ -42,6 +48,8 @@ classdef NullspaceController < handle
             obj.use_nakamura = p.Results.use_nakamura;
             obj.q_min = p.Results.q_min;
             obj.q_max = p.Results.q_max;
+            obj.weight_preffered_config = p.Results.weight_preffered_config;
+            obj.weight_elevation = p.Results.weight_elevation;
 
             % Pre-compute and store the perturbation matrix
             num_joints = length(obj.q_dot_max);
@@ -61,9 +69,10 @@ classdef NullspaceController < handle
             % Compute gradients of cost functions H(q) for nullspace tasks
             dHdQ_z = obj.numericDiff(@obj.H_z_desired, q, z_desired);
             dHdQ_elevation = obj.numericDiff(@obj.H_min_shoulder_elevation, q);
+            dHdQ_preferred_config = obj.numericDiff(@obj.H_prefered_joint_configuration, q);
 
             % Combine both gradients to do both tasks 
-            dHdQ = obj.combineGoals(dHdQ_z, dHdQ_elevation);
+            dHdQ = obj.weight_z * dHdQ_z + obj.weight_elevation * dHdQ_elevation + obj.weight_preffered_config*dHdQ_preferred_config;
             
             % Compute Jacobian
             J = SimulatedRobot.getJacobianNumeric(q);
@@ -80,11 +89,6 @@ classdef NullspaceController < handle
 
             % Ensure compliance with joint angle limits
             q_dot = obj.ensureJointLimitCompliance(q, q_dot);
-
-            q_next = q + q_dot * 0.01; % Predicted next joint configuration
-
-          
-
         end
     end
 
@@ -137,10 +141,24 @@ classdef NullspaceController < handle
             elevation = SimulatedRobot.getShoulderElevation(q);
             distance_to_min_elevation = elevation - obj.elevation_min;
             H = exp(-obj.exponential_factor_elevation_cost * distance_to_min_elevation);
+
+            fprintf("H-elevation: %.2f\n", H);
+
         end
 
-        function dHdQ = combineGoals(obj, dHdQ_z, dHdQ_elevation)
-            dHdQ = obj.weight_z * dHdQ_z + dHdQ_elevation;
+        function H = H_prefered_joint_configuration(obj,q)
+                
+                for i = 1:length(q)
+                    if q(i) >= 0
+                        q(i) = q(i)/obj.q_max(i);
+                    else
+                        q(i) = q(i)/obj.q_min(i);
+                    end
+                end
+                    
+                H = (q' * q);  % -18 < H < H
+
+                fprintf("H-preferred-config: %.2f\n", H);
         end
 
         function dHdQ = numericDiff(obj, H_method, q, varargin)
