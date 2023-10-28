@@ -78,20 +78,12 @@ classdef NullspaceController < handle
             % Limit joint speeds
             q_dot = obj.limitQdot(q_dot);
 
+            % Ensure compliance with joint angle limits
+            q_dot = obj.ensureJointLimitCompliance(q, q_dot);
 
-            % q_next = q + q_dot * 0.01; % Predicted next joint configuration
+            q_next = q + q_dot * 0.01; % Predicted next joint configuration
 
-            % Check if the predicted next configuration violates the joint limits
-            % if ~obj.isWithinJointLimits(q_next)
-            %     % Modify q_dot to prevent limit violation
-            %     violating_indices = (q_next < obj.q_min) | (q_next > obj.q_max);
-            %     q_dot(violating_indices) = 0; % Set the velocities of violating joints to 0. Can be enhanced further.
-            % 
-            %     % Display a warning for the violating joints
-            %     for idx = find(violating_indices)'
-            %         fprintf('Warning: Joint %d has reached its limit.\n', idx);
-            %     end
-            % end
+          
 
         end
     end
@@ -184,6 +176,27 @@ classdef NullspaceController < handle
 
         function is_valid = isWithinJointLimits(obj, q_next)
             is_valid = all(q_next >= obj.q_min) && all(q_next <= obj.q_max);
+        end
+
+        function q_dot = ensureJointLimitCompliance(obj, q, q_dot)
+            q_next = q + q_dot * 0.01; % Predicted next joint configuration
+
+            % Check if the predicted next configuration violates the joint limits
+            if ~obj.isWithinJointLimits(q_next)
+                % Modify q_dot to prevent limit violation
+                violating_indices = (q_next < obj.q_min) | (q_next > obj.q_max);
+                q_dot(violating_indices) = 0; % Set the velocities of violating joints to 0. Can be enhanced further.
+
+                % Display a warning for the violating joints
+                for idx = find(violating_indices)'
+                    if q_next(idx) < obj.q_min(idx)
+                        limit = obj.q_min(idx);
+                    else
+                        limit = obj.q_max(idx);
+                    end
+                    fprintf('Warning: Joint %d has reached its angle limit. Limited to: %.2f °.\n', idx, rad2deg(limit));
+                end
+            end
         end
     end
 end
