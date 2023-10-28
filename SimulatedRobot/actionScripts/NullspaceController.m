@@ -3,14 +3,14 @@ classdef NullspaceController < handle
         % Constants with default values
         Kp = 5;
         q_dot_max = [0.4; 0.4; 0.8; 0.8];
-        elevation_min = deg2rad(50);
 
         weight_z = 0;
         weight_preffered_config = 1;
-        weight_elevation = 0;
+        weight_joint_limit = 1;
 
         delta_q_numeric_diff = 0.001;
-        exponential_factor_elevation_cost = 20;
+        exponential_factor_joint_limit = 10;
+
         use_nakamura = true;
         q_min = [-pi/4; -pi/4; -pi; -(5/6) * pi];
         q_max = [pi/4; pi/4; pi; (5/6) * pi];
@@ -26,30 +26,29 @@ classdef NullspaceController < handle
             p = inputParser;
             addParameter(p, 'Kp', obj.Kp);
             addParameter(p, 'q_dot_max', obj.q_dot_max);
-            addParameter(p, 'elevation_min', obj.elevation_min);
             addParameter(p, 'weight_z', obj.weight_z);
             addParameter(p, 'delta_q_numeric_diff', obj.delta_q_numeric_diff);
-            addParameter(p, 'exponential_factor_elevation_cost', obj.exponential_factor_elevation_cost);
             addParameter(p, 'use_nakamura', obj.use_nakamura);
             addParameter(p, 'q_min', obj.q_min);
             addParameter(p, 'q_max', obj.q_max);
             addParameter(p, 'weight_preffered_config', obj.weight_preffered_config);
-            addParameter(p, 'weight_elevation', obj.weight_elevation);
+            addParameter(p, 'exponential_factor_joint_limit', obj.exponential_factor_joint_limit);
+            addParameter(p, 'weight_joint_limit', obj.weight_joint_limit);
+
 
             parse(p, varargin{:});
             
             % Assign properties from the parsed inputs
             obj.Kp = p.Results.Kp;
             obj.q_dot_max = p.Results.q_dot_max;
-            obj.elevation_min = p.Results.elevation_min;
             obj.weight_z = p.Results.weight_z;
             obj.delta_q_numeric_diff = p.Results.delta_q_numeric_diff;
-            obj.exponential_factor_elevation_cost = p.Results.exponential_factor_elevation_cost;
             obj.use_nakamura = p.Results.use_nakamura;
             obj.q_min = p.Results.q_min;
             obj.q_max = p.Results.q_max;
             obj.weight_preffered_config = p.Results.weight_preffered_config;
-            obj.weight_elevation = p.Results.weight_elevation;
+            obj.exponential_factor_joint_limit = p.Results.exponential_factor_joint_limit;
+            obj.weight_joint_limit = p.Results.weight_joint_limit;
 
             % Pre-compute and store the perturbation matrix
             num_joints = length(obj.q_dot_max);
@@ -68,11 +67,11 @@ classdef NullspaceController < handle
             
             % Compute gradients of cost functions H(q) for nullspace tasks
             dHdQ_z = obj.numericDiff(@obj.H_z_desired, q, z_desired);
-            dHdQ_elevation = obj.numericDiff(@obj.H_min_shoulder_elevation, q);
             dHdQ_preferred_config = obj.numericDiff(@obj.H_prefered_joint_configuration, q);
+            dHdQ_joint_limit = obj.numericDiff(@obj.H_joint_limit, q);
 
             % Combine both gradients to do both tasks 
-            dHdQ = obj.weight_z * dHdQ_z + obj.weight_elevation * dHdQ_elevation + obj.weight_preffered_config*dHdQ_preferred_config;
+            dHdQ = obj.weight_z * dHdQ_z + obj.weight_preffered_config*dHdQ_preferred_config + obj.weight_joint_limit * dHdQ_joint_limit;
             
             % Compute Jacobian
             J = SimulatedRobot.getJacobianNumeric(q);
@@ -136,15 +135,6 @@ classdef NullspaceController < handle
             % H = 1/2 * (z(q) - z_desired)^2 
             H = 0.5 * norm(z_q_normalized - z_desired_normalized)^2;
         end
-        
-        function H = H_min_shoulder_elevation(obj, q)
-            elevation = SimulatedRobot.getShoulderElevation(q);
-            distance_to_min_elevation = elevation - obj.elevation_min;
-            H = exp(-obj.exponential_factor_elevation_cost * distance_to_min_elevation);
-
-            fprintf("H-elevation: %.2f\n", H);
-
-        end
 
         function H = H_prefered_joint_configuration(obj,q)
                 
@@ -159,6 +149,23 @@ classdef NullspaceController < handle
                 H = (q' * q);  % -18 < H < H
 
                 fprintf("H-preferred-config: %.2f\n", H);
+        end
+
+        function H = H_joint_limit(obj, q)
+            
+            
+            % Start activating at 90% of maximum
+            start_activation_at_prct_of_max_angle = 0.9;
+
+            d_upper = start_activation_at_prct_of_max_angle*obj.q_max - q;
+            d_lower = q - obj.q_min*start_activation_at_prct_of_max_angle;
+            
+            P_upper = exp(-obj.exponential_factor_joint_limit * d_upper);
+            P_lower = exp(-obj.exponential_factor_joint_limit * d_lower);
+            
+            H = sum(P_upper + P_lower);
+
+            fprintf("H-joint-limit: %.2f\n", H);
         end
 
         function dHdQ = numericDiff(obj, H_method, q, varargin)
