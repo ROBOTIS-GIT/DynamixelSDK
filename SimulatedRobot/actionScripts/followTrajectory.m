@@ -58,6 +58,11 @@ v_d(:,num_points) = (x_d(:,num_points) - x_d(:,num_points-1)) / dt;
 % Plot the desired trajectory
 plot3(x_d(1,:),x_d(2,:),x_d(3,:));
 
+
+%% Alternatively just a single derised point
+% p_desired = [400; 400; 200];
+% scatter3(p_desired(1),p_desired(2),p_desired(3), 100, 'm', 'filled');
+
 %% Control Loop
 loopBeginTime = tic;
 t = 0;
@@ -67,15 +72,17 @@ while n < num_points
     t = t + dt;
     tcp_positions(:,n) = sr.forwardKinematicsNumeric(sr.getQ);
 
-    q_dot = controller.computeDesiredJointVelocity(sr, x_d(:,n), NaN , 0);
+    q_dot = controller.computeDesiredJointVelocity(sr, x_d(:,n), NaN , v_d(:,n));
     sr.setQ(sr.getQ + q_dot*dt)
-    
         
     % Display the robot
     plot3(tcp_positions(1,1:n), tcp_positions(2,1:n), tcp_positions(3,1:n), 'k');
     sr.draw(0);
     sr.frames(end).draw;
     drawnow limitrate
+
+    % Disp elevation
+    % fprintf("Elevation = %.2f\n", rad2deg(sr.getShoulderElevation(sr.getQ)));
 
     % Wait if simulation is faster than real time
     passedRealTime = toc(loopBeginTime);
