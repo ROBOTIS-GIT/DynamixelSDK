@@ -1,19 +1,48 @@
 classdef NullspaceController < handle
     properties
-        % Constants
-        Kp = 5; % P-Gain for tcp positional error
-        q_dot_max = [0.4; 0.4; 0.8; 0.8]; % Maximum allowed joint velocies [rad/s]
-        elevation_min = deg2rad(50); % Minimum allowed elevation
-        weight_z = 10; % Factor for increasing the focus on reaching a desired orientation compared to securing the minimum elevation
-        delta_q_numeric_diff = 0.001; % Perturbation of q for the numeric estimation of the gradient in H(q)
-        exponential_factor_elevation_cost = 20; % The cost of smaller elevations is exponentially growing with this factor
-        delta_matrix % Pre-allocated perturbation matrix
-        use_nakamura = true; % Use nakamura algorithm for calculating q_dot instead of pseudo inverse of jacobian
-
+        % Constants with default values
+        Kp = 5;
+        q_dot_max = [0.4; 0.4; 0.8; 0.8];
+        elevation_min = deg2rad(50);
+        weight_z = 10;
+        delta_q_numeric_diff = 0.001;
+        exponential_factor_elevation_cost = 20;
+        use_nakamura = true;
+        q_min = [-pi/4; -pi/4; -pi; -(5/6) * pi];
+        q_max = [pi/4; pi/4; pi; (5/6) * pi];
+    end
+    
+    properties (Access=private)
+        delta_matrix
     end
     
     methods
-        function obj = NullspaceController()
+        function obj = NullspaceController(varargin)
+            % Handle optional input arguments
+            p = inputParser;
+            addParameter(p, 'Kp', obj.Kp);
+            addParameter(p, 'q_dot_max', obj.q_dot_max);
+            addParameter(p, 'elevation_min', obj.elevation_min);
+            addParameter(p, 'weight_z', obj.weight_z);
+            addParameter(p, 'delta_q_numeric_diff', obj.delta_q_numeric_diff);
+            addParameter(p, 'exponential_factor_elevation_cost', obj.exponential_factor_elevation_cost);
+            addParameter(p, 'use_nakamura', obj.use_nakamura);
+            addParameter(p, 'q_min', obj.q_min);
+            addParameter(p, 'q_max', obj.q_max);
+
+            parse(p, varargin{:});
+            
+            % Assign properties from the parsed inputs
+            obj.Kp = p.Results.Kp;
+            obj.q_dot_max = p.Results.q_dot_max;
+            obj.elevation_min = p.Results.elevation_min;
+            obj.weight_z = p.Results.weight_z;
+            obj.delta_q_numeric_diff = p.Results.delta_q_numeric_diff;
+            obj.exponential_factor_elevation_cost = p.Results.exponential_factor_elevation_cost;
+            obj.use_nakamura = p.Results.use_nakamura;
+            obj.q_min = p.Results.q_min;
+            obj.q_max = p.Results.q_max;
+
             % Pre-compute and store the perturbation matrix
             num_joints = length(obj.q_dot_max);
             obj.delta_matrix = obj.delta_q_numeric_diff * eye(num_joints);
@@ -48,6 +77,22 @@ classdef NullspaceController < handle
             
             % Limit joint speeds
             q_dot = obj.limitQdot(q_dot);
+
+
+            % q_next = q + q_dot * 0.01; % Predicted next joint configuration
+
+            % Check if the predicted next configuration violates the joint limits
+            % if ~obj.isWithinJointLimits(q_next)
+            %     % Modify q_dot to prevent limit violation
+            %     violating_indices = (q_next < obj.q_min) | (q_next > obj.q_max);
+            %     q_dot(violating_indices) = 0; % Set the velocities of violating joints to 0. Can be enhanced further.
+            % 
+            %     % Display a warning for the violating joints
+            %     for idx = find(violating_indices)'
+            %         fprintf('Warning: Joint %d has reached its limit.\n', idx);
+            %     end
+            % end
+
         end
     end
 
@@ -137,5 +182,8 @@ classdef NullspaceController < handle
             q_dot_limited = q_dot / max(1, max_ratio);
         end
 
+        function is_valid = isWithinJointLimits(obj, q_next)
+            is_valid = all(q_next >= obj.q_min) && all(q_next <= obj.q_max);
+        end
     end
 end
