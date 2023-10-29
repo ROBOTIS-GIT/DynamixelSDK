@@ -15,6 +15,12 @@ classdef SimulatedRobot < handle
         frames % An array of Frame objects, defining additional frames of the robot
         fig % The figure in which everything is visualized
 
+        resolution = 0.1; % Workspace resolution
+        joint_limits = [-pi/4, pi/4; 
+                        -pi/4, pi/4; 
+                        -pi, pi; 
+                        -(5/6)*pi, (5/6)*pi];
+
         % Workspace
         boundaryK % A property to store the computed 3D boundary of the workspace
         boundaryVertices % A property to store the vertices of the boundary
@@ -94,25 +100,28 @@ classdef SimulatedRobot < handle
 
         end
 
-        function calculateWorkspace(obj, resolution, joint_limits)
+        function calculateWorkspace(obj, varargin)
 
             %% Get all workspace points
 
-            % Input validation
-            if size(joint_limits,1) ~= 4 || size(joint_limits,2) ~= 2
-                error('joint_limits must be a 4x2 matrix');
-            end
+            joint_limits_local = obj.joint_limits;
+            resolution_local = obj.resolution;
 
-            fprintf("Calculating Workspace... \n");
+            if ~isempty(obj.boundaryK) && nargin == 1
+                 disp("Workspace already calculated. Pass additional argument to update.")
+                 return
+            else
+                disp("Calculating Workspace...")
+            end
     
             % Initialize an empty set for the workspace points
             workspace = [];
     
             % Sample joint space
-            for q1 = joint_limits(1,1):resolution:joint_limits(1,2)
-                for q2 = joint_limits(2,1):resolution:joint_limits(2,2)
-                    for q3 = joint_limits(3,1):resolution:joint_limits(3,2)
-                        for q4 = joint_limits(4,1):resolution:joint_limits(4,2)
+            for q1 = joint_limits_local(1,1):resolution_local:joint_limits_local(1,2)
+                for q2 = joint_limits_local(2,1):resolution_local:joint_limits_local(2,2)
+                    for q3 = joint_limits_local(3,1):resolution_local:joint_limits_local(3,2)
+                        for q4 = joint_limits_local(4,1):resolution_local:joint_limits_local(4,2)
                             q = [q1; q2; q3; q4];
                             position = SimulatedRobot.forwardKinematicsNumeric(q);
                             workspace = [workspace, position];  % Store the computed TCP position

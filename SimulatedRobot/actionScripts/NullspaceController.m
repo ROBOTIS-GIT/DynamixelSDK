@@ -12,8 +12,9 @@ classdef NullspaceController < handle
         delta_q_numeric_diff = 0.001;
 
         use_nakamura = true;
-        q_min = [-pi/4; -pi/4; -2*pi; -(5/6) * pi];
-        q_max = [pi/4; pi/4; 2*pi; (5/6) * pi];
+        q_min;
+        q_max;
+
     end
     
     properties (Access=private)
@@ -21,7 +22,7 @@ classdef NullspaceController < handle
     end
     
     methods
-        function obj = NullspaceController(varargin)
+        function obj = NullspaceController(robot, varargin)
             % Handle optional input arguments
             p = inputParser;
             addParameter(p, 'Kp', obj.Kp);
@@ -29,8 +30,6 @@ classdef NullspaceController < handle
             addParameter(p, 'weight_z', obj.weight_z);
             addParameter(p, 'delta_q_numeric_diff', obj.delta_q_numeric_diff);
             addParameter(p, 'use_nakamura', obj.use_nakamura);
-            addParameter(p, 'q_min', obj.q_min);
-            addParameter(p, 'q_max', obj.q_max);
             addParameter(p, 'weight_preffered_config', obj.weight_preffered_config);
             addParameter(p, 'exponential_factor_joint_limit', obj.exponential_factor_joint_limit);
             addParameter(p, 'weight_joint_limit', obj.weight_joint_limit);
@@ -43,8 +42,6 @@ classdef NullspaceController < handle
             obj.weight_z = p.Results.weight_z;
             obj.delta_q_numeric_diff = p.Results.delta_q_numeric_diff;
             obj.use_nakamura = p.Results.use_nakamura;
-            obj.q_min = p.Results.q_min;
-            obj.q_max = p.Results.q_max;
             obj.weight_preffered_config = p.Results.weight_preffered_config;
             obj.exponential_factor_joint_limit = p.Results.exponential_factor_joint_limit;
             obj.weight_joint_limit = p.Results.weight_joint_limit;
@@ -52,6 +49,11 @@ classdef NullspaceController < handle
             % Pre-compute and store the perturbation matrix
             num_joints = length(obj.q_dot_max);
             obj.delta_matrix = obj.delta_q_numeric_diff * eye(num_joints);
+
+            % Extract q_max, q_min from passed SimulatedRobot object
+            obj.q_max = robot.joint_limits(:,2);
+            obj.q_min = robot.joint_limits(:,1);
+
         end
         
         function q_dot = computeDesiredJointVelocity(obj, sr, x_desired, z_desired, v_desired)
