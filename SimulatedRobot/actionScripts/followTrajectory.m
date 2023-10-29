@@ -12,17 +12,12 @@ controller = NullspaceController();
 sr.setQ([0.3; 0.3; 0.5; 0.5])
 sr.draw(0)
 
-%% Desired position and allowed deviation in [mm]
-% x_desired =  [300; 400; 400];
-% z_desired = [-1;0;0];
-% scatter3(x_desired(1), x_desired(2), x_desired(3), (5^2) * pi, 'm', 'filled');
-
 %% Create trajectory
 R = 120;                 % [mm] Radius of the circle
-Z_mean = 400;            % [mm] Mean value of z
+Z_mean = 300;            % [mm] Mean value of z
 Z_amplitude = 50;        % [mm] Amplitude of the sine wave (change based on desired amplitude)
-k = 2;                   % Number of waves per full circle
-t_total = 20;            % [s] time for whole trajectory
+k = 5;                   % Number of waves per full circle
+t_total = 10;            % [s] time for whole trajectory
 dt = 0.01;               % [s] Time increment between points of the trajectory
 
 % Calculate number of points based on total time and time increment
@@ -60,20 +55,25 @@ plot3(x_d(1,:),x_d(2,:),x_d(3,:));
 
 
 %% Alternatively just a single derised point
-% p_desired = [400; 400; 200];
+% p_desired = [300; 400; 300];
 % scatter3(p_desired(1),p_desired(2),p_desired(3), 100, 'm', 'filled');
 
 %% Control Loop
 loopBeginTime = tic;
 t = 0;
 n = 1;
-tcp_positions = zeros(3,num_points);
+tcp_positions = zeros(3,num_points-1);
+elevationArray = zeros(1,num_points-1);
 while n < num_points
     t = t + dt;
-    tcp_positions(:,n) = sr.forwardKinematicsNumeric(sr.getQ);
 
-    q_dot = controller.computeDesiredJointVelocity(sr, x_d(:,n), NaN , v_d(:,n));
-    sr.setQ(sr.getQ + q_dot*dt)
+    q = sr.getQ;
+    tcp_positions(:,n) = sr.forwardKinematicsNumeric(q);
+
+    q_dot = controller.computeDesiredJointVelocity(sr, x_d(:,n),  NaN , v_d(:,n));
+    sr.setQ(q + q_dot*dt)
+
+    SimulatedRobot.checkSingularity(q);
         
     % Display the robot
     plot3(tcp_positions(1,1:n), tcp_positions(2,1:n), tcp_positions(3,1:n), 'k');
@@ -82,7 +82,8 @@ while n < num_points
     drawnow limitrate
 
     % Disp elevation
-    % fprintf("Elevation = %.2f\n", rad2deg(sr.getShoulderElevation(sr.getQ)));
+    % fprintf("Elevation = %.2f\n", rad2deg(sr.getShoulderElevation(q)));
+    elevationArray(n) = rad2deg(sr.getShoulderElevation(q));
 
     % Wait if simulation is faster than real time
     passedRealTime = toc(loopBeginTime);
@@ -90,7 +91,5 @@ while n < num_points
         pause(t-passedRealTime)
     end
     n = n +1;
-
-
 end
 

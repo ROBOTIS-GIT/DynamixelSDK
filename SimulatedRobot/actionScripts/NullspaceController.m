@@ -1,19 +1,19 @@
 classdef NullspaceController < handle
     properties
         % Constants with default values
-        Kp = 5;
-        q_dot_max = [0.4; 0.4; 0.8; 0.8];
+        Kp = 2;
+        q_dot_max = [0.6; 0.6; 1; 1];
 
-        weight_z = 0;
-        weight_preffered_config = 1;
-        weight_joint_limit = 1;
+        weight_z = 20;
+        weight_preffered_config = 10;
+        exponential_factor_joint_limit = 15;
+        weight_joint_limit = 5;
 
         delta_q_numeric_diff = 0.001;
-        exponential_factor_joint_limit = 10;
 
         use_nakamura = true;
-        q_min = [-pi/4; -pi/4; -pi; -(5/6) * pi];
-        q_max = [pi/4; pi/4; pi; (5/6) * pi];
+        q_min = [-pi/4; -pi/4; -2*pi; -(5/6) * pi];
+        q_max = [pi/4; pi/4; 2*pi; (5/6) * pi];
     end
     
     properties (Access=private)
@@ -34,7 +34,6 @@ classdef NullspaceController < handle
             addParameter(p, 'weight_preffered_config', obj.weight_preffered_config);
             addParameter(p, 'exponential_factor_joint_limit', obj.exponential_factor_joint_limit);
             addParameter(p, 'weight_joint_limit', obj.weight_joint_limit);
-
 
             parse(p, varargin{:});
             
@@ -66,13 +65,21 @@ classdef NullspaceController < handle
             v_d_eff = obj.computeEffectiveVelocity(x_desired, x_current, v_desired);
             
             % Compute gradients of cost functions H(q) for nullspace tasks
-            dHdQ_z = obj.numericDiff(@obj.H_z_desired, q, z_desired);
-            dHdQ_preferred_config = obj.numericDiff(@obj.H_prefered_joint_configuration, q);
             dHdQ_joint_limit = obj.numericDiff(@obj.H_joint_limit, q);
+
+            % If a desired z-Axis is provided, then the preffered config is
+            % deactivated.
+            if isnan(z_desired)
+                dHdQ_preferred_config = obj.numericDiff(@obj.H_prefered_joint_configuration, q);
+                dHdQ_z = [0,0,0,0];
+            else
+                dHdQ_z = obj.numericDiff(@obj.H_z_desired, q, z_desired);
+                dHdQ_preferred_config = [0,0,0,0];
+            end
 
             % Combine both gradients to do both tasks 
             dHdQ = obj.weight_z * dHdQ_z + obj.weight_preffered_config*dHdQ_preferred_config + obj.weight_joint_limit * dHdQ_joint_limit;
-            
+
             % Compute Jacobian
             J = SimulatedRobot.getJacobianNumeric(q);
 
@@ -123,49 +130,49 @@ classdef NullspaceController < handle
         end
         
         function H = H_z_desired(~, q, z_desired)
-            if isnan(z_desired)
-                H = 0;
-                return;
-            end
-            
+
             z_desired_normalized = z_desired/norm(z_desired);
             g_A_tcp = SimulatedRobot.roty(q(1)) * SimulatedRobot.rotx(q(2)) * SimulatedRobot.rotz(q(3)) * SimulatedRobot.rotx(q(4));
             z_q = g_A_tcp * [0;0;1];
             z_q_normalized = z_q/norm(z_q);
             % H = 1/2 * (z(q) - z_desired)^2 
             H = 0.5 * norm(z_q_normalized - z_desired_normalized)^2;
+
+            % fprintf("H-z-desired: %.2f\n", H);
+
         end
 
         function H = H_prefered_joint_configuration(obj,q)
-                
-                for i = 1:length(q)
-                    if q(i) >= 0
-                        q(i) = q(i)/obj.q_max(i);
-                    else
-                        q(i) = q(i)/obj.q_min(i);
-                    end
+            
+            for i = 1:length(q)
+                if q(i) >= 0
+                    q(i) = q(i)/obj.q_max(i);
+                else
+                    q(i) = q(i)/obj.q_min(i);
                 end
-                    
-                H = (q' * q);  % -18 < H < H
+            end
+                
+            H = (q' * q);  % -18 < H < H
 
-                fprintf("H-preferred-config: %.2f\n", H);
+            % fprintf("H-preferred-config: %.2f\n", H);
         end
 
         function H = H_joint_limit(obj, q)
-            
-            
-            % Start activating at 90% of maximum
-            start_activation_at_prct_of_max_angle = 0.9;
 
-            d_upper = start_activation_at_prct_of_max_angle*obj.q_max - q;
-            d_lower = q - obj.q_min*start_activation_at_prct_of_max_angle;
+            d_upper = obj.q_max - q;
+            d_lower = q - obj.q_min;
+
+            joint_range = obj.q_max - obj.q_min;
+        
+            norm_d_upper = d_upper ./ joint_range;
+            norm_d_lower = d_lower ./ joint_range;
             
-            P_upper = exp(-obj.exponential_factor_joint_limit * d_upper);
-            P_lower = exp(-obj.exponential_factor_joint_limit * d_lower);
+            P_upper = exp(-obj.exponential_factor_joint_limit * norm_d_upper);
+            P_lower = exp(-obj.exponential_factor_joint_limit * norm_d_lower);
             
             H = sum(P_upper + P_lower);
-
-            fprintf("H-joint-limit: %.2f\n", H);
+           
+            % fprintf("H-joint-limit: %.2f\n", H);
         end
 
         function dHdQ = numericDiff(obj, H_method, q, varargin)

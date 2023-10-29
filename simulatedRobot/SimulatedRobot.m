@@ -79,6 +79,19 @@ classdef SimulatedRobot < handle
 
     methods (Static)
 
+        function singularityBool = checkSingularity(q)
+            % Check for singularity
+            J = SimulatedRobot.getJacobianNumeric(q);
+            pinvJ = pinv(J);
+
+            if norm(J)*norm(pinvJ) > 25
+                disp('Warning: Close to singularity');
+                singularityBool = true;
+            else
+                singularityBool = false;
+            end
+        end
+
         function [elevation] = getShoulderElevation(q)
             % Calculate the elevation of the shoulder joint in spherical
             % coordinates in RAD from q
