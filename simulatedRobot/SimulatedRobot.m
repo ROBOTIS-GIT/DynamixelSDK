@@ -65,12 +65,12 @@ classdef SimulatedRobot < handle
             arrayfun(@(x) x.draw, obj.links); 
         end
 
-        function visualizeWorkspace(obj, resolution, joint_limits)
+        function visualizeWorkspace(obj)
             % Visualize the 3D boundary of the robot's workspace
             if isempty(obj.boundaryK)
-                [obj.boundaryK, obj.boundaryVertices] = obj.get3DBoundary(resolution, joint_limits);
+                warning('Workspace not yet calculated. Use calculateWorkspace first');
+                return
             end
-        
             obj.ensureFigureExists(); % Ensure figure exists before plotting
         
             % Plot the boundary
@@ -80,9 +80,51 @@ classdef SimulatedRobot < handle
             alpha 0.5  % Make it slightly transparent
         end
    
-    end
-        
 
+        function inside = isPointInWorkspace(obj, point)
+            % This method checks if a given point is within the robot's workspace.
+            
+            if isempty(obj.boundaryK)
+                warning('Workspace not yet calculated. Use calculateWorkspace first');
+                return
+            end
+        
+            % Use convhulln to create the convex hull
+            K = convhulln(obj.boundaryVertices);
+        
+            % Use dsearchn to determine if the point is inside the convex hull
+            closestPointIndex = dsearchn(obj.boundaryVertices, K, point');
+        
+            % The point is considered inside if the closest vertex on the convex 
+            % hull to the point is very close to the point itself (using a threshold).
+            threshold = 1e-6;
+            inside = norm(obj.boundaryVertices(closestPointIndex, :) - point') < threshold;
+        end
+
+        function calculateWorkspace(obj, resolution, joint_limits)
+            % Compute a 3D boundary (convex hull) of the robot's workspace.
+            % If boundary has already been computed, it will recompute
+
+            % Get all workspace points
+            workspace = obj.getWorkspace(resolution, joint_limits);
+
+            % Extract the x, y, and z coordinates
+            x_positions = workspace(1, :);
+            y_positions = workspace(2, :);
+            z_positions = workspace(3, :);
+
+            % Compute the boundary (convex hull)
+            K = boundary(x_positions', y_positions', z_positions');
+            v = workspace'; % The vertices of the boundary
+            
+            % Store the boundary
+            obj.boundaryK = K;
+            obj.boundaryVertices = v;
+        end
+
+
+    end
+    
     methods (Access = private)
 
         function closeFigureCallback(obj, src)
@@ -124,32 +166,6 @@ classdef SimulatedRobot < handle
             % If desired, you can visualize the workspace here or return it for later visualization.
         end
 
-        function [K, v] = get3DBoundary(obj, resolution, joint_limits)
-            % Compute a 3D boundary (convex hull) of the robot's workspace.
-            % If boundary has already been computed, it will not recompute.
-
-            if isempty(obj.boundaryK) || isempty(obj.boundaryVertices)
-                % Get all workspace points
-                workspace = obj.getWorkspace(resolution, joint_limits);
-
-                % Extract the x, y, and z coordinates
-                x_positions = workspace(1, :);
-                y_positions = workspace(2, :);
-                z_positions = workspace(3, :);
-
-                % Compute the boundary (convex hull)
-                K = boundary(x_positions', y_positions', z_positions');
-                v = workspace'; % The vertices of the boundary
-                
-                % Store the boundary
-                obj.boundaryK = K;
-                obj.boundaryVertices = v;
-            else
-                % Return the stored boundary if it's already computed
-                K = obj.boundaryK;
-                v = obj.boundaryVertices;
-            end
-        end
 
         function ensureFigureExists(obj)
             if isempty(obj.fig) || ~isvalid(obj.fig)
