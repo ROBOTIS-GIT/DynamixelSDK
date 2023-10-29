@@ -18,7 +18,7 @@ classdef SimulatedRobot < handle
         resolution = 0.1; % Workspace resolution
         joint_limits = [-pi/4, pi/4; 
                         -pi/4, pi/4; 
-                        -pi, pi; 
+                        -2*pi, 2*pi; 
                         -(5/6)*pi, (5/6)*pi];
 
         % Workspace
@@ -49,6 +49,9 @@ classdef SimulatedRobot < handle
             obj.joints =  [joint1, joint2, joint3, joint4];
             obj.links = [link1, link2, link3, link4, link5];
             obj.frames = [orig_frame, endeffector_frame];
+
+            % calculate workspace
+            obj.calculateWorkspace;
         end
 
         function q = getQ(obj)
@@ -73,26 +76,18 @@ classdef SimulatedRobot < handle
 
         function visualizeWorkspace(obj)
             % Visualize the 3D boundary of the robot's workspace
-            if isempty(obj.boundaryK)
-                warning('Workspace not yet calculated. Use calculateWorkspace first');
-                return
-            end
+
             obj.ensureFigureExists(); % Ensure figure exists before plotting
         
             % Plot the boundary
             trisurf(obj.boundaryK, obj.boundaryVertices(:, 1), obj.boundaryVertices(:, 2), obj.boundaryVertices(:, 3), 'Facecolor', 'cyan', 'Edgecolor', 'none');
             light('Position', [1 3 2]);
             lighting gouraud
-            alpha 0.5  % Make it slightly transparent
+            alpha 0.1  % Make it slightly transparent
         end
    
         function isInside = isPointInWorkspace(obj, point)
             % This method checks if a given point is within the robot's workspace.
-        
-            if isempty(obj.boundaryK)
-                warning('Workspace not yet calculated. Use calculateWorkspace first');
-                return
-            end
         
             % Use the boundaryVertices
             vertices = obj.boundaryVertices;
@@ -179,7 +174,6 @@ classdef SimulatedRobot < handle
                 zlim([0, 600]);
             end
         end
-
     end
     
     

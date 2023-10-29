@@ -1,11 +1,12 @@
 classdef PathPlanner2D < handle
-    properties
+    properties (Access = private)
         robot         % Instance of SimulatedRobot
         height        % Given height z for the 2D slice
         pathX         % X coordinates of the drawn path
         pathY         % Y coordinates of the drawn path
         pathZ         % Z coordinate of the drawn path
         segments      % Segments of the workspace at the given height z
+        hFig
     end
     
     methods
@@ -16,25 +17,27 @@ classdef PathPlanner2D < handle
             obj.segments = obj.calculateWorkspaceSlice();
         end
         
-        function [x, y, z] = getPath(obj)
+        function waypoint_list = getPath(obj)
             % Returns the X, Y, and Z coordinates of the drawn path
             if isempty(obj.pathX) || isempty(obj.pathY) || isempty(obj.pathZ)
                 warning('Path has not been defined. Run drawPath first.');
-                x = [];
-                y = [];
-                z = [];
+                waypoint_list = [];
                 return;
             end
-            x = obj.pathX;
-            y = obj.pathY;
-            z = obj.pathZ;
+            x = obj.pathX';
+            y = obj.pathY';
+            z = obj.pathZ';
+
+            waypoint_list = [x;y; z];
+
+
         end
 
         function drawPath(obj)
             % Open a new figure window with grid on and specified limits
-            figure;
+            obj.hFig = figure;
 
-            fprintf('Draw the path using the mouse with left-click.\nFinish the drawing by pressing the "Enter" key.\n\n');
+            fprintf('Draw the path using the mouse with left-click.\nFinish the drawing by right-clicking.\n\n');
 
 
             % Determine axis limits based on the workspace slice
@@ -62,35 +65,50 @@ classdef PathPlanner2D < handle
                 plot(seg(:, 1), seg(:, 2), 'g-', 'LineWidth', 2);
             end
 
-            % Initialize empty arrays to hold x and y coordinates
-            obj.pathX = [];
-            obj.pathY = [];
-
-            % Use a while loop to continuously capture points until 'Enter' is pressed
+             % Get current robot position in the XY-plane
+            currentPosition = obj.robot.forwardKinematicsNumeric(obj.robot.getQ);
+            currentX = currentPosition(1);
+            currentY = currentPosition(2);
+        
+            % Set the starting point of the path to the current robot position
+            obj.pathX = [currentX];
+            obj.pathY = [currentY];
+            obj.pathZ = [obj.height];
+        
+            % Plot the starting point on the figure
+            plot(currentX, currentY, 'o', 'MarkerSize', 6, 'MarkerFaceColor', 'r');
+        
+            % Use a while loop to continuously capture points until right-click
             while true
-                % Use ginput to capture a single point with a timeout of infinity
                 [xi, yi, button] = ginput(1);
-
-                % Break the loop if the 'Enter' key (which returns an empty button) is pressed
-                if isempty(button)
+            
+                % If the user pressed right-click without having set any points, display a warning.
+                if button == 3 && length(obj.pathX) < 2
+                    disp("Create at least one waypoint using leftclick!");
+                    continue;  % Skip the rest of the loop iteration
+                end
+            
+                % Break the loop if right-clicked (button value is 3 for right-click)
+                if button == 3
                     break;
                 end
-                
+            
                 % Add the point to the path arrays
-                obj.pathX = [obj.pathX; xi];
-                obj.pathY = [obj.pathY; yi];
-                obj.pathZ = [obj.pathZ; obj.height];
-                
-                % Plot the point immediately
-                plot(xi, yi, 'o', 'MarkerSize', 6, 'MarkerFaceColor', 'r');
-                
-                % If there's more than one point, plot a line segment connecting the last two points
-                if length(obj.pathX) > 1
-                    plot(obj.pathX(end-1:end), obj.pathY(end-1:end), 'b-');
+                if button == 1 && (isempty(obj.pathX) || (xi ~= obj.pathX(end) || yi ~= obj.pathY(end)))  % Check if left-click and not a duplicate
+                    obj.pathX = [obj.pathX; xi];
+                    obj.pathY = [obj.pathY; yi];
+                    obj.pathZ = [obj.pathZ; obj.height];
+                            
+                    % Plot the point immediately
+                    plot(xi, yi, 'o', 'MarkerSize', 6, 'MarkerFaceColor', 'r');
+                                    
+                    % If there's more than one point, plot a line segment connecting the last two points
+                    if length(obj.pathX) > 1
+                        plot(obj.pathX(end-1:end), obj.pathY(end-1:end), 'b-');
+                    end
                 end
             end
-
-            hold off;
+            close(obj.hFig);
         end
         
     end
