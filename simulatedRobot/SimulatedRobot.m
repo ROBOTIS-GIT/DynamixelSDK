@@ -80,7 +80,6 @@ classdef SimulatedRobot < handle
             alpha 0.5  % Make it slightly transparent
         end
    
-
         function inside = isPointInWorkspace(obj, point)
             % This method checks if a given point is within the robot's workspace.
             
@@ -102,50 +101,15 @@ classdef SimulatedRobot < handle
         end
 
         function calculateWorkspace(obj, resolution, joint_limits)
-            % Compute a 3D boundary (convex hull) of the robot's workspace.
-            % If boundary has already been computed, it will recompute
 
-            % Get all workspace points
-            workspace = obj.getWorkspace(resolution, joint_limits);
+            %% Get all workspace points
 
-            % Extract the x, y, and z coordinates
-            x_positions = workspace(1, :);
-            y_positions = workspace(2, :);
-            z_positions = workspace(3, :);
-
-            % Compute the boundary (convex hull)
-            K = boundary(x_positions', y_positions', z_positions');
-            v = workspace'; % The vertices of the boundary
-            
-            % Store the boundary
-            obj.boundaryK = K;
-            obj.boundaryVertices = v;
-        end
-
-
-    end
-    
-    methods (Access = private)
-
-        function closeFigureCallback(obj, src)
-            % This callback function will be executed when the figure is being closed.
-            % It clears the fig property of the object and then closes the figure.
-            obj.fig = [];
-            delete(src);
-        end
-
-        function workspace = getWorkspace(~, resolution, joint_limits)
-            
-            fprintf("Calculating Workspace... \n");
-            
-            % Calculate the workspace of the robot
-            % resolution: angular step size for sampling joint configurations [rad]
-            % joint_limits: a 4x2 matrix specifying [lower_limit, upper_limit] for each joint
-    
             % Input validation
             if size(joint_limits,1) ~= 4 || size(joint_limits,2) ~= 2
                 error('joint_limits must be a 4x2 matrix');
             end
+
+            fprintf("Calculating Workspace... \n");
     
             % Initialize an empty set for the workspace points
             workspace = [];
@@ -162,10 +126,33 @@ classdef SimulatedRobot < handle
                     end
                 end
             end
-    
-            % If desired, you can visualize the workspace here or return it for later visualization.
+
+            %% Compute a 3D boundary (convex hull) of the robot's workspace.
+
+            % Extract the x, y, and z coordinates
+            x_positions = workspace(1, :);
+            y_positions = workspace(2, :);
+            z_positions = workspace(3, :);
+
+            % Compute the boundary (convex hull)
+            K = boundary(x_positions', y_positions', z_positions');
+            v = workspace'; % The vertices of the boundary
+            
+            % Store the boundary
+            obj.boundaryK = K;
+            obj.boundaryVertices = v;
         end
 
+    end
+    
+    methods (Access = private)
+
+        function closeFigureCallback(obj, src)
+            % This callback function will be executed when the figure is being closed.
+            % It clears the fig property of the object and then closes the figure.
+            obj.fig = [];
+            delete(src);
+        end
 
         function ensureFigureExists(obj)
             if isempty(obj.fig) || ~isvalid(obj.fig)
