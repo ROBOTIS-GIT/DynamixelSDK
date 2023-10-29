@@ -14,6 +14,9 @@ classdef SimulatedRobot < handle
         links   % An array of Link objects, defining the physical connections between joints
         frames % An array of Frame objects, defining additional frames of the robot
         fig % The figure in which everything is visualized
+
+        boundaryK % A property to store the computed 3D boundary of the workspace
+        boundaryVertices % A property to store the vertices of the boundary
     end
 
     methods
@@ -52,8 +55,65 @@ classdef SimulatedRobot < handle
         function draw(obj, draw_frames)
             % The display method updates and displays all joints and links
             % Activates hold on, no hold off
-            if isempty(obj.fig)
+            obj.ensureFigureExists();
+
+            if draw_frames
+                arrayfun(@(x) x.draw, obj.joints);
+                arrayfun(@(x) x.draw, obj.frames);
+            end
+            arrayfun(@(x) x.draw, obj.links); 
+        end
+
+        function [K, v] = get3DBoundary(obj, resolution, joint_limits)
+            % Compute a 3D boundary (convex hull) of the robot's workspace.
+            % If boundary has already been computed, it will not recompute.
+
+            if isempty(obj.boundaryK) || isempty(obj.boundaryVertices)
+                % Get all workspace points
+                workspace = SimulatedRobot.getWorkspace(resolution, joint_limits);
+
+                % Extract the x, y, and z coordinates
+                x_positions = workspace(1, :);
+                y_positions = workspace(2, :);
+                z_positions = workspace(3, :);
+
+                % Compute the boundary (convex hull)
+                K = boundary(x_positions', y_positions', z_positions');
+                v = workspace'; % The vertices of the boundary
+                
+                % Store the boundary
+                obj.boundaryK = K;
+                obj.boundaryVertices = v;
+            else
+                % Return the stored boundary if it's already computed
+                K = obj.boundaryK;
+                v = obj.boundaryVertices;
+            end
+        end
+
+        function visualizeBoundary(obj, resolution, joint_limits)
+            % Visualize the 3D boundary of the robot's workspace
+            if isempty(obj.boundaryK)
+                warning('Workspace not yet calculated. Calculating now.');
+                [obj.boundaryK, obj.boundaryVertices] = obj.get3DBoundary(resolution, joint_limits);
+            end
+
+            obj.ensureFigureExists(); % Ensure figure exists before plotting
+
+            % Plot the boundary
+            trisurf(obj.boundaryK, obj.boundaryVertices(:, 1), obj.boundaryVertices(:, 2), obj.boundaryVertices(:, 3), 'Facecolor', 'cyan', 'Edgecolor', 'none');
+            light('Position', [1 3 2]);
+            lighting gouraud
+            alpha 0.5  % Make it slightly transparent
+        end
+       
+        function ensureFigureExists(obj)
+            if isempty(obj.fig) || ~isvalid(obj.fig)
                 obj.fig = figure;
+
+                % Set the CloseRequestFcn of the figure
+                set(obj.fig, 'CloseRequestFcn', @(src, event) obj.closeFigureCallback(src));
+
                 hold on
                 view(-30, 25);
                 axis equal;
@@ -62,21 +122,25 @@ classdef SimulatedRobot < handle
                 zlabel('Z');
                 title('Simulated Robot');
                 grid on;
-              
+
                 % Set fixed axis limits
-                xlim([-400, 400]);
-                ylim([-400, 400]);
+                xlim([-500, 500]);
+                ylim([-500, 500]);
                 zlim([0, 600]);
             end
-
-            if draw_frames
-                arrayfun(@(x) x.draw, obj.joints);
-                arrayfun(@(x) x.draw, obj.frames);
-            end
-            arrayfun(@(x) x.draw, obj.links); 
         end
     end
-
+        
+    methods (Access = private) % Private methods
+        function closeFigureCallback(obj, src)
+            % This callback function will be executed when the figure is being closed.
+            % It clears the fig property of the object and then closes the figure.
+            obj.fig = [];
+            delete(src);
+        end
+    end
+    
+    
     methods (Static)
 
         function singularityBool = checkSingularity(q)
@@ -135,6 +199,38 @@ classdef SimulatedRobot < handle
                 J(:, i) = (oxE_plus - oxE_minus) / (2 * delta_q);
             end
         end
+
+       
+        function workspace = getWorkspace(resolution, joint_limits)
+            % Calculate the workspace of the robot
+            % resolution: angular step size for sampling joint configurations [rad]
+            % joint_limits: a 4x2 matrix specifying [lower_limit, upper_limit] for each joint
+    
+            % Input validation
+            if size(joint_limits,1) ~= 4 || size(joint_limits,2) ~= 2
+                error('joint_limits must be a 4x2 matrix');
+            end
+    
+            % Initialize an empty set for the workspace points
+            workspace = [];
+    
+            % Sample joint space
+            for q1 = joint_limits(1,1):resolution:joint_limits(1,2)
+                for q2 = joint_limits(2,1):resolution:joint_limits(2,2)
+                    for q3 = joint_limits(3,1):resolution:joint_limits(3,2)
+                        for q4 = joint_limits(4,1):resolution:joint_limits(4,2)
+                            q = [q1; q2; q3; q4];
+                            position = SimulatedRobot.forwardKinematicsNumeric(q);
+                            workspace = [workspace, position];  % Store the computed TCP position
+                        end
+                    end
+                end
+            end
+    
+            % If desired, you can visualize the workspace here or return it for later visualization.
+        end
+
+
 
         %% Definition of the standard rotational matrices
         function rotx = rotx(alpha)
