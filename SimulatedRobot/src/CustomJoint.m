@@ -15,7 +15,7 @@ classdef CustomJoint < CustomFrame
         end
 
         function setAngle(obj, desiredAngle)
-            obj.angle = mod(desiredAngle + pi, 2*pi) - pi;  % Convert the angles to the range [-pi, pi]
+            obj.angle = mod(desiredAngle + 2*pi, 4*pi) - 2*pi;  % Convert the angles to the range [-2pi, 2pi]
             obj.updateRotation;
         end
 

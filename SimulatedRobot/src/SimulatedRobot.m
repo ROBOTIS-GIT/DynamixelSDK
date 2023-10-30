@@ -18,7 +18,7 @@ classdef SimulatedRobot < handle
         resolution = 0.1; % Workspace resolution
         joint_limits = [-pi/4, pi/4; 
                         -pi/4, pi/4; 
-                        -2*pi, 2*pi; 
+                        -3/2*pi, 3/2*pi; 
                         -(5/6)*pi, (5/6)*pi];
 
         % Workspace

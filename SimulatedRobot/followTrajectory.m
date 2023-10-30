@@ -33,7 +33,7 @@ total_timesteps = ceil(t(end)/dt);
 
 % Plot the desired trajectory
 robot.draw(0)
-plot3(x_d(1,:),x_d(2,:),x_d(3,:));
+plot3(x_d(1,:),x_d(2,:),x_d(3,:),'m');
 scatter3(waypoint_list(1,:),waypoint_list(2,:),waypoint_list(3,:), 30, 'filled', 'm');
 figure(robot.fig);
 
