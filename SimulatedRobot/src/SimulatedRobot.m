@@ -15,8 +15,8 @@ classdef SimulatedRobot < handle
         frames % An array of Frame objects, defining additional frames of the robot
         fig % The figure in which everything is visualized
 
-        workspaceResolution = 0.1;
-        workspaceTolerance = 0.03;
+        workspaceResolution = 0.13;
+        workspaceTolerance = 0.02;
         joint_limits = [-pi/4, pi/4; 
                         -pi/4, pi/4; 
                         -3/2*pi, 3/2*pi; 
