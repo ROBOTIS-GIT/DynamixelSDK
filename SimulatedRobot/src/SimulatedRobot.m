@@ -15,7 +15,8 @@ classdef SimulatedRobot < handle
         frames % An array of Frame objects, defining additional frames of the robot
         fig % The figure in which everything is visualized
 
-        resolution = 0.1; % Workspace resolution
+        workspaceResolution = 0.1;
+        workspaceTolerance = 0.03;
         joint_limits = [-pi/4, pi/4; 
                         -pi/4, pi/4; 
                         -3/2*pi, 3/2*pi; 
@@ -97,10 +98,12 @@ classdef SimulatedRobot < handle
 
         function calculateWorkspace(obj, varargin)
 
+            tic
+
             %% Get all workspace points
 
             joint_limits_local = obj.joint_limits;
-            resolution_local = obj.resolution;
+            resolution_local = obj.workspaceResolution;
 
             if ~isempty(obj.boundaryK) && nargin == 1
                  disp("Workspace already calculated. Pass additional argument to update.")
@@ -109,36 +112,43 @@ classdef SimulatedRobot < handle
                 disp("Calculating Workspace...")
             end
     
-            % Initialize an empty set for the workspace points
-            workspace = [];
-    
-            % Sample joint space
-            for q1 = joint_limits_local(1,1):resolution_local:joint_limits_local(1,2)
-                for q2 = joint_limits_local(2,1):resolution_local:joint_limits_local(2,2)
-                    for q3 = joint_limits_local(3,1):resolution_local:joint_limits_local(3,2)
-                        for q4 = joint_limits_local(4,1):resolution_local:joint_limits_local(4,2)
-                            q = [q1; q2; q3; q4];
-                            position = SimulatedRobot.forwardKinematicsNumeric(q);
-                            workspace = [workspace, position];  % Store the computed TCP position
-                        end
-                    end
-                end
+            % Generate multi-dimensional grids
+            [Q1, Q2, Q3, Q4] = ndgrid(joint_limits_local(1,1):resolution_local:joint_limits_local(1,2), ...
+                                      joint_limits_local(2,1):resolution_local:joint_limits_local(2,2), ...
+                                      joint_limits_local(3,1):resolution_local:joint_limits_local(3,2), ...
+                                      joint_limits_local(4,1):resolution_local:joint_limits_local(4,2));
+                                  
+            % Reshape the grids to vectors
+            Q1 = Q1(:); Q2 = Q2(:); Q3 = Q3(:); Q4 = Q4(:);
+        
+            % Preallocate workspace based on the number of samples we'll generate
+            numSamples = numel(Q1);
+            workspace = zeros(3, numSamples);
+        
+            % Compute positions for each sample
+            parfor i = 1:numSamples
+                q = [Q1(i); Q2(i); Q3(i); Q4(i)];
+                workspace(:, i) = SimulatedRobot.forwardKinematicsNumeric(q);
             end
 
-            %% Compute a 3D boundary (convex hull) of the robot's workspace.
 
-            % Extract the x, y, and z coordinates
-            x_positions = workspace(1, :);
-            y_positions = workspace(2, :);
-            z_positions = workspace(3, :);
-
-            % Compute the boundary (convex hull)
+           %% Reduce the number of workspace points using uniquetol
+            uniqueWorkspace = uniquetol(workspace', obj.workspaceTolerance, 'ByRows', true)';
+            
+            % Extract the x, y, and z coordinates from the unique points
+            x_positions = uniqueWorkspace(1, :);
+            y_positions = uniqueWorkspace(2, :);
+            z_positions = uniqueWorkspace(3, :);
+            
+            %% Compute a 3D boundary (convex hull) of the robot's reduced workspace.
             K = boundary(x_positions', y_positions', z_positions');
-            v = workspace'; % The vertices of the boundary
+            v = uniqueWorkspace'; % The vertices of the boundary
             
             % Store the boundary
             obj.boundaryK = K;
             obj.boundaryVertices = v;
+
+            disp(toc)
         end
 
     end
