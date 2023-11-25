@@ -162,7 +162,7 @@ classdef ServoChain < handle
             calllib(obj.lib_name, 'write1ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_OP_MODE, OP_MODE);
         end
 
-        function [servoAngle] = getServoAngle(obj,ID)
+        function servoAngle = getServoAngle(obj,ID)
             %Receive the current Position of a servo in RAD. Can be multi
             %rotation and supports negative angles.
 
@@ -175,13 +175,24 @@ classdef ServoChain < handle
             % This should give a value in 4 byte (256^4) continuous range
             dxl1_present_position = calllib(obj.lib_name, 'read4ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_PRESENT_POSITION);
             
-            % A value of (256^4) / 2 is zero, values bigger are positive,
-            % values smaller are negative.
-            dxl1_present_position = dxl1_present_position - (256^4) / 2;
-
-            % Convert raw position to RAD according to dynamixel intern factor
-            servoAngle = dxl1_present_position * 0.088 * pi/180;
-
+            % Define the conversion factor and midpoint
+            conversionFactor = 0.087891;
+            maxrange = 4294967295; % 4-byte
+            midpoint = maxrange/2;
+        
+            % Check and Convert the position
+            if dxl1_present_position == maxrange || dxl1_present_position == 0 % 0xFFFFFFFF || 0x00000000 in decimal
+                servoAngle = 0;
+            elseif dxl1_present_position > midpoint
+                % Convert to a negative value
+                servoAngle = (dxl1_present_position - maxrange) * conversionFactor;
+            else
+                % Convert to a positive value
+                servoAngle = (dxl1_present_position) * conversionFactor;
+            end
+            % Convert to RAD
+            servoAngle = deg2rad(servoAngle);
+            
         end
     
         function setServoVelocity(obj, ID, servoVelocity)
