@@ -136,7 +136,7 @@ classdef ServoChain < handle
             % Throws an error if the ID of a Servo is not available
 
             if ~ismember(ID, obj.availableIDs)
-                error('Servo ID %d is not available', id);
+                error('Servo ID %d is not available', ID);
             end
         end
 
@@ -204,7 +204,7 @@ classdef ServoChain < handle
             ADDR_PRO_GOAL_VELOCITY      = 104;
 
             % Convert desired rev/s to dynamixel deciaml
-            VELOCITY_VAL = (-servoVelocity*60)/0.229; % Convert rad/s to decimal 
+            VELOCITY_VAL = (servoVelocity*60)/0.229; % Convert rad/s to decimal 
 
             %Round VELOCITY_VAL since dynamixel accepts only integers here
             VELOCITY_VAL = round(VELOCITY_VAL);

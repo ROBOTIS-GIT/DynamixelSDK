@@ -20,8 +20,8 @@ realRobot.torqueEnableDisable(0);
 realRobot.setOperatingMode('velocity');
 realRobot.setZeroPositionToCurrentPosition;
 realRobot.torqueEnableDisable(1);
-realRobot.setJointVelocities([0.2,0.2,-0.4,-0.6]);
-pause(1)
+realRobot.setJointVelocities([0.02,0.02,0.1,0.1]);
+pause(2)
 realRobot.setJointVelocities([0,0,0,0]);
 
 

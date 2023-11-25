@@ -82,6 +82,8 @@ classdef RealRobot < handle
             % Uses a PID controller for the servo position to return to the previously stored zero
             % position.
 
+
+
             % Check if Zero Position has been set
             if isinf(sum(obj.ServoZeroPositions))
                 fprintf("Could not return to zero position, Zero position of the robot is not set. \n\n")
@@ -90,8 +92,8 @@ classdef RealRobot < handle
 
             disp("Returning to zero Position...")
 
-            % Use a default precision of 0.3 °
-            precision_deg = 0.3;
+            % Use a default precision of 1 °
+            precision_deg = 1;
             precision = deg2rad(precision_deg);
 
             % Enable The torque
@@ -102,47 +104,39 @@ classdef RealRobot < handle
             % position by setting their servo.
             integralError = [0, 0, 0, 0];
             prevError = [0, 0, 0, 0];
-            P_Gain = 15;  % Proportional gain
+            P_Gain = 1;  % Proportional gain
             I_Gain = 0;  % Integral gain
-            D_Gain = 5;  % Derivative gain
-    
-            % Store which servo has already converged to their zero
-            % angle
-            servosConverged = [0, 0, 0, 0];
+            D_Gain = 0;  % Derivative gain
 
+            jointsConverged = [0,0,0,0];
     
             while 1
-                % Get current servo angles phi in RAD
-                servoAngles = [-inf, -inf, -inf, -inf];
-                for ID = 1:4
-                    servoAngles(ID) = obj.ServoChain.getServoAngle(ID);
-                end
+                % Get current joint angles in RAD
+                q = obj.getJointAngles;
    
                 % Calculate remaining errors
-                currentError = obj.ServoZeroPositions - servoAngles; % As they should become 0
+                currentError = q; % As they should become 0
                 integralError = integralError + currentError;
                 derivativeError = currentError - prevError;
                 prevError = currentError;
                
                 %Set velocites
                 PID_velocities = P_Gain * currentError + I_Gain * integralError + D_Gain * derivativeError;
-                for ID = 1:4
-                    obj.ServoChain.setServoVelocity(ID, PID_velocities(ID))
-                end
-    
-                % Set each joint as converged if their angle is within precision
-                for ID = 1:4
-                    if abs(currentError(ID)) < precision
-                        servosConverged(ID) = 1;
-                        obj.ServoChain.setServoVelocity(ID, 0);
+                obj.setJointVelocities(-PID_velocities);
+
+                % Check if joints converged
+                for i = 1:4
+                    if q(i) <= precision
+                        jointsConverged(i) = 1;
                     end
                 end
                 
                 % If all joints converged disable the torque and return
-                if sum(servosConverged) == 4
+                if sum(jointsConverged) == 4
+                    obj.setJointVelocities([0,0,0,0])
+                    obj.torqueEnableDisable(0)
                     fprintf("All joints reset to zero pos. \n")
-                    obj.torqueEnableDisable(0);
-                    return
+                    break
                 end
             end
         end
@@ -209,8 +203,8 @@ classdef RealRobot < handle
             omega_3 = q_3_dot;
             omega_4 = q_4_dot*obj.i_elbow;
 
-            omega_1 = 0.5*(q_1_dot+q_2_dot) * obj.i_shoulder;
-            omega_2 = 0.5*(q_1_dot-q_2_dot) * obj.i_shoulder;
+            omega_1 = -0.5*(q_1_dot+q_2_dot) * obj.i_shoulder;
+            omega_2 = -0.5*(q_1_dot-q_2_dot) * obj.i_shoulder;
 
             servoVelocities = [omega_1,omega_2,omega_3,omega_4];
 
