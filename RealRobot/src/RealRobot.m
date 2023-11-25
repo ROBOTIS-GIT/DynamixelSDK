@@ -62,7 +62,7 @@ classdef RealRobot < handle
             % joint4 : elbow rotatoin around x-Axis
 
             % Check if Zero Position has been set
-            if isInf(sum(obj.ServoZeroPositions))
+            if isinf(sum(obj.ServoZeroPositions))
                 fprintf("Could not get Joint Angle, Zero position of the robot is not set. \n\n")
                 return
             end
@@ -83,7 +83,7 @@ classdef RealRobot < handle
             % position.
 
             % Check if Zero Position has been set
-            if isInf(sum(obj.ServoZeroPositions))
+            if isinf(sum(obj.ServoZeroPositions))
                 fprintf("Could not return to zero position, Zero position of the robot is not set. \n\n")
                 return
             end
@@ -139,7 +139,7 @@ classdef RealRobot < handle
                 end
                 
                 % If all joints converged disable the torque and return
-                if sum(jointsConverged) == 4
+                if sum(servosConverged) == 4
                     fprintf("All joints reset to zero pos. \n")
                     obj.torqueEnableDisable(0);
                     return
@@ -164,7 +164,7 @@ classdef RealRobot < handle
             end
 
             % Convert joint velocities q_dot to servo velocities omega
-            servoVelocity = obj.convertJointVelocitiesToServoVelocites([jointVelocities]); 
+            servoVelocity = obj.convertJointVelocitiesToServoVelocites(jointVelocities); 
 
             for ID = 1:4
                 obj.ServoChain.setServoVelocity(ID, servoVelocity(ID))
@@ -172,7 +172,7 @@ classdef RealRobot < handle
 
         end
         
-        function jointAngles = convertServoAnglesToJointAngles(servoAngles)
+        function jointAngles = convertServoAnglesToJointAngles(obj,servoAngles)
             
             phi_1_0 = obj.ServoZeroPositions(1);
             phi_2_0 = obj.ServoZeroPositions(2);
@@ -198,7 +198,7 @@ classdef RealRobot < handle
 
         end
 
-        function servoVelocities = convertJointVelocitiesToServoVelocites(jointVelocities)
+        function servoVelocities = convertJointVelocitiesToServoVelocites(obj,jointVelocities)
             
             q_1_dot = jointVelocities(1);
             q_2_dot = jointVelocities(2);
@@ -210,7 +210,7 @@ classdef RealRobot < handle
             omega_4 = -q_4_dot*obj.i_elbow;
 
             omega_1 = 0.5*(q_2_dot-q_1_dot) * obj.i_shoulder;
-            omega_2 = 0.5*(q_2_dot+q_1_dot) * obj.i_shoudler;
+            omega_2 = 0.5*(q_2_dot+q_1_dot) * obj.i_shoulder;
 
             servoVelocities = [omega_1,omega_2,omega_3,omega_4];
 

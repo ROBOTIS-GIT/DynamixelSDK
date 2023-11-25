@@ -5,8 +5,8 @@ clear
 clc
 close
 
-addpath('C:\Users\samue\Documents\Git\DynamixelSDK\RealRobot')
-addpath('C:\Users\samue\Documents\Git\DynamixelSDK\SimulatedRobot')
+addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\RealRobot\src')
+addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot\src')
 
 %% Setup simulated robot
 simulatedRobot = SimulatedRobot();
@@ -20,9 +20,9 @@ realRobot.torqueEnableDisable(0);
 realRobot.setOperatingMode('velocity');
 realRobot.setZeroPositionToCurrentPosition;
 realRobot.torqueEnableDisable(1);
-realRobot.setJointVelocities(0.2,0.2,-0.4,-0.6);
+realRobot.setJointVelocities([0.2,0.2,-0.4,-0.6]);
 pause(1)
-realRobot.setJointVelocities(0,0,0,0);
+realRobot.setJointVelocities([0,0,0,0]);
 
 
 %% Params
@@ -53,13 +53,13 @@ I_gain_enabled = false;
 
 while 1
     % Update joint angles for the simulated robot
-    currentJointAngles = realRobot.getJointAngles();
+    q = realRobot.getJointAngles();
     for i = 1:4
-        simulatedRobot.joints(i).setAngle(currentJointAngles(i));
+        simulatedRobot.joints(i).setAngle(q(i));
     end
 
     % Compute the Jacobian of the simulated robot
-    J = simulatedRobot.getJacobianNumeric;
+    J = simulatedRobot.getJacobianNumeric(q);
 
     % Check for singularity and elevation limit
     if cond(pinv(J)) > 15
