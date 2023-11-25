@@ -192,7 +192,7 @@ classdef ServoChain < handle
             end
             % Convert to RAD
             servoAngle = deg2rad(servoAngle);
-            
+
         end
     
         function setServoVelocity(obj, ID, servoVelocity)
@@ -205,7 +205,7 @@ classdef ServoChain < handle
             % Local Definitions
             ADDR_PRO_GOAL_VELOCITY      = 104;
 
-            % Set the velocity. Uses gear_ratio and dynamixel internal factor (0.229)
+            % Convert desired rev/s to dynamixel deciaml
             VELOCITY_VAL = (servoVelocity*60)/0.229; % Convert rad/s to decimal 
 
             %Round VELOCITY_VAL since dynamixel accepts only integers here
@@ -214,7 +214,13 @@ classdef ServoChain < handle
             % VELOCITY_VAL is a value in 4 byte (256^4) continuous range
             % A value of (256^4) / 2 is zero, values bigger are positive,
             % values smaller are negative.
-            VELOCITY_VAL = VELOCITY_VAL + (256^4)/2;
+            maxrange = 4294967295; % 4-byte
+            if VELOCITY_VAL >= 0
+                
+            else
+                VELOCITY_VAL = maxrange+VELOCITY_VAL;
+            end
+
             
             calllib(obj.lib_name, 'write4ByteTxRx', obj.port_num , obj.PROTOCOL_VERSION, ID, ADDR_PRO_GOAL_VELOCITY, VELOCITY_VAL);
             
