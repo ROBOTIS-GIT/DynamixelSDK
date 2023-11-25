@@ -104,7 +104,6 @@ classdef ServoChain < handle
                 obj.availableIDs = [obj.availableIDs, ID];
               end
             end
-
         end
 
         %Destructor
@@ -114,18 +113,11 @@ classdef ServoChain < handle
                 unloadlibrary(obj.lib_name);
         end
 
-        function checkIDAvailable(obj, ID)
-            % Throws an error if the ID of a Servo is not available
 
-            if ~ismember(ID, obj.availableIDs)
-                error('Servo ID %d is not available', id);
-            end
-        end
-        
         function torqueEnableDisable(obj,ID,enable_bool)
             % Enable / Disable the Torque of a servo.
 
-           checkIdAvailable(obj, ID);
+           checkIDAvailable(obj, ID);
 
             %Local Definitions
             ADDR_PRO_TORQUE_ENABLE       = 64;         % Control table address is different in Dynamixel model
@@ -141,11 +133,19 @@ classdef ServoChain < handle
 
         end
 
+        function checkIDAvailable(obj, ID)
+            % Throws an error if the ID of a Servo is not available
+
+            if ~ismember(ID, obj.availableIDs)
+                error('Servo ID %d is not available', id);
+            end
+        end
+        
+
         function setOperatingMode(obj, ID, modeString)
             % Set the operating mode of a Servo
 
-            checkIdAvailable(obj, ID);
-
+            obj.checkIDAvailable(ID);
             switch modeString
                 case 'position'
                     OP_MODE = 3;
@@ -166,7 +166,7 @@ classdef ServoChain < handle
             %Receive the current Position of a servo in RAD. Can be multi
             %rotation and supports negative angles.
 
-           checkIdAvailable(obj, ID);
+           checkIDAvailable(obj, ID);
 
             %Local Definitions
             ADDR_PRO_PRESENT_POSITION    = 132;
@@ -189,7 +189,7 @@ classdef ServoChain < handle
             %negative velocities.
 
             % Set a Servos velocity in rev/min
-           checkIdAvailable(obj, ID);
+           checkIDAvailable(obj, ID);
 
             % Local Definitions
             ADDR_PRO_GOAL_VELOCITY      = 104;

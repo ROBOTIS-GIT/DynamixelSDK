@@ -6,8 +6,8 @@ clear
 clc
 close
 
-addpath('C:\Users\samue\Documents\Git\DynamixelSDK\RealRobot')
-addpath('C:\Users\samue\Documents\Git\DynamixelSDK\SimulatedRobot')
+addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\RealRobot\src')
+addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot\src')
 
 %% Setup simulated robot
 simulatedRobot = SimulatedRobot();
@@ -22,9 +22,9 @@ realRobot.torqueEnableDisable(0);
 realRobot.setOperatingMode('velocity');
 realRobot.setZeroPositionToCurrentPosition;
 realRobot.torqueEnableDisable(1);
-realRobot.setJointVelocities(0.2,0.2,-0.4,-0.6);
+realRobot.setJointVelocities([0.2,0.2,-0.4,-0.6]);
 pause(1)
-realRobot.setJointVelocities(0,0,0,0);
+realRobot.setJointVelocities([0,0,0,0]);
 
 
 trajectory = [];

@@ -164,7 +164,7 @@ classdef RealRobot < handle
             end
 
             % Convert joint velocities q_dot to servo velocities omega
-            servoVelocity = obj.convertJointVelocitiesToServoVelocites(jointVelocities); 
+            servoVelocity = obj.convertJointVelocitiesToServoVelocites([jointVelocities]); 
 
             for ID = 1:4
                 obj.ServoChain.setServoVelocity(ID, servoVelocity(ID))
