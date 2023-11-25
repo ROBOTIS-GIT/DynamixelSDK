@@ -113,7 +113,6 @@ classdef ServoChain < handle
                 unloadlibrary(obj.lib_name);
         end
 
-
         function torqueEnableDisable(obj,ID,enable_bool)
             % Enable / Disable the Torque of a servo.
 
@@ -140,7 +139,6 @@ classdef ServoChain < handle
                 error('Servo ID %d is not available', id);
             end
         end
-        
 
         function setOperatingMode(obj, ID, modeString)
             % Set the operating mode of a Servo
@@ -206,7 +204,7 @@ classdef ServoChain < handle
             ADDR_PRO_GOAL_VELOCITY      = 104;
 
             % Convert desired rev/s to dynamixel deciaml
-            VELOCITY_VAL = (servoVelocity*60)/0.229; % Convert rad/s to decimal 
+            VELOCITY_VAL = (-servoVelocity*60)/0.229; % Convert rad/s to decimal 
 
             %Round VELOCITY_VAL since dynamixel accepts only integers here
             VELOCITY_VAL = round(VELOCITY_VAL);
@@ -215,9 +213,7 @@ classdef ServoChain < handle
             % A value of (256^4) / 2 is zero, values bigger are positive,
             % values smaller are negative.
             maxrange = 4294967295; % 4-byte
-            if VELOCITY_VAL >= 0
-                
-            else
+            if VELOCITY_VAL < 0
                 VELOCITY_VAL = maxrange+VELOCITY_VAL;
             end
 

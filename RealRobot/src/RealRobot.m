@@ -3,15 +3,15 @@ classdef RealRobot < handle
     properties
         
         ServoZeroPositions = [-inf, -inf, -inf, -inf]; % RAD
-        % [0] ShoulderServoOne --> located in x-direction
-        % [1] ShoulderServoTwo
+        % [0] ShoulderServoOne --> located in x-direction  (front)
+        % [1] ShoulderServoTwo (back)
         % [2] YawServo
         % [3] ElbowServo
 
         %ServoChain Object
         ServoChain = [];
         % Assume following ID's (can be configured in Dynamixel Wizard)
-        % ID 1 : ShoulderServoOne
+        % ID 1 : ShoulderServoOne 
         % ID 2 : ShoulderServoTwo
         % ID 3 : YawServo
         % ID 4 : ElbowServo
@@ -21,7 +21,7 @@ classdef RealRobot < handle
         i_elbow = 2.5;
 
         % Conifugre maximum absolut joint velocities % RAD/s
-        maxJointVelocities = [0.2,0.2,1,1];
+        maxJointVelocities = [0.1,0.1,0.1,0.1];
     end
 
     methods
@@ -188,11 +188,11 @@ classdef RealRobot < handle
             % Calculation according to Thesis
             delta_phi_1 = phi_1_0 - phi_1;
             delta_phi_2 = phi_2_0 - phi_2;
-            q_1 = (delta_phi_1 - delta_phi_2)/obj.i_shoulder;
-            q_2 = -(delta_phi_1 - delta_phi_2)/obj.i_shoulder;
+            q_1 = (delta_phi_1 + delta_phi_2)/obj.i_shoulder;
+            q_2 = (delta_phi_1 - delta_phi_2)/obj.i_shoulder;
 
             q_3 = phi_3 - phi_3_0;
-            q_4 = -(phi_4 - phi_4_0)/obj.i_elbow;
+            q_4 = (phi_4 - phi_4_0)/obj.i_elbow;
             
             jointAngles = [q_1,q_2,q_3,q_4];
 
@@ -207,10 +207,10 @@ classdef RealRobot < handle
            
             % Calculation according to Thesis
             omega_3 = q_3_dot;
-            omega_4 = -q_4_dot*obj.i_elbow;
+            omega_4 = q_4_dot*obj.i_elbow;
 
-            omega_1 = 0.5*(q_2_dot-q_1_dot) * obj.i_shoulder;
-            omega_2 = 0.5*(q_2_dot+q_1_dot) * obj.i_shoulder;
+            omega_1 = 0.5*(q_1_dot+q_2_dot) * obj.i_shoulder;
+            omega_2 = 0.5*(q_1_dot-q_2_dot) * obj.i_shoulder;
 
             servoVelocities = [omega_1,omega_2,omega_3,omega_4];
 
