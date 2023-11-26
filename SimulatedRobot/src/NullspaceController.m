@@ -1,13 +1,14 @@
 classdef NullspaceController < handle
     properties (Access=private)
         % Constants with default values
-        Kp = 2;
-        q_dot_max = [0.6; 0.6; 1; 1];
+        Kp = 0.1;
+        % Conifugre maximum absolut joint velocities % RAD/s
+        q_dot_max = [0.03;0.03;0.1;0.1];
 
-        weight_z = 20;
-        weight_preffered_config = 20;
-        exponential_factor_joint_limit = 15;
-        weight_joint_limit = 5;
+        weight_z = 0;
+        weight_preffered_config = 0;
+        exponential_factor_joint_limit = 0;
+        weight_joint_limit = 0;
 
         delta_q_numeric_diff = 0.001;
 
@@ -126,6 +127,7 @@ classdef NullspaceController < handle
             
             % Compute error
             error = x_desired - x_current;
+            disp(error)
             % Compute effective workspace velocity
             v_d_eff = error * obj.Kp + v_desired;
             

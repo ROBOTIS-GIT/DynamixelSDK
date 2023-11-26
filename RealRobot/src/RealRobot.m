@@ -2,7 +2,7 @@ classdef RealRobot < handle
 
     properties
         
-        ServoZeroPositions = [-inf, -inf, -inf, -inf]; % RAD
+        ServoZeroPositions = [-inf; -inf; -inf; -inf]; % RAD
         % [0] ShoulderServoOne --> located in x-direction  (front)
         % [1] ShoulderServoTwo (back)
         % [2] YawServo
@@ -21,7 +21,7 @@ classdef RealRobot < handle
         i_elbow = 2.5;
 
         % Conifugre maximum absolut joint velocities % RAD/s
-        maxJointVelocities = [0.1,0.1,0.1,0.1];
+        q_dot_max = [0.03;0.03;0.1;0.1];
     end
 
     methods
@@ -53,7 +53,7 @@ classdef RealRobot < handle
             end
         end
        
-        function [jointAngles] = getJointAngles(obj)
+        function [jointAngles] = getQ(obj)
             %Get the angles of the joints q in RAD
 
             % joint1 : bevel rotation around fixed y-Axis
@@ -68,7 +68,7 @@ classdef RealRobot < handle
             end
 
             % Get all servo angles phi in RAD
-            servoAngles = [-inf, -inf, -inf, -inf];
+            servoAngles = [-inf; -inf; -inf; -inf];
             for ID = 1:4
                 servoAngles(ID) = obj.ServoChain.getServoAngle(ID);
             end
@@ -93,7 +93,7 @@ classdef RealRobot < handle
             disp("Returning to zero Position...")
 
             % Use a default precision of 1 °
-            precision_deg = 1;
+            precision_deg = 0.3;
             precision = deg2rad(precision_deg);
 
             % Enable The torque
@@ -102,17 +102,17 @@ classdef RealRobot < handle
             % Initialize errors and gains for the PID controller. This
             % controller tries to move the servos to their stored zero
             % position by setting their servo.
-            integralError = [0, 0, 0, 0];
-            prevError = [0, 0, 0, 0];
+            integralError = [0; 0; 0; 0];
+            prevError = [0; 0; 0; 0];
             P_Gain = 1;  % Proportional gain
             I_Gain = 0;  % Integral gain
             D_Gain = 0;  % Derivative gain
 
-            jointsConverged = [0,0,0,0];
+            jointsConverged = [0;0;0;0];
     
             while 1
                 % Get current joint angles in RAD
-                q = obj.getJointAngles;
+                q = obj.getQ;
    
                 % Calculate remaining errors
                 currentError = q; % As they should become 0
@@ -133,7 +133,7 @@ classdef RealRobot < handle
                 
                 % If all joints converged disable the torque and return
                 if sum(jointsConverged) == 4
-                    obj.setJointVelocities([0,0,0,0])
+                    obj.setJointVelocities([0;0;0;0])
                     obj.torqueEnableDisable(0)
                     fprintf("All joints reset to zero pos. \n")
                     break
@@ -152,8 +152,8 @@ classdef RealRobot < handle
 
             % Ensure velocities do not exceed the configued maximum joint speed
             for ID = 1:4
-                if abs(jointVelocities(ID)) > obj.maxJointVelocities(ID)
-                    jointVelocities(ID) = obj.maxJointVelocities(ID) * sign(jointVelocities(ID));
+                if abs(jointVelocities(ID)) > obj.q_dot_max(ID)
+                    jointVelocities(ID) = obj.q_dot_max(ID) * sign(jointVelocities(ID));
                 end
             end
 
@@ -188,7 +188,7 @@ classdef RealRobot < handle
             q_3 = phi_3 - phi_3_0;
             q_4 = (phi_4 - phi_4_0)/obj.i_elbow;
             
-            jointAngles = [q_1,q_2,q_3,q_4];
+            jointAngles = [q_1;q_2;q_3;q_4];
 
         end
 
@@ -206,7 +206,7 @@ classdef RealRobot < handle
             omega_1 = -0.5*(q_1_dot+q_2_dot) * obj.i_shoulder;
             omega_2 = -0.5*(q_1_dot-q_2_dot) * obj.i_shoulder;
 
-            servoVelocities = [omega_1,omega_2,omega_3,omega_4];
+            servoVelocities = [omega_1;omega_2;omega_3;omega_4];
 
 
         end

@@ -1,21 +1,26 @@
-% This script moves the robot to a starting position and then tries to
-% reach a goal position with the endeffector using a PID controller.
-
-clear
+clearvars -except simulatedRobot
 clc
-close
+close all
+
 
 addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\RealRobot\src')
 addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot\src')
 
-%% Setup simulated robot
-simulatedRobot = SimulatedRobot();
+%% Setup simulated robot, controller, planner, and trajectory generator
+
+% Initialize the robot
+if ~exist('simulatedRobot','var')
+    simulatedRobot = SimulatedRobot();
+end
+
+
+% Initialize the controller
+controller = NullspaceController(simulatedRobot);
 
 %% Connect real robot
 realRobot = RealRobot();
 
-%% Main
-% Initial position setup
+% Initial position setup for Real robot
 realRobot.torqueEnableDisable(0);
 realRobot.setOperatingMode('velocity');
 realRobot.setZeroPositionToCurrentPosition;
@@ -24,117 +29,48 @@ realRobot.setJointVelocities([0.02,0.02,0.1,0.1]);
 pause(2)
 realRobot.setJointVelocities([0,0,0,0]);
 
+% Set simulated Robot to same config as real robot
+simulatedRobot.setQ(realRobot.getQ);
 
-%% Params
 
-% Desired position
-x_desired =  [-315.301974, -83.883586, 189.013096]';
-trajectory = [];
+%% Create a goal pos
 
-% PID gains
-P_gain = 10;
-D_gain = 4; 
-I_gain = 0; 
+x_desired = [200;200;400];
+% Plot the desired point
+simulatedRobot.draw(0)
+scatter3(x_desired(1),x_desired(2),x_desired(3), 30, 'filled', 'm');
+figure(simulatedRobot.fig);
 
-% Other
-epsilon = 5; %mm
-draw_frames = 0;
-max_speed = 70;  % [mm/s] Set the maximum endeffector speed as per your requirements.
-%%
+% Plot the workspace
+simulatedRobot.visualizeWorkspace;
 
-% Initialize variables
-x_error_integral = zeros(3,1); 
-x_error_previous = zeros(3,1); 
-x_error_derivative = zeros(3,1); 
-reached_positions_counter = 0;
-distance_to_goal_previous = inf;
-distance_not_changing_counter = 0;
-I_gain_enabled = false;
+%% Control Loop
+% Init array for storing tcp positions
+tcp_positions = zeros(3,10000);
 
+%% Loop
+loopBeginTime = tic;
+step = 1;
 while 1
-    % Update joint angles for the simulated robot
-    q = realRobot.getJointAngles();
-    for i = 1:4
-        simulatedRobot.joints(i).setAngle(q(i));
+
+    % Simulation
+    q = realRobot.getQ;
+    simulatedRobot.setQ(q);
+   
+    q_dot = controller.computeDesiredJointVelocity(simulatedRobot, x_desired,  NaN , 0);
+    
+    % Action
+    if mod(step,10) == 0
+         realRobot.setJointVelocities(q_dot);
     end
 
-    % Compute the Jacobian of the simulated robot
-    J = simulatedRobot.getJacobianNumeric(q);
+    % Display the robot
+    tcp_positions(:,step) = simulatedRobot.forwardKinematicsNumeric(q);
+    plot3(tcp_positions(1,1:step), tcp_positions(2,1:step), tcp_positions(3,1:step), 'k');
+    simulatedRobot.draw(0);
+    simulatedRobot.frames(end).draw;
+    drawnow limitrate
 
-    % Check for singularity and elevation limit
-    if cond(pinv(J)) > 15
-        disp('Warning: Close to singularity');
-        realRobot.goToZeroPosition();
-        break
-    end
-    if rad2deg(simulatedRobot.getShoulderElevation) < 45
-        disp('Warning: Shoulder joint minimum elevation limit reached')
-        realRobot.goToZeroPosition();
-        break;
-    end
+    step = step +1;
 
-    % Compute the current position
-    display_info = 0;
-    x_current = simulatedRobot.forwardKinematicsNumeric();
-    x_error = x_desired - x_current;
-
-    % Print the distance to the goal
-    distance_to_goal = norm(x_error);
-    fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
-
-    % Check if the distance to the goal is not changing much
-    if abs(distance_to_goal - distance_to_goal_previous) < 2
-        distance_not_changing_counter = distance_not_changing_counter + 1;
-    else
-        distance_not_changing_counter = 0; % Reset the counter if the change is more than 1 mm
-    end
-    distance_to_goal_previous = distance_to_goal;
-
-    % If the distance is not changing for more than 3 timesteps, enable the I_gain
-    if distance_not_changing_counter > 3 && ~I_gain_enabled
-        I_gain = 1;
-        x_error_integral = zeros(3,1); % clear x_error_integral
-        I_gain_enabled = true; % set the flag to avoid multiple activations
-        disp('I-Gain has been enabled');
-    end
-
-    % Check if the desired position is reached
-    if distance_to_goal < epsilon
-        reached_positions_counter = reached_positions_counter + 1;
-        if reached_positions_counter > 5
-            disp('Reached position within epsilon');
-            realRobot.setJointVelocities([0,0,0,0]);
-            pause(2)
-            realRobot.goToZeroPosition();
-            break;
-        end
-    end
-
-    % Compute the PID control law
-    x_error_integral = x_error_integral + x_error; 
-    x_error_derivative = x_error - x_error_previous; 
-    x_dot = P_gain*x_error + D_gain*x_error_derivative + I_gain*x_error_integral;
-
-    % Update the error
-    x_error_previous = x_error; 
-
-    % Cap the speed endeffector speed a maximum value.
-    if norm(x_dot) > max_speed
-        x_dot = max_speed * (x_dot / norm(x_dot));
-    end
-
-    % Compute the joint velocities
-    q_dot = pinv(J) * x_dot;
-
-    % Set the joint velocities for the real robot
-    realRobot.setJointVelocities(q_dot);
-
-    % Store the current position at the end of the trajectory
-    trajectory = [trajectory x_current];
-
-    % Display the simulated robot and the desired position
-    simulatedRobot.display(draw_frames);
-    plot3(trajectory(1,:),trajectory(2,:),trajectory(3,:),'k');
-    scatter3(x_desired(1), x_desired(2), x_desired(3), (epsilon^2) * pi, 'g', 'filled');
-    drawnow
 end
