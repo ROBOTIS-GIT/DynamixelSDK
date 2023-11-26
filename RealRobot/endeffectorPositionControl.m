@@ -32,9 +32,8 @@ realRobot.setJointVelocities([0,0,0,0]);
 simulatedRobot.setQ(realRobot.getQ);
 
 
-%% Create a goal pos
-
-x_desired = [20;0;550];
+%% Create a static goal position
+x_desired = [300;200;400];
 % Plot the desired point
 simulatedRobot.draw(0)
 scatter3(x_desired(1),x_desired(2),x_desired(3), 30, 'filled', 'm');
@@ -51,13 +50,14 @@ tcp_positions = zeros(3,10000);
 step = 1;
 while 1
 
-    % Simulation
+    % Update the simulated Robot
     q = realRobot.getQ;
     simulatedRobot.setQ(q);
    
-    q_dot = controller.computeDesiredJointVelocity(simulatedRobot, x_desired,  [0;1;0] , 0);
+    % Compute q_dot with controller
+    q_dot = controller.computeDesiredJointVelocity(simulatedRobot, x_desired,  NaN , 0);
     
-    % Action
+    % Set q_dot to real Robot
     realRobot.setJointVelocities(q_dot);
 
     % Display the robot
@@ -66,6 +66,11 @@ while 1
     simulatedRobot.draw(0);
     simulatedRobot.frames(end).draw;
     drawnow limitrate
+
+    % Print the distance to the goal
+    distance_to_goal = norm(x_desired-simulatedRobot.forwardKinematicsNumeric(q));
+    fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
+
 
     step = step + 1;
 end

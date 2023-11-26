@@ -17,10 +17,10 @@ classdef SimulatedRobot < handle
 
         workspaceResolution = 0.13;
         workspaceTolerance = 0.02;
-        joint_limits = [-pi/4, pi/4; 
-                        -pi/4, pi/4; 
-                        -3/2*pi, 3/2*pi; 
-                        -(5/6)*pi, (5/6)*pi];
+        joint_limits = [-pi/5, pi/5; 
+                        -pi/5, pi/5; 
+                        -pi, pi; 
+                        -(4/6)*pi, (4/6)*pi];
 
         % Workspace
         boundaryK % A property to store the computed 3D boundary of the workspace
