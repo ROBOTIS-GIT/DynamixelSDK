@@ -13,7 +13,6 @@ if ~exist('simulatedRobot','var')
     simulatedRobot = SimulatedRobot();
 end
 
-
 % Initialize the controller
 controller = NullspaceController(simulatedRobot);
 
@@ -26,7 +25,7 @@ realRobot.setOperatingMode('velocity');
 realRobot.setZeroPositionToCurrentPosition;
 realRobot.torqueEnableDisable(1);
 realRobot.setJointVelocities([0.02,0.02,0.1,0.1]);
-pause(2)
+pause(1)
 realRobot.setJointVelocities([0,0,0,0]);
 
 % Set simulated Robot to same config as real robot
@@ -35,7 +34,7 @@ simulatedRobot.setQ(realRobot.getQ);
 
 %% Create a goal pos
 
-x_desired = [200;200;400];
+x_desired = [150;150;400];
 % Plot the desired point
 simulatedRobot.draw(0)
 scatter3(x_desired(1),x_desired(2),x_desired(3), 30, 'filled', 'm');
@@ -49,7 +48,6 @@ simulatedRobot.visualizeWorkspace;
 tcp_positions = zeros(3,10000);
 
 %% Loop
-loopBeginTime = tic;
 step = 1;
 while 1
 
@@ -60,9 +58,7 @@ while 1
     q_dot = controller.computeDesiredJointVelocity(simulatedRobot, x_desired,  NaN , 0);
     
     % Action
-    if mod(step,10) == 0
-         realRobot.setJointVelocities(q_dot);
-    end
+    realRobot.setJointVelocities(q_dot);
 
     % Display the robot
     tcp_positions(:,step) = simulatedRobot.forwardKinematicsNumeric(q);
@@ -71,6 +67,5 @@ while 1
     simulatedRobot.frames(end).draw;
     drawnow limitrate
 
-    step = step +1;
-
+    step = step + 1;
 end

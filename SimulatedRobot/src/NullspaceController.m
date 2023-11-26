@@ -6,7 +6,7 @@ classdef NullspaceController < handle
         q_dot_max = [0.03;0.03;0.1;0.1];
 
         weight_z = 0;
-        weight_preffered_config = 0;
+        weight_preffered_config = 1;
         exponential_factor_joint_limit = 0;
         weight_joint_limit = 0;
 

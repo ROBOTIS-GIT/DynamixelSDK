@@ -170,7 +170,7 @@ classdef SimulatedRobot < handle
                 set(obj.fig, 'CloseRequestFcn', @(src, event) obj.closeFigureCallback(src));
 
                 hold on
-                view(-30, 25);
+                view(-290, 25);
                 axis equal;
                 xlabel('X');
                 ylabel('Y');

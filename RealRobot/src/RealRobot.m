@@ -182,8 +182,8 @@ classdef RealRobot < handle
             % Calculation according to Thesis
             delta_phi_1 = phi_1_0 - phi_1;
             delta_phi_2 = phi_2_0 - phi_2;
-            q_1 = (delta_phi_1 + delta_phi_2)/obj.i_shoulder;
-            q_2 = (delta_phi_1 - delta_phi_2)/obj.i_shoulder;
+            q_1 = (delta_phi_1 - delta_phi_2)/obj.i_shoulder;
+            q_2 = (delta_phi_1 + delta_phi_2)/obj.i_shoulder;
 
             q_3 = phi_3 - phi_3_0;
             q_4 = (phi_4 - phi_4_0)/obj.i_elbow;
@@ -204,7 +204,7 @@ classdef RealRobot < handle
             omega_4 = q_4_dot*obj.i_elbow;
 
             omega_1 = -0.5*(q_1_dot+q_2_dot) * obj.i_shoulder;
-            omega_2 = -0.5*(q_1_dot-q_2_dot) * obj.i_shoulder;
+            omega_2 = +0.5*(q_1_dot-q_2_dot) * obj.i_shoulder;
 
             servoVelocities = [omega_1;omega_2;omega_3;omega_4];
 
