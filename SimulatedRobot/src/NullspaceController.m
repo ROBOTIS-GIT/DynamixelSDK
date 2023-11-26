@@ -5,10 +5,10 @@ classdef NullspaceController < handle
         % Conifugre maximum absolut joint velocities % RAD/s
         q_dot_max = [0.03;0.03;0.1;0.1];
 
-        weight_z = 0;
+        weight_z = 1;
         weight_preffered_config = 1;
-        exponential_factor_joint_limit = 0;
-        weight_joint_limit = 0;
+        exponential_factor_joint_limit = 15;
+        weight_joint_limit = 0.2;
 
         delta_q_numeric_diff = 0.001;
 

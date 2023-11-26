@@ -34,7 +34,7 @@ simulatedRobot.setQ(realRobot.getQ);
 
 %% Create a goal pos
 
-x_desired = [150;150;400];
+x_desired = [20;0;550];
 % Plot the desired point
 simulatedRobot.draw(0)
 scatter3(x_desired(1),x_desired(2),x_desired(3), 30, 'filled', 'm');
@@ -55,7 +55,7 @@ while 1
     q = realRobot.getQ;
     simulatedRobot.setQ(q);
    
-    q_dot = controller.computeDesiredJointVelocity(simulatedRobot, x_desired,  NaN , 0);
+    q_dot = controller.computeDesiredJointVelocity(simulatedRobot, x_desired,  [0;1;0] , 0);
     
     % Action
     realRobot.setJointVelocities(q_dot);
