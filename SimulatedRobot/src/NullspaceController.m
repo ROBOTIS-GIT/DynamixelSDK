@@ -1,12 +1,12 @@
 classdef NullspaceController < handle
     properties (Access=private)
         % Constants with default values
-        Kp = 0.5;
+        Kp = 1;
         % Conifugre maximum absolut joint velocities % RAD/s
         q_dot_max = [0.1;0.1;0.2;0.2];
 
-        weight_z = 1;
-        weight_preffered_config = 1;
+        weight_z = 0;
+        weight_preffered_config = 0.1;
         exponential_factor_joint_limit = 0;
         weight_joint_limit = 0;
 
@@ -215,24 +215,26 @@ classdef NullspaceController < handle
         end
 
         function q_dot = ensureJointLimitCompliance(obj, q, q_dot)
-            q_next = q + q_dot * 0.01; % Predicted next joint configuration
-
+            % Predicted next joint configuration
+            q_next = q + q_dot * 0.01; % Ensure this timestep matches your control loop
+        
             % Check if the predicted next configuration violates the joint limits
-            if ~obj.isWithinJointLimits(q_next)
-                % Modify q_dot to prevent limit violation
-                violating_indices = (q_next < obj.q_min) | (q_next > obj.q_max);
-                q_dot(violating_indices) = 0; % Set the velocities of violating joints to 0. Can be enhanced further.
-
-                % Display a warning for the violating joints
-                for idx = find(violating_indices)'
-                    if q_next(idx) < obj.q_min(idx)
-                        limit = obj.q_min(idx);
-                    else
-                        limit = obj.q_max(idx);
+            for idx = 1:length(q)
+                if q_next(idx) < obj.q_min(idx)
+                    % If joint is moving towards lower limit and is too close, only allow motion away from the limit
+                    if q_dot(idx) < 0
+                        q_dot(idx) = 0;
                     end
-                    fprintf('Warning: Joint %d has reached its angle limit. Limited to: %.2f °.\n', idx, rad2deg(limit));
+                    fprintf('Warning: Joint %d is approaching lower limit. Adjusted to: %.2f °.\n', idx, rad2deg(q_next(idx)));
+                elseif q_next(idx) > obj.q_max(idx)
+                    % If joint is moving towards upper limit and is too close, only allow motion away from the limit
+                    if q_dot(idx) > 0
+                        q_dot(idx) = 0;
+                    end
+                    fprintf('Warning: Joint %d is approaching upper limit. Adjusted to: %.2f °.\n', idx, rad2deg(q_next(idx)));
                 end
             end
         end
+
     end
 end

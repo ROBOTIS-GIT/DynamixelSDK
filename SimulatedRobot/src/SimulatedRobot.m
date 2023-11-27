@@ -17,8 +17,8 @@ classdef SimulatedRobot < handle
 
         workspaceResolution = 0.13;
         workspaceTolerance = 0.02;
-        joint_limits = [-pi/5, pi/5; 
-                        -pi/5, pi/5; 
+        joint_limits = [-pi/6, pi/6;  % Currently severly limited by shoulder joint stability
+                        -pi/6, pi/6; 
                         -pi, pi; 
                         -(4/6)*pi, (4/6)*pi];
 

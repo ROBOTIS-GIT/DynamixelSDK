@@ -2,7 +2,6 @@ clearvars -except simulatedRobot
 clc
 close all
 
-
 addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\RealRobot\src')
 addpath('C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\SimulatedRobot\src')
 
@@ -33,7 +32,7 @@ simulatedRobot.setQ(realRobot.getQ);
 
 
 %% Create a static goal position
-x_desired = [300;200;400];
+x_desired = [200;200;400];
 % Plot the desired point
 simulatedRobot.draw(0)
 scatter3(x_desired(1),x_desired(2),x_desired(3), 30, 'filled', 'm');
@@ -70,7 +69,6 @@ while 1
     % Print the distance to the goal
     distance_to_goal = norm(x_desired-simulatedRobot.forwardKinematicsNumeric(q));
     fprintf('Distance to goal: %.0f mm \n', distance_to_goal);
-
 
     step = step + 1;
 end
