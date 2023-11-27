@@ -32,7 +32,7 @@ classdef ServoChain < handle
             end
 
             %% Modify the following string to your absolute path to the DynamixelSDK
-            absolute_path = 'C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\c\';
+            absolute_path = 'C:\Users\samue\Documents\Git\Robotic-Arm-Prototype\DynamixelLib\c\';
             addpath(genpath([absolute_path, 'include\dynamixel_sdk\']))
             %%
             

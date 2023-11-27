@@ -179,7 +179,7 @@ classdef RealRobot < handle
             phi_4 = servoAngles(4);
 
 
-            % Calculation according to Thesis
+            % Calculation according to Thesis (corrected)
             delta_phi_1 = phi_1_0 - phi_1;
             delta_phi_2 = phi_2_0 - phi_2;
             q_1 = (delta_phi_1 - delta_phi_2)/obj.i_shoulder;
@@ -199,7 +199,7 @@ classdef RealRobot < handle
             q_3_dot = jointVelocities(3);
             q_4_dot = jointVelocities(4);
            
-            % Calculation according to Thesis
+            % Calculation according to Thesis (corrected)
             omega_3 = q_3_dot;
             omega_4 = q_4_dot*obj.i_elbow;
 
