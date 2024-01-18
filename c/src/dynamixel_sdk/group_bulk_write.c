@@ -27,6 +27,8 @@
 #include "group_bulk_write.h"
 #endif
 
+extern PacketData *packetData;  // defined in packet_handler.c
+
 typedef struct
 {
   uint8_t     id;

@@ -91,3 +91,8 @@ void    setPacketTimeoutMSec(int port_num, double msec) { setPacketTimeoutMSecWi
 uint8_t isPacketTimeout     (int port_num) { return isPacketTimeoutWindows(port_num); }
 
 #endif
+
+static const int DEFAULT_BAUDRATE = 57600;
+
+int g_used_port_num;
+uint8_t *g_is_using;

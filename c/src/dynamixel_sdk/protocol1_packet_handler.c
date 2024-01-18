@@ -49,6 +49,9 @@
 #define ERRBIT_OVERLOAD         32      // The current load cannot be controlled by the set torque.
 #define ERRBIT_INSTRUCTION      64      // Undefined instruction or delivering the action command without the reg_write command.
 
+extern PacketData *packetData;  // defined in packet_handler.c
+extern uint8_t *g_is_using;    // defined in port_handler.c
+
 const char *getTxRxResult1(int result)
 {
   switch (result)
@@ -701,7 +704,7 @@ void regWriteTxOnly1(int port_num, uint8_t id, uint16_t address, uint16_t length
   }
 
   txPacket1(port_num);
-  
+
   g_is_using[port_num] = False;
 }
 

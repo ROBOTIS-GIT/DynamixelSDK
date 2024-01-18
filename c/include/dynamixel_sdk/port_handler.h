@@ -42,11 +42,6 @@
 
 #include "robotis_def.h"
 
-static const int DEFAULT_BAUDRATE = 57600;
-
-int     g_used_port_num;
-uint8_t    *g_is_using;
-
 WINDECLSPEC int     portHandler             (const char *port_name);
 
 WINDECLSPEC uint8_t openPort                (int port_num);

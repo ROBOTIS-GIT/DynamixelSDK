@@ -56,6 +56,9 @@ typedef struct
 }PortData;
 
 static PortData *portData;
+extern int DEFAULT_BAUDRATE;  // defined in port_handler.c
+extern int g_used_port_num;   // defined in port_handler.c
+extern uint8_t *g_is_using;   // defined in port_handler.c
 
 int portHandlerMac(const char *port_name)
 {
