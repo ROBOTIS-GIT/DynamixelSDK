@@ -48,7 +48,7 @@ class PortHandler(object):
         self.is_open = False
 
     def clearPort(self):
-        self.ser.flush()
+        self.ser.reset_input_buffer()
 
     def setPortName(self, port_name):
         self.port_name = port_name
