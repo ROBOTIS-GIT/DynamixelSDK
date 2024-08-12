@@ -33,11 +33,8 @@
 using namespace dynamixel;
 
 GroupBulkRead::GroupBulkRead(PortHandler *port, PacketHandler *ph)
-  : port_(port),
-    ph_(ph),
-    last_result_(false),
-    is_param_changed_(false),
-    param_(0)
+  : GroupHandler(port, ph),
+    last_result_(false)
 {
   clearParam();
 }

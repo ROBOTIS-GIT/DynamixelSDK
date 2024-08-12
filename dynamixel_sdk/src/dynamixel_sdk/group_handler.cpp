@@ -14,23 +14,26 @@
 * limitations under the License.
 *******************************************************************************/
 
-////////////////////////////////////////////////////////////////////////////////
-/// @file The file that includes whole Dynamixel SDK libraries
-/// @author Zerom, Leon (RyuWoon Jung)
-////////////////////////////////////////////////////////////////////////////////
+/* Author: Honghyun Kim */
 
-#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_
-#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_
+#if defined(__linux__)
+#include "group_handler.h"
+#elif defined(__APPLE__)
+#include "group_handler.h"
+#elif defined(_WIN32) || defined(_WIN64)
+#define WINDLLEXPORT
+#include "group_handler.h"
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
+#include "../../include/dynamixel_sdk/group_handler.h"
+#endif
 
+using namespace dynamixel;
 
-#include "group_bulk_read.h"
-#include "group_bulk_write.h"
-#include "group_sync_read.h"
-#include "group_sync_write.h"
-#include "group_fast_sync_read.h"
-#include "group_fast_bulk_read.h"
-#include "packet_handler.h"
-#include "port_handler.h"
+GroupHandler::GroupHandler(PortHandler *port, PacketHandler *ph)
+ : port_(port),
+   ph_(ph),
+   is_param_changed_(false),
+   param_(0)
+{
 
-
-#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_ */
+}
