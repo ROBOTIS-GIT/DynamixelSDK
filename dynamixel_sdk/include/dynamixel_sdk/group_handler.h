@@ -19,8 +19,8 @@
 /// @author Honghyun Kim
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPHANDLER_H
-#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPHANDLER_H
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPHANDLER_H_
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPHANDLER_H_
 
 
 #include <map>
