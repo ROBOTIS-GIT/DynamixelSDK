@@ -211,7 +211,7 @@ while 1
         % Check if groupsyncread data of Dynamixel#2 is available
         dxl_getdata_result = groupSyncReadIsAvailable(groupread_num, DXL2_ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
         if dxl_getdata_result ~= true
-          fprintf('[ID:%03d] groupSyncRead getdata failed', DXL1_ID);
+          fprintf('[ID:%03d] groupSyncRead getdata failed', DXL2_ID);
           return;
         end
 
