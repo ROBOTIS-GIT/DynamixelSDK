@@ -103,7 +103,7 @@ class WINDECLSPEC Protocol1PacketHandler : public PacketHandler
   /// @return   when rxpacket passes checksum test
   /// @return or COMM_RX_FAIL
   ////////////////////////////////////////////////////////////////////////////////
-  int rxPacket        (PortHandler *port, uint8_t *rxpacket);
+  int rxPacket        (PortHandler *port, uint8_t *rxpacket, bool skip_stuffing = false);
 
   ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that transmits packet (txpacket) and receives packet (rxpacket) during designated time via PortHandler port
@@ -529,6 +529,9 @@ class WINDECLSPEC Protocol1PacketHandler : public PacketHandler
   /// @return COMM_NOT_AVAILABLE
   ////////////////////////////////////////////////////////////////////////////////
   int bulkWriteTxOnly (PortHandler *port, uint8_t *param, uint16_t param_length);
+
+  int fastSyncReadTx(PortHandler *port, uint16_t start_address, uint16_t data_length, uint8_t *param, uint16_t param_length);
+  int fastBulkReadTx(PortHandler *port, uint8_t *param, uint16_t param_length);
 };
 
 }

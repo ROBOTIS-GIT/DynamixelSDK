@@ -32,10 +32,7 @@
 using namespace dynamixel;
 
 GroupBulkWrite::GroupBulkWrite(PortHandler *port, PacketHandler *ph)
-  : port_(port),
-    ph_(ph),
-    is_param_changed_(false),
-    param_(0),
+  : GroupHandler(port, ph),
     param_length_(0)
 {
   clearParam();
