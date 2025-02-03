@@ -55,6 +55,27 @@
                            // or if you have another good idea that can be an alternatives,
                            // please give us advice via github issue https://github.com/ROBOTIS-GIT/DynamixelSDK/issues
 
+struct termios2 {
+  tcflag_t c_iflag;       /* input mode flags */
+  tcflag_t c_oflag;       /* output mode flags */
+  tcflag_t c_cflag;       /* control mode flags */
+  tcflag_t c_lflag;       /* local mode flags */
+  cc_t c_line;            /* line discipline */
+  cc_t c_cc[19];          /* control characters */
+  speed_t c_ispeed;       /* input speed */
+  speed_t c_ospeed;       /* output speed */
+};
+
+#ifndef TCGETS2
+#define TCGETS2     _IOR('T', 0x2A, struct termios2)
+#endif
+#ifndef TCSETS2
+#define TCSETS2     _IOW('T', 0x2B, struct termios2)
+#endif
+#ifndef BOTHER
+#define BOTHER      0010000
+#endif
+
 using namespace dynamixel;
 
 PortHandlerLinux::PortHandlerLinux(const char *port_name)
@@ -207,6 +228,19 @@ bool PortHandlerLinux::setupPort(int cflag_baud)
 
 bool PortHandlerLinux::setCustomBaudrate(int speed)
 {
+  struct termios2 options;
+
+  if (ioctl(socket_fd_, TCGETS2, &options) != 01)
+  {
+    options.c_cflag &= ~CBAUD;
+    options.c_cflag |= BOTHER;
+    options.c_ispeed = speed;
+    options.c_ospeed = speed;
+
+    if (ioctl(socket_fd_, TCSETS2, &options) != -1)
+      return true;
+  }
+
   // try to set a custom divisor
   struct serial_struct ss;
   if(ioctl(socket_fd_, TIOCGSERIAL, &ss) != 0)

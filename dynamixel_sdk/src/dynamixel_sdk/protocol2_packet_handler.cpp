@@ -26,7 +26,7 @@
 #define WINDLLEXPORT
 #include <Windows.h>
 #include "protocol2_packet_handler.h"
-#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
 #include "../../include/dynamixel_sdk/protocol2_packet_handler.h"
 #endif
 
@@ -446,6 +446,10 @@ int Protocol2PacketHandler::txRxPacket(PortHandler *port, uint8_t *txpacket, uin
   {
     port->setPacketTimeout((uint16_t)(DXL_MAKEWORD(txpacket[PKT_PARAMETER0+2], txpacket[PKT_PARAMETER0+3]) + 11));
   }
+  else if (txpacket[PKT_INSTRUCTION] == INST_CLEAR)
+  {
+    port->setPacketTimeout((double)10000);
+  }
   else
   {
     port->setPacketTimeout((uint16_t)11);
@@ -629,6 +633,24 @@ int Protocol2PacketHandler::clearMultiTurn(PortHandler *port, uint8_t id, uint8_
   txpacket[PKT_PARAMETER0+2]  = 0x58;
   txpacket[PKT_PARAMETER0+3]  = 0x4C;
   txpacket[PKT_PARAMETER0+4]  = 0x22;
+
+  return txRxPacket(port, txpacket, rxpacket, error);
+}
+
+int Protocol2PacketHandler::clearError(PortHandler *port, uint8_t id, uint8_t *error)
+{
+  uint8_t txpacket[15]        = {0};
+  uint8_t rxpacket[11]        = {0};
+
+  txpacket[PKT_ID]            = id;
+  txpacket[PKT_LENGTH_L]      = 8;
+  txpacket[PKT_LENGTH_H]      = 0;
+  txpacket[PKT_INSTRUCTION]   = INST_CLEAR;
+  txpacket[PKT_PARAMETER0]    = 0x02;
+  txpacket[PKT_PARAMETER0+1]  = 0x45;
+  txpacket[PKT_PARAMETER0+2]  = 0x52;
+  txpacket[PKT_PARAMETER0+3]  = 0x43;
+  txpacket[PKT_PARAMETER0+4]  = 0x4C;
 
   return txRxPacket(port, txpacket, rxpacket, error);
 }

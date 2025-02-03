@@ -25,7 +25,7 @@
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
 #include "group_bulk_write.h"
-#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
 #include "../../include/dynamixel_sdk/group_bulk_write.h"
 #endif
 

@@ -188,6 +188,15 @@ class WINDECLSPEC Protocol1PacketHandler : public PacketHandler
   int clearMultiTurn  (PortHandler *port, uint8_t id, uint8_t *error = 0);
 
   ////////////////////////////////////////////////////////////////////////////////
+  /// @brief (Available only in Protocol 2.0) The function that clear errors that occurred in DYNAMIXEL
+  /// @param port PortHandler instance
+  /// @param id DYNAMIXEL ID
+  /// @param error DYNAMIXEL hardware error
+  /// @return COMM_NOT_AVAILABLE
+  ////////////////////////////////////////////////////////////////////////////////
+  int clearError      (PortHandler *port, uint8_t id, uint8_t *error = 0);
+
+  ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that makes Dynamixel reset as it was produced in the factory
   /// @description The function makes an instruction packet with INST_FACTORY_RESET,
   /// @description transmits the packet with Protocol1PacketHandler::txRxPacket().

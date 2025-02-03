@@ -26,7 +26,7 @@
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
 #include "group_bulk_read.h"
-#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
 #include "../../include/dynamixel_sdk/group_bulk_read.h"
 #endif
 
@@ -229,5 +229,5 @@ bool GroupBulkRead::getError(uint8_t id, uint8_t* error)
   // TODO : check protocol version, last_result_, data_list
   // if (last_result_ == false || error_list_.find(id) == error_list_.end())
 
-  return (error[0] = error_list_[id][0]);
+  return error[0] = error_list_[id][0];
 }

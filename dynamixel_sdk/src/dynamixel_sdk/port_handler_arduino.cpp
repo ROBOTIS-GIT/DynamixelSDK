@@ -16,7 +16,7 @@
 
 /* Author: Ryu Woon Jung (Leon) */
 
-#if defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
+#if defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
 
 #include <Arduino.h>
 
@@ -25,6 +25,10 @@
 
 #if defined (__OPENCR__)
 #define DYNAMIXEL_SERIAL  Serial3
+#endif
+
+#if defined (ARDUINO_OpenRB)
+#define DYNAMIXEL_SERIAL  Serial1
 #endif
 
 #define LATENCY_TIMER     4  // msec (USB latency timer)
@@ -40,7 +44,7 @@ PortHandlerArduino::PortHandlerArduino(const char *port_name)
   is_using_ = false;
   setPortName(port_name);
 
-#if defined(__OPENCR__)
+#if defined(__OPENCR__) || defined(ARDUINO_OpenRB)
   pinMode(BDPIN_DXL_PWR_EN, OUTPUT);
 
   setPowerOff();
@@ -74,7 +78,7 @@ PortHandlerArduino::PortHandlerArduino(const char *port_name)
 
 bool PortHandlerArduino::openPort()
 {
-#if defined(__OPENCR__)
+#if defined(__OPENCR__) || defined(ARDUINO_OpenRB)
   pinMode(BDPIN_DXL_PWR_EN, OUTPUT);
 
   setPowerOn();
@@ -92,7 +96,7 @@ void PortHandlerArduino::closePort()
 void PortHandlerArduino::clearPort()
 {
   int temp __attribute__((unused));
-#if defined(__OPENCR__)
+#if defined(__OPENCR__) || defined(ARDUINO_OpenRB)
   while (DYNAMIXEL_SERIAL.available()) 
   {
       temp = DYNAMIXEL_SERIAL.read();
@@ -136,7 +140,7 @@ int PortHandlerArduino::getBytesAvailable()
 {
   int bytes_available;
 
-#if defined(__OPENCR__)
+#if defined(__OPENCR__) || defined(ARDUINO_OpenRB)
   bytes_available = DYNAMIXEL_SERIAL.available();
 #elif defined(__OPENCM904__)
   bytes_available = p_dxl_serial->available();
@@ -149,7 +153,7 @@ int PortHandlerArduino::readPort(uint8_t *packet, int length)
 {
   int rx_length;
 
-#if defined(__OPENCR__)
+#if defined(__OPENCR__) || defined(ARDUINO_OpenRB)
   rx_length = DYNAMIXEL_SERIAL.available();
 #elif defined(__OPENCM904__)
   rx_length = p_dxl_serial->available();
@@ -160,7 +164,7 @@ int PortHandlerArduino::readPort(uint8_t *packet, int length)
 
   for (int i = 0; i < rx_length; i++)
   {
-#if defined(__OPENCR__)
+#if defined(__OPENCR__) || defined(ARDUINO_OpenRB)
     packet[i] = DYNAMIXEL_SERIAL.read();
 #elif defined(__OPENCM904__)
     packet[i] = p_dxl_serial->read();
@@ -176,7 +180,7 @@ int PortHandlerArduino::writePort(uint8_t *packet, int length)
 
   setTxEnable();
 
-#if defined(__OPENCR__)
+#if defined(__OPENCR__) || defined(ARDUINO_OpenRB)
   length_written = DYNAMIXEL_SERIAL.write(packet, length);
 #elif defined(__OPENCM904__)
   length_written = p_dxl_serial->write(packet, length);
@@ -228,7 +232,7 @@ double PortHandlerArduino::getTimeSinceStart()
 
 bool PortHandlerArduino::setupPort(int baudrate)
 {
-#if defined(__OPENCR__)
+#if defined(__OPENCR__) || defined(ARDUINO_OpenRB)
   DYNAMIXEL_SERIAL.begin(baudrate);
 #elif defined(__OPENCM904__)
   p_dxl_serial->setDxlMode(true);
@@ -268,14 +272,14 @@ int PortHandlerArduino::checkBaudrateAvailable(int baudrate)
 
 void PortHandlerArduino::setPowerOn()
 {
-#if defined(__OPENCR__)
+#if defined(__OPENCR__) || defined(ARDUINO_OpenRB)
   digitalWrite(BDPIN_DXL_PWR_EN, HIGH);
 #endif
 }
 
 void PortHandlerArduino::setPowerOff()
 {
-#if defined(__OPENCR__)
+#if defined(__OPENCR__) || defined(ARDUINO_OpenRB)
   digitalWrite(BDPIN_DXL_PWR_EN, LOW);
 #endif
 }
