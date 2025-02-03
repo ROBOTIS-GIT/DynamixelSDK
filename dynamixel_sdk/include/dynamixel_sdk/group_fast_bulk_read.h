@@ -19,8 +19,8 @@
 /// @author Honghyun Kim
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPFASTBULKREAD_H_
-#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPFASTBULKREAD_H_
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPFASTBULKREAD_H
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPFASTBULKREAD_H
 
 
 #include "group_bulk_read.h"

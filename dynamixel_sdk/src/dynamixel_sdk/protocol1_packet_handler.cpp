@@ -23,7 +23,7 @@
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
 #include "protocol1_packet_handler.h"
-#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
 #include "../../include/dynamixel_sdk/protocol1_packet_handler.h"
 #endif
 
@@ -366,6 +366,11 @@ int Protocol1PacketHandler::reboot(PortHandler *port, uint8_t id, uint8_t *error
 }
 
 int Protocol1PacketHandler::clearMultiTurn(PortHandler *port, uint8_t id, uint8_t *error)
+{
+  return COMM_NOT_AVAILABLE;
+}
+
+int Protocol1PacketHandler::clearError(PortHandler *port, uint8_t id, uint8_t *error)
 {
   return COMM_NOT_AVAILABLE;
 }

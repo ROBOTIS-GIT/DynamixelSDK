@@ -22,7 +22,7 @@
 #ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_ARDUINO_PORTHANDLERARDUINO_H_
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_ARDUINO_PORTHANDLERARDUINO_H_
 
-#if defined(ARDUINO) || defined(__OPENCR__) || defined (__OPENCM904__)
+#if defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
 #include <Arduino.h>
 #endif
 

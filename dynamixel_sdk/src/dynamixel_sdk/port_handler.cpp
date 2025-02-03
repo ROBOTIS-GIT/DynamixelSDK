@@ -26,7 +26,7 @@
 #define WINDLLEXPORT
 #include "port_handler.h"
 #include "port_handler_windows.h"
-#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
 #include "../../include/dynamixel_sdk/port_handler.h"
 #include "../../include/dynamixel_sdk/port_handler_arduino.h"
 #endif
@@ -41,7 +41,7 @@ PortHandler *PortHandler::getPortHandler(const char *port_name)
   return (PortHandler *)(new PortHandlerMac(port_name));
 #elif defined(_WIN32) || defined(_WIN64)
   return (PortHandler *)(new PortHandlerWindows(port_name));
-#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
   return (PortHandler *)(new PortHandlerArduino(port_name));
 #endif
 }

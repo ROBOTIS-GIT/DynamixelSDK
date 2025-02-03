@@ -179,10 +179,11 @@ class WINDECLSPEC Protocol2PacketHandler : public PacketHandler
   /// @description transmits the packet with Protocol2PacketHandler::txRxPacket(),
   /// @description then Dynamixel reboots.
   /// @description During reboot, its LED will blink.
+  /// @description It will take some time to reboot. It will take longer for Y series.
   /// @param port PortHandler instance
   /// @param id Dynamixel ID
   /// @param error Dynamixel hardware error
-  /// @return COMM_NOT_AVAILABLE
+  /// @return communication results which come from PacketHandler::txRxPacket()
   ////////////////////////////////////////////////////////////////////////////////
   int reboot          (PortHandler *port, uint8_t id, uint8_t *error = 0);
 
@@ -190,14 +191,26 @@ class WINDECLSPEC Protocol2PacketHandler : public PacketHandler
   /// @brief The function that reset multi-turn revolution information of Dynamixel
   /// @description The function makes an instruction packet with INST_CLEAR,
   /// @description transmits the packet with Protocol2PacketHandler::txRxPacket().
-  /// @description Applied Products : MX with Protocol 2.0 (Firmware v42 or above),
-  /// @description Dynamixel X-series (Firmware v42 or above).
+  /// @description DYNAMIXEL X-series (Firmware v42 or above), DYNAMIXEL Y-series.
+  /// @description It will take some time to clear. It will take longer for Y series.
   /// @param port PortHandler instance
   /// @param id Dynamixel ID
   /// @param error Dynamixel hardware error
   /// @return communication results which come from Protocol2PacketHandler::txRxPacket()
   ////////////////////////////////////////////////////////////////////////////////
   int clearMultiTurn  (PortHandler *port, uint8_t id, uint8_t *error = 0);
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// @brief The function that clear errors that occurred in DYNAMIXEL
+  /// @description The function makes an instruction packet with INST_CLEAR,
+  /// @description transmits the packet with PacketHandler::txRxPacket().
+  /// @description Applied Products : DYNAMIXEL Y-series.
+  /// @param port PortHandler instance
+  /// @param id DYNAMIXEL ID
+  /// @param error DYNAMIXEL hardware error
+  /// @return communication results which come from PacketHandler::txRxPacket()
+  ////////////////////////////////////////////////////////////////////////////////
+  int clearError      (PortHandler *port, uint8_t id, uint8_t *error = 0);  
 
   ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that makes Dynamixel reset as it was produced in the factory
