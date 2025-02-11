@@ -1,1 +1,0 @@
-Description is available at http://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_sdk/overview/
