@@ -23,10 +23,9 @@
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPSYNCREAD_H_
 
 
-#include <map>
-#include <vector>
 #include "port_handler.h"
 #include "packet_handler.h"
+#include "group_handler.h"
 
 namespace dynamixel
 {
@@ -34,26 +33,19 @@ namespace dynamixel
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief The class for reading multiple Dynamixel data from same address with same length at once
 ////////////////////////////////////////////////////////////////////////////////
-class WINDECLSPEC GroupSyncRead
+class WINDECLSPEC GroupSyncRead : public GroupHandler
 {
- private:
-  PortHandler    *port_;
-  PacketHandler  *ph_;
+protected:
+    std::map<uint8_t, uint8_t *> error_list_; // <id, error>
 
-  std::vector<uint8_t>            id_list_;
-  std::map<uint8_t, uint8_t *>    data_list_;  // <id, data>
-  std::map<uint8_t, uint8_t *>    error_list_; // <id, error>
+    bool last_result_;
 
-  bool            last_result_;
-  bool            is_param_changed_;
+    uint16_t start_address_;
+    uint16_t data_length_;
 
-  uint8_t        *param_;
-  uint16_t        start_address_;
-  uint16_t        data_length_;
+    void makeParam();
 
-  void    makeParam();
-
- public:
+public:
   ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that Initializes instance for Sync Read
   /// @param port PortHandler instance
@@ -67,18 +59,6 @@ class WINDECLSPEC GroupSyncRead
   /// @brief The function that calls clearParam function to clear the parameter list for Sync Read
   ////////////////////////////////////////////////////////////////////////////////
   ~GroupSyncRead() { clearParam(); }
-
-  ////////////////////////////////////////////////////////////////////////////////
-  /// @brief The function that returns PortHandler instance
-  /// @return PortHandler instance
-  ////////////////////////////////////////////////////////////////////////////////
-  PortHandler     *getPortHandler()   { return port_; }
-
-  ////////////////////////////////////////////////////////////////////////////////
-  /// @brief The function that returns PacketHandler instance
-  /// @return PacketHandler instance
-  ////////////////////////////////////////////////////////////////////////////////
-  PacketHandler   *getPacketHandler() { return ph_; }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that adds id, start_address, data_length to the Sync Read list

@@ -26,18 +26,15 @@
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
 #include "group_bulk_read.h"
-#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
 #include "../../include/dynamixel_sdk/group_bulk_read.h"
 #endif
 
 using namespace dynamixel;
 
 GroupBulkRead::GroupBulkRead(PortHandler *port, PacketHandler *ph)
-  : port_(port),
-    ph_(ph),
-    last_result_(false),
-    is_param_changed_(false),
-    param_(0)
+  : GroupHandler(port, ph),
+    last_result_(false)
 {
   clearParam();
 }

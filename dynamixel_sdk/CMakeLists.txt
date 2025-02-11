@@ -53,6 +53,9 @@ if(APPLE)
     src/dynamixel_sdk/group_bulk_write.cpp
     src/dynamixel_sdk/port_handler.cpp
     src/dynamixel_sdk/port_handler_mac.cpp
+    src/dynamixel_sdk/group_fast_bulk_read.cpp
+    src/dynamixel_sdk/group_fast_sync_read.cpp
+    src/dynamixel_sdk/group_handler.cpp
   )
 else()
   add_library(dynamixel_sdk
@@ -65,6 +68,9 @@ else()
     src/dynamixel_sdk/group_bulk_write.cpp
     src/dynamixel_sdk/port_handler.cpp
     src/dynamixel_sdk/port_handler_linux.cpp
+    src/dynamixel_sdk/group_fast_bulk_read.cpp
+    src/dynamixel_sdk/group_fast_sync_read.cpp
+    src/dynamixel_sdk/group_handler.cpp
   )
 endif()
 

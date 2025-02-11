@@ -22,7 +22,7 @@
 #ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_PACKETHANDLER_H_
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_PACKETHANDLER_H_
 
-#if defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
+#if defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
 #include <Arduino.h>
 
 #define ERROR_PRINT  SerialBT2.print
@@ -61,17 +61,20 @@
 #define INST_STATUS             85      // 0x55
 #define INST_SYNC_READ          130     // 0x82
 #define INST_BULK_WRITE         147     // 0x93
+// Fast
+const uint8_t INST_FAST_SYNC_READ = 0x8A;
+const uint8_t INST_FAST_BULK_READ = 0x9A;
 
 // Communication Result
-#define COMM_SUCCESS        0       // tx or rx packet communication success
-#define COMM_PORT_BUSY      -1000   // Port is busy (in use)
-#define COMM_TX_FAIL        -1001   // Failed transmit instruction packet
-#define COMM_RX_FAIL        -1002   // Failed get status packet
-#define COMM_TX_ERROR       -2000   // Incorrect instruction packet
-#define COMM_RX_WAITING     -3000   // Now recieving status packet
-#define COMM_RX_TIMEOUT     -3001   // There is no status packet
-#define COMM_RX_CORRUPT     -3002   // Incorrect status packet
-#define COMM_NOT_AVAILABLE  -9000   //
+#define COMM_SUCCESS        0         // tx or rx packet communication success
+#define COMM_PORT_BUSY      (-1000)   // Port is busy (in use)
+#define COMM_TX_FAIL        (-1001)   // Failed transmit instruction packet
+#define COMM_RX_FAIL        (-1002)   // Failed get status packet
+#define COMM_TX_ERROR       (-2000)   // Incorrect instruction packet
+#define COMM_RX_WAITING     (-3000)   // Now recieving status packet
+#define COMM_RX_TIMEOUT     (-3001)   // There is no status packet
+#define COMM_RX_CORRUPT     (-3002)   // Incorrect status packet
+#define COMM_NOT_AVAILABLE  (-9000)   //
 
 namespace dynamixel
 {
@@ -149,7 +152,7 @@ class WINDECLSPEC PacketHandler
   /// @return   when rxpacket passes checksum test
   /// @return or COMM_RX_FAIL
   ////////////////////////////////////////////////////////////////////////////////
-  virtual int rxPacket        (PortHandler *port, uint8_t *rxpacket) = 0;
+  virtual int rxPacket        (PortHandler *port, uint8_t *rxpacket, bool skip_stuffing = false) = 0;
 
   ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that transmits packet (txpacket) and receives packet (rxpacket) during designated time via PortHandler port
@@ -221,10 +224,11 @@ class WINDECLSPEC PacketHandler
   /// @description transmits the packet with PacketHandler::txRxPacket(),
   /// @description then Dynamixel reboots.
   /// @description During reboot, its LED will blink.
+  /// @description It will take some time to reboot. It will take longer for Y series.
   /// @param port PortHandler instance
   /// @param id Dynamixel ID
   /// @param error Dynamixel hardware error
-  /// @return COMM_NOT_AVAILABLE
+  /// @return communication results which come from PacketHandler::txRxPacket()
   ////////////////////////////////////////////////////////////////////////////////
   virtual int reboot          (PortHandler *port, uint8_t id, uint8_t *error = 0) = 0;
 
@@ -233,13 +237,26 @@ class WINDECLSPEC PacketHandler
   /// @description The function makes an instruction packet with INST_CLEAR,
   /// @description transmits the packet with PacketHandler::txRxPacket().
   /// @description Applied Products : MX with Protocol 2.0 (Firmware v42 or above),
-  /// @description Dynamixel X-series (Firmware v42 or above).
+  /// @description DYNAMIXEL X-series (Firmware v42 or above), DYNAMIXEL Y-series.
+  /// @description It will take some time to clear. It will take longer for Y series.
   /// @param port PortHandler instance
   /// @param id Dynamixel ID
   /// @param error Dynamixel hardware error
   /// @return communication results which come from PacketHandler::txRxPacket()
   ////////////////////////////////////////////////////////////////////////////////
   virtual int clearMultiTurn  (PortHandler *port, uint8_t id, uint8_t *error = 0) = 0;
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// @brief The function that clear errors that occurred in DYNAMIXEL
+  /// @description The function makes an instruction packet with INST_CLEAR,
+  /// @description transmits the packet with PacketHandler::txRxPacket().
+  /// @description Applied Products : DYNAMIXEL Y-series.
+  /// @param port PortHandler instance
+  /// @param id DYNAMIXEL ID
+  /// @param error DYNAMIXEL hardware error
+  /// @return communication results which come from PacketHandler::txRxPacket()
+  ////////////////////////////////////////////////////////////////////////////////
+  virtual int clearError      (PortHandler *port, uint8_t id, uint8_t *error = 0) = 0;
 
   ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that makes Dynamixel reset as it was produced in the factory
@@ -587,6 +604,9 @@ class WINDECLSPEC PacketHandler
   /// @return communication results which come from PacketHandler::txRxPacket()
   ////////////////////////////////////////////////////////////////////////////////
   virtual int bulkWriteTxOnly (PortHandler *port, uint8_t *param, uint16_t param_length) = 0;
+
+  virtual int fastSyncReadTx(PortHandler *port, uint16_t start_address, uint16_t data_length, uint8_t *param, uint16_t param_length) = 0;
+  virtual int fastBulkReadTx(PortHandler *port, uint8_t *param, uint16_t param_length) = 0;
 };
 
 }

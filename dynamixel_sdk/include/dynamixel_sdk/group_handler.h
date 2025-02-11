@@ -15,22 +15,43 @@
 *******************************************************************************/
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @file The file that includes whole Dynamixel SDK libraries
-/// @author Zerom, Leon (RyuWoon Jung)
+/// @file The file for Group Handler
+/// @author Honghyun Kim
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_
-#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPHANDLER_H
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPHANDLER_H
 
 
-#include "group_bulk_read.h"
-#include "group_bulk_write.h"
-#include "group_sync_read.h"
-#include "group_sync_write.h"
-#include "group_fast_sync_read.h"
-#include "group_fast_bulk_read.h"
-#include "packet_handler.h"
+#include <map>
+#include <vector>
 #include "port_handler.h"
+#include "packet_handler.h"
+
+namespace dynamixel
+{
+
+class WINDECLSPEC GroupHandler
+{
+public:
+    GroupHandler(PortHandler *port, PacketHandler *ph);
+
+    PortHandler *getPortHandler() { return port_; }
+    PacketHandler *getPacketHandler() { return ph_; }
+
+protected:
+    PortHandler *port_;
+    PacketHandler *ph_;
+
+    std::vector<uint8_t> id_list_;
+    std::map<uint8_t, uint8_t *> data_list_;     // <id, data>
+
+    bool is_param_changed_;
+
+    uint8_t *param_;
+};
+
+}
 
 
-#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_ */
+#endif // DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_GROUPHANDLER_H

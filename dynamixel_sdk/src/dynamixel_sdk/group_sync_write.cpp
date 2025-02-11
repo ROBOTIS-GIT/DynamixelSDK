@@ -25,17 +25,14 @@
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
 #include "group_sync_write.h"
-#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
+#elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
 #include "../../include/dynamixel_sdk/group_sync_write.h"
 #endif
 
 using namespace dynamixel;
 
 GroupSyncWrite::GroupSyncWrite(PortHandler *port, PacketHandler *ph, uint16_t start_address, uint16_t data_length)
-  : port_(port),
-    ph_(ph),
-    is_param_changed_(false),
-    param_(0),
+  : GroupHandler(port, ph),
     start_address_(start_address),
     data_length_(data_length)
 {
