@@ -2,6 +2,11 @@
 Changelog for package dynamixel_sdk
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.8.0 (2025-02-12)
+-------------------
+* Added Fast Sync Read, Fast Bulk Read features
+* Contributors: Honghyun Kim, Wonho Yun
+
 3.7.51 (2021-04-14)
 -------------------
 * Add Sync / Bulk read write ROS examples

@@ -1,5 +1,10 @@
 # Dynamixel SDK Release Notes
 
+3.8.0 (2025-02-12)
+-------------------
+* Added Fast Sync Read, Fast Bulk Read features
+* Contributors: Honghyun Kim, Wonho Yun
+
 3.7.51 (2021-04-14)
 -------------------
 * Update Matlab, Python, Labview examples
