@@ -21,13 +21,15 @@
 
 from .robotis_def import *
 
+PARAM_NUM_DATA = 0
+PARAM_NUM_ADDRESS = 1
+PARAM_NUM_LENGTH = 2
 
-class GroupSyncRead:
-    def __init__(self, port, ph, start_address, data_length):
+
+class GroupBulkRead:
+    def __init__(self, port, ph):
         self.port = port
         self.ph = ph
-        self.start_address = start_address
-        self.data_length = data_length
 
         self.last_result = False
         self.is_param_changed = False
@@ -37,37 +39,34 @@ class GroupSyncRead:
         self.clearParam()
 
     def makeParam(self):
-        if self.ph.getProtocolVersion() == 1.0:
+        if not self.is_param_changed or not self.data_dict:
             return
 
-        if not self.is_param_changed:
-            return
+        self.param = []
 
-        if not self.data_dict:
-            return
-
-        self.param = list(self.data_dict.keys())
-
+        for dxl_id, (_, start_addr, data_length) in self.data_dict.items():
+            if self.ph.getProtocolVersion() == 1.0:
+                self.param.extend([data_length, dxl_id, start_addr])
+            else:
+                self.param.extend([
+                    dxl_id,
+                    DXL_LOBYTE(start_addr), DXL_HIBYTE(start_addr),
+                    DXL_LOBYTE(data_length), DXL_HIBYTE(data_length)
+                ])
         self.is_param_changed = False
 
-
-    def addParam(self, dxl_id):
-        if self.ph.getProtocolVersion() == 1.0:
+    def addParam(self, dxl_id, start_address, data_length):
+        if dxl_id in self.data_dict:  # dxl_id already exist
             return False
 
-        if dxl_id in self.data_dict:
-            return False
-
-        self.data_dict[dxl_id] = []
+        data = []  # [0] * data_length
+        self.data_dict[dxl_id] = [data, start_address, data_length]
 
         self.is_param_changed = True
         return True
 
     def removeParam(self, dxl_id):
-        if self.ph.getProtocolVersion() == 1.0:
-            return
-
-        if dxl_id not in self.data_dict:
+        if dxl_id not in self.data_dict:  # NOT exist
             return
 
         del self.data_dict[dxl_id]
@@ -75,46 +74,32 @@ class GroupSyncRead:
         self.is_param_changed = True
 
     def clearParam(self):
-        if self.ph.getProtocolVersion() == 1.0:
-            return
-
         self.data_dict.clear()
+        return
 
     def txPacket(self):
+        if len(self.data_dict.keys()) == 0:
+            return COMM_NOT_AVAILABLE
+
+        if self.is_param_changed is True or not self.param:
+            self.makeParam()
+
+        if self.ph.getProtocolVersion() == 1.0:
+            return self.ph.bulkReadTx(self.port, self.param, len(self.data_dict.keys()) * 3, False)
+        else:
+            return self.ph.bulkReadTx(self.port, self.param, len(self.data_dict.keys()) * 5, False)
+
+    def fastBulkReadTxPacket(self):
         if self.ph.getProtocolVersion() == 1.0 or len(self.data_dict.keys()) == 0:
             return COMM_NOT_AVAILABLE
 
         if self.is_param_changed is True or not self.param:
             self.makeParam()
 
-        return self.ph.syncReadTx(
-            self.port,
-            self.start_address,
-            self.data_length,
-            self.param,
-            len(self.data_dict.keys()) * 1,
-            False)
-
-    def fastSyncReadTxPacket(self):
-        if self.ph.getProtocolVersion() == 1.0 or len(self.data_dict.keys()) == 0:
-            return COMM_NOT_AVAILABLE
-
-        if self.is_param_changed is True or not self.param:
-            self.makeParam()
-
-        return self.ph.syncReadTx(
-            self.port,
-            self.start_address,
-            self.data_length,
-            self.param,
-            len(self.data_dict.keys()) * 1,
-            True)
+        return self.ph.bulkReadTx(self.port, self.param, len(self.data_dict.keys()) * 5, True)
 
     def rxPacket(self):
         self.last_result = False
-
-        if self.ph.getProtocolVersion() == 1.0:
-            return COMM_NOT_AVAILABLE
 
         result = COMM_RX_FAIL
 
@@ -122,7 +107,8 @@ class GroupSyncRead:
             return COMM_NOT_AVAILABLE
 
         for dxl_id in self.data_dict:
-            self.data_dict[dxl_id], result, _ = self.ph.readRx(self.port, dxl_id, self.data_length)
+            self.data_dict[dxl_id][PARAM_NUM_DATA], result, _ = self.ph.readRx(self.port, dxl_id,
+                                                                               self.data_dict[dxl_id][PARAM_NUM_LENGTH])
             if result != COMM_SUCCESS:
                 return result
 
@@ -131,7 +117,7 @@ class GroupSyncRead:
 
         return result
 
-    def fastSyncReadRxPacket(self):
+    def fastBulkReadRxPacket(self):
         self.last_result = False
 
         if self.ph.getProtocolVersion() == 1.0:
@@ -140,51 +126,59 @@ class GroupSyncRead:
         if not self.data_dict:
             return COMM_NOT_AVAILABLE
 
-        num_devices = len(self.data_dict)
-        rx_param_length = (self.data_length + 4) * num_devices  # Error(1) + ID(1) + Data(N) + CRC(2))
-        raw_data, result, _ = self.ph.fastSyncReadRx(self.port, BROADCAST_ID, rx_param_length)
+        # Receive bulk read response
+        raw_data, result = self.ph.fastBulkReadRx(self.port, self.param)
+
         if result != COMM_SUCCESS:
             return result
 
-        raw_data = bytearray(raw_data)
-        start_index = 0
-
         valid_ids = set(self.data_dict.keys())
-        for _ in range(num_devices):
-            dxl_id = raw_data[start_index + 1]
+
+        # Map received data to each Dynamixel ID
+        for dxl_id, data in raw_data.items():
             if dxl_id not in valid_ids:
                 return COMM_RX_CORRUPT
 
-            self.data_dict[dxl_id] = bytearray(raw_data[start_index + 2 : start_index + 2 + self.data_length])
-            start_index += self.data_length + 4
+            expected_length = self.data_dict[dxl_id][PARAM_NUM_LENGTH]
+            received_length = len(data)
+
+            # If received data is longer than expected, trim the extra bytes
+            if received_length > expected_length:
+                data = data[:expected_length]  # Trim excess data
+
+            elif received_length < expected_length:
+                return COMM_RX_CORRUPT
+
+            # Store data in the dictionary
+            self.data_dict[dxl_id][PARAM_NUM_DATA] = bytearray(data)
 
         self.last_result = True
         return COMM_SUCCESS
 
     def txRxPacket(self):
-        if self.ph.getProtocolVersion() == 1.0:
-            return COMM_NOT_AVAILABLE
-
-        if (result := self.txPacket()) != COMM_SUCCESS:
+        result = self.txPacket()
+        if result != COMM_SUCCESS:
             return result
 
         return self.rxPacket()
 
-    def fastSyncRead(self):
+    def fastBulkRead(self):
         if self.ph.getProtocolVersion() == 1.0:
             return COMM_NOT_AVAILABLE
 
-        result = self.fastSyncReadTxPacket()
+        result = self.fastBulkReadTxPacket()
         if result != COMM_SUCCESS:
             return result
 
-        return self.fastSyncReadRxPacket()
+        return self.fastBulkReadRxPacket()
 
     def isAvailable(self, dxl_id, address, data_length):
-        if self.ph.getProtocolVersion() == 1.0 or self.last_result is False or dxl_id not in self.data_dict:
+        if self.last_result is False or dxl_id not in self.data_dict:
             return False
 
-        if (address < self.start_address) or (self.start_address + self.data_length - data_length < address):
+        start_addr = self.data_dict[dxl_id][PARAM_NUM_ADDRESS]
+
+        if (address < start_addr) or (start_addr + self.data_dict[dxl_id][PARAM_NUM_LENGTH] - data_length < address):
             return False
 
         return True
@@ -193,15 +187,15 @@ class GroupSyncRead:
         if not self.isAvailable(dxl_id, address, data_length):
             return 0
 
-        start_idx = address - self.start_address
-        data = self.data_dict[dxl_id]
+        start_addr = self.data_dict[dxl_id][PARAM_NUM_ADDRESS]
+        data = self.data_dict[dxl_id][PARAM_NUM_DATA]
+        idx = address - start_addr
 
         if data_length == 1:
-            return data[start_idx]
+            return data[idx]
         elif data_length == 2:
-            return (data[start_idx] | (data[start_idx + 1] << 8))
+            return data[idx] | (data[idx + 1] << 8)
         elif data_length == 4:
-            return ((data[start_idx] | (data[start_idx + 1] << 8)) |
-                    ((data[start_idx + 2] | (data[start_idx + 3] << 8)) << 16))
-        else:
-            return 0
+            return (data[idx] | (data[idx + 1] << 8) |
+                    (data[idx + 2] << 16) | (data[idx + 3] << 24))
+        return 0

@@ -20,6 +20,9 @@
 #include "port_handler.h"
 #include "port_handler_linux.h"
 
+int     g_used_port_num = 0;
+uint8_t *g_is_using = NULL;
+
 int     portHandler         (const char *port_name) { return portHandlerLinux(port_name); }
 
 uint8_t openPort            (int port_num) { return openPortLinux(port_num); }

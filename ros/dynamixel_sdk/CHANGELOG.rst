@@ -2,6 +2,12 @@
 Changelog for package dynamixel_sdk
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.8.2 (2025-03-13)
+------------------
+* Added Fast Sync Read, Fast Bulk Read features for Python
+* Added ROS 2 Python example
+* Contributors: Wonho Yun
+
 3.8.1 (2025-02-12)
 ------------------
 * Added Fast Sync Read, Fast Bulk Read features

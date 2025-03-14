@@ -16,6 +16,7 @@ endif()
 # Find ament packages and libraries for ament and system dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 
 ################################################################################
 # Build
@@ -69,6 +70,11 @@ install(
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
+
+################################################################################
+# Install Python Package
+################################################################################
+ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR "src/dynamixel_sdk")
 
 ################################################################################
 # Macro for ament package

@@ -2,6 +2,11 @@
 Changelog for package dynamixel_sdk_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.8.2 (2025-03-13)
+------------------
+* Added ROS 2 Python example
+* Contributors: Wonho Yun
+
 3.8.1 (2025-02-12)
 ------------------
 * None

@@ -12,9 +12,11 @@ endif()
 
 # Find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(dynamixel_sdk REQUIRED)
 find_package(dynamixel_sdk_custom_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
 
 include_directories(include)
 
@@ -29,6 +31,11 @@ ament_target_dependencies(read_write_node
 # Install
 install(TARGETS
   read_write_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(PROGRAMS
+  src/read_write_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
