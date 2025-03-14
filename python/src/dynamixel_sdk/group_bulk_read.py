@@ -17,7 +17,7 @@
 # limitations under the License.
 ################################################################################
 
-# Author: Ryu Woon Jung (Leon)
+# Author: Ryu Woon Jung (Leon), Wonho Yun
 
 from .robotis_def import *
 
@@ -39,22 +39,21 @@ class GroupBulkRead:
         self.clearParam()
 
     def makeParam(self):
-        if not self.data_dict:
+        if not self.is_param_changed or not self.data_dict:
             return
 
         self.param = []
 
-        for dxl_id in self.data_dict:
+        for dxl_id, (_, start_addr, data_length) in self.data_dict.items():
             if self.ph.getProtocolVersion() == 1.0:
-                self.param.append(self.data_dict[dxl_id][2])  # LEN
-                self.param.append(dxl_id)  # ID
-                self.param.append(self.data_dict[dxl_id][1])  # ADDR
+                self.param.extend([data_length, dxl_id, start_addr])
             else:
-                self.param.append(dxl_id)  # ID
-                self.param.append(DXL_LOBYTE(self.data_dict[dxl_id][1]))  # ADDR_L
-                self.param.append(DXL_HIBYTE(self.data_dict[dxl_id][1]))  # ADDR_H
-                self.param.append(DXL_LOBYTE(self.data_dict[dxl_id][2]))  # LEN_L
-                self.param.append(DXL_HIBYTE(self.data_dict[dxl_id][2]))  # LEN_H
+                self.param.extend([
+                    dxl_id,
+                    DXL_LOBYTE(start_addr), DXL_HIBYTE(start_addr),
+                    DXL_LOBYTE(data_length), DXL_HIBYTE(data_length)
+                ])
+        self.is_param_changed = False
 
     def addParam(self, dxl_id, start_address, data_length):
         if dxl_id in self.data_dict:  # dxl_id already exist
@@ -86,9 +85,18 @@ class GroupBulkRead:
             self.makeParam()
 
         if self.ph.getProtocolVersion() == 1.0:
-            return self.ph.bulkReadTx(self.port, self.param, len(self.data_dict.keys()) * 3)
+            return self.ph.bulkReadTx(self.port, self.param, len(self.data_dict.keys()) * 3, False)
         else:
-            return self.ph.bulkReadTx(self.port, self.param, len(self.data_dict.keys()) * 5)
+            return self.ph.bulkReadTx(self.port, self.param, len(self.data_dict.keys()) * 5, False)
+
+    def fastBulkReadTxPacket(self):
+        if len(self.data_dict.keys()) == 0:
+            return COMM_NOT_AVAILABLE
+
+        if self.is_param_changed is True or not self.param:
+            self.makeParam()
+
+        return self.ph.bulkReadTx(self.port, self.param, len(self.data_dict.keys()) * 5, True)
 
     def rxPacket(self):
         self.last_result = False
@@ -109,12 +117,60 @@ class GroupBulkRead:
 
         return result
 
+    def fastBulkReadRxPacket(self):
+        self.last_result = False
+
+        if self.ph.getProtocolVersion() == 1.0:
+            return COMM_NOT_AVAILABLE
+
+        if not self.data_dict:
+            return COMM_NOT_AVAILABLE
+
+        # Receive bulk read response
+        raw_data, result = self.ph.fastBulkReadRx(self.port, self.param)
+
+        if result != COMM_SUCCESS:
+            return result
+
+        valid_ids = set(self.data_dict.keys())
+
+        # Map received data to each Dynamixel ID
+        for dxl_id, data in raw_data.items():
+            if dxl_id not in valid_ids:
+                return COMM_RX_CORRUPT
+
+            expected_length = self.data_dict[dxl_id][PARAM_NUM_LENGTH]
+            received_length = len(data)
+
+            # If received data is longer than expected, trim the extra bytes
+            if received_length > expected_length:
+                data = data[:expected_length]  # Trim excess data
+
+            elif received_length < expected_length:
+                return COMM_RX_CORRUPT
+
+            # Store data in the dictionary
+            self.data_dict[dxl_id][PARAM_NUM_DATA] = bytearray(data)
+
+        self.last_result = True
+        return COMM_SUCCESS
+
     def txRxPacket(self):
         result = self.txPacket()
         if result != COMM_SUCCESS:
             return result
 
         return self.rxPacket()
+
+    def fastBulkRead(self):
+        if self.ph.getProtocolVersion() == 1.0:
+            return COMM_NOT_AVAILABLE
+
+        result = self.fastBulkReadTxPacket()
+        if result != COMM_SUCCESS:
+            return result
+
+        return self.fastBulkReadRxPacket()
 
     def isAvailable(self, dxl_id, address, data_length):
         if self.last_result is False or dxl_id not in self.data_dict:
@@ -132,16 +188,14 @@ class GroupBulkRead:
             return 0
 
         start_addr = self.data_dict[dxl_id][PARAM_NUM_ADDRESS]
+        data = self.data_dict[dxl_id][PARAM_NUM_DATA]
+        idx = address - start_addr
 
         if data_length == 1:
-            return self.data_dict[dxl_id][PARAM_NUM_DATA][address - start_addr]
+            return data[idx]
         elif data_length == 2:
-            return DXL_MAKEWORD(self.data_dict[dxl_id][PARAM_NUM_DATA][address - start_addr],
-                                self.data_dict[dxl_id][PARAM_NUM_DATA][address - start_addr + 1])
+            return data[idx] | (data[idx + 1] << 8)
         elif data_length == 4:
-            return DXL_MAKEDWORD(DXL_MAKEWORD(self.data_dict[dxl_id][PARAM_NUM_DATA][address - start_addr + 0],
-                                              self.data_dict[dxl_id][PARAM_NUM_DATA][address - start_addr + 1]),
-                                 DXL_MAKEWORD(self.data_dict[dxl_id][PARAM_NUM_DATA][address - start_addr + 2],
-                                              self.data_dict[dxl_id][PARAM_NUM_DATA][address - start_addr + 3]))
-        else:
-            return 0
+            return (data[idx] | (data[idx + 1] << 8) |
+                    (data[idx + 2] << 16) | (data[idx + 3] << 24))
+        return 0

@@ -33,6 +33,8 @@
 #include "protocol2_packet_handler.h"
 #endif
 
+PacketData *packetData = NULL;
+
 void packetHandler()
 {
   int port_num;

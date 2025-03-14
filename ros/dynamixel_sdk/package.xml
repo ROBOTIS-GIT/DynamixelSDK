@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>dynamixel_sdk</name>
-  <version>3.8.1</version>
+  <version>3.8.2</version>
   <description>
     This package is wrapping version of ROBOTIS Dynamixel SDK for ROS 2. The ROBOTIS Dynamixel SDK, or SDK, is a software development library that provides Dynamixel control functions for packet communication. The API is designed for Dynamixel actuators and Dynamixel-based platforms.
   </description>
@@ -16,7 +16,10 @@
   <author email="zerom@robotis.com">Zerom</author>
   <author email="willson@robotis.com">Will Son</author>
   <author>Leon</author>
+  <author email="ywh@robotis.com">Wonho Yun</author>
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_python</buildtool_depend>
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>dynamixel_sdk_examples</name>
-  <version>3.8.1</version>
+  <version>3.8.2</version>
   <description>ROS 2 examples using ROBOTIS DYNAMIXEL SDK</description>
   <license>Apache 2.0</license>
   <maintainer email="pyo@robotis.com">Pyo</maintainer>
@@ -9,8 +9,11 @@
   <url type="repository">https://github.com/ROBOTIS-GIT/DynamixelSDK</url>
   <url type="bugtracker">https://github.com/ROBOTIS-GIT/DynamixelSDK/issues</url>
   <author email="willson@robotis.com">Will Son</author>
+  <author email="ywh@robotis.com">Wonho Yun</author>
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
   <depend>rclcpp</depend>
+  <depend>rclpy</depend>
   <depend>dynamixel_sdk</depend>
   <depend>dynamixel_sdk_custom_interfaces</depend>
   <test_depend>ament_lint_auto</test_depend>
