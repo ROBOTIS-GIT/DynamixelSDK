@@ -801,9 +801,7 @@ class Protocol2PacketHandler(object):
 
         txpacket[PKT_PARAMETER0 + 4: PKT_PARAMETER0 + 4 + param_length] = param[0: param_length]
 
-        result = self.txPacket(port, txpacket)
-
-        return result
+        return self.txPacket(port, txpacket)
 
     def bulkReadTx(self, port, param, param_length, fast_option):
         txpacket = [0] * (param_length + 10)
@@ -841,6 +839,4 @@ class Protocol2PacketHandler(object):
 
         txpacket[PKT_PARAMETER0: PKT_PARAMETER0 + param_length] = param[0: param_length]
 
-        result = self.txPacket(port, txpacket)
-
-        return result
+        return self.txPacket(port, txpacket)
