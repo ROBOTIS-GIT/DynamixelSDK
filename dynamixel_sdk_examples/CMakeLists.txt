@@ -20,7 +20,7 @@ include_directories(include)
 
 # Build
 add_executable(read_write_node src/read_write_node.cpp)
-ament_target_dependencies(read_write_node
+target_link_libraries(read_write_node PUBLIC
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
