@@ -21,9 +21,9 @@ include_directories(include)
 # Build
 add_executable(read_write_node src/read_write_node.cpp)
 target_link_libraries(read_write_node PUBLIC
-  dynamixel_sdk_custom_interfaces
-  dynamixel_sdk
-  rclcpp
+  ${dynamixel_sdk_custom_interfaces_TARGETS}
+  # ${dynamixel_sdk_TARGETS}
+  rclcpp::rclcpp
 )
 
 # Install
