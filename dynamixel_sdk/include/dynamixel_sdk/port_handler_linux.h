@@ -23,7 +23,7 @@
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_LINUX_PORTHANDLERLINUX_H_
 
 
-#include "port_handler.h"
+#include "dynamixel_sdk/port_handler.h"
 
 namespace dynamixel
 {

@@ -33,7 +33,7 @@
 
 #include <stdio.h>
 #include <vector>
-#include "port_handler.h"
+#include "dynamixel_sdk/port_handler.h"
 
 #define BROADCAST_ID        0xFE    // 254
 #define MAX_ID              0xFC    // 252

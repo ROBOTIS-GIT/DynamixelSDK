@@ -28,7 +28,7 @@
 #include <sys/ioctl.h>
 #include <linux/serial.h>
 
-#include "port_handler_linux.h"
+#include "dynamixel_sdk/port_handler_linux.h"
 
 #define LATENCY_TIMER  16  // msec (USB latency timer)
                            // You should adjust the latency timer value. From the version Ubuntu 16.04.2, the default latency timer of the usb serial is '16 msec'.

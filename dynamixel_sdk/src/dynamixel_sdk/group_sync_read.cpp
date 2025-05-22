@@ -19,12 +19,12 @@
 #include <algorithm>
 
 #if defined(__linux__)
-#include "group_sync_read.h"
+#include "dynamixel_sdk/group_sync_read.h"
 #elif defined(__APPLE__)
-#include "group_sync_read.h"
+#include "dynamixel_sdk/group_sync_read.h"
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
-#include "group_sync_read.h"
+#include "dynamixel_sdk/group_sync_read.h"
 #elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
 #include "../../include/dynamixel_sdk/group_sync_read.h"
 #endif

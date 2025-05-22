@@ -23,12 +23,12 @@
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_
 
 
-#include "group_bulk_read.h"
-#include "group_bulk_write.h"
-#include "group_sync_read.h"
-#include "group_sync_write.h"
-#include "packet_handler.h"
-#include "port_handler.h"
+#include "dynamixel_sdk/group_bulk_read.h"
+#include "dynamixel_sdk/group_bulk_write.h"
+#include "dynamixel_sdk/group_sync_read.h"
+#include "dynamixel_sdk/group_sync_write.h"
+#include "dynamixel_sdk/packet_handler.h"
+#include "dynamixel_sdk/port_handler.h"
 
 
 #endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_ */

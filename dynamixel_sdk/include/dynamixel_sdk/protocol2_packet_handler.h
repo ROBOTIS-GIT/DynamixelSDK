@@ -23,7 +23,7 @@
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_PROTOCOL2PACKETHANDLER_H_
 
 
-#include "packet_handler.h"
+#include "dynamixel_sdk/packet_handler.h"
 
 namespace dynamixel
 {

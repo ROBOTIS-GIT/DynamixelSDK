@@ -20,10 +20,6 @@ find_package(ament_cmake REQUIRED)
 ################################################################################
 # Build
 ################################################################################
-include_directories(
-  include/${PROJECT_NAME}
-)
-
 set(DYNAMIXEL_SDK_SOURCES
   src/dynamixel_sdk/packet_handler.cpp
   src/dynamixel_sdk/protocol1_packet_handler.cpp
@@ -52,6 +48,11 @@ else()
   )
 endif()
 
+target_include_directories(${PROJECT_NAME} PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>"
+)
+
 ################################################################################
 # Install
 ################################################################################
@@ -61,7 +62,7 @@ install(
 )
 
 install(
-  TARGETS ${PROJECT_NAME}
+  TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -70,6 +71,11 @@ install(
 ################################################################################
 # Macro for ament package
 ################################################################################
+# Export old-style CMake variables
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
+
+# Export modern CMake targets
+ament_export_targets(${PROJECT_NAME})
+
 ament_package()

@@ -19,12 +19,12 @@
 #include <algorithm>
 
 #if defined(__linux__)
-#include "group_bulk_write.h"
+#include "dynamixel_sdk/group_bulk_write.h"
 #elif defined(__APPLE__)
-#include "group_bulk_write.h"
+#include "dynamixel_sdk/group_bulk_write.h"
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
-#include "group_bulk_write.h"
+#include "dynamixel_sdk/group_bulk_write.h"
 #elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
 #include "../../include/dynamixel_sdk/group_bulk_write.h"
 #endif

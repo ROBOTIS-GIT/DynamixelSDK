@@ -25,8 +25,8 @@
 
 #include <map>
 #include <vector>
-#include "port_handler.h"
-#include "packet_handler.h"
+#include "dynamixel_sdk/port_handler.h"
+#include "dynamixel_sdk/packet_handler.h"
 
 namespace dynamixel
 {
@@ -156,7 +156,7 @@ class WINDECLSPEC GroupBulkRead
   /// @error error of Dynamixel
   /// @return true
   /// @return   when Dynamixel returned specific error byte
-  /// @return or false 
+  /// @return or false
   ////////////////////////////////////////////////////////////////////////////////
   bool        getError    (uint8_t id, uint8_t* error);
 };

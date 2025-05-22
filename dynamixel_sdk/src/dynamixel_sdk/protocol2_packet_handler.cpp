@@ -18,14 +18,14 @@
 
 #if defined(__linux__)
 #include <unistd.h>
-#include "protocol2_packet_handler.h"
+#include "dynamixel_sdk/protocol2_packet_handler.h"
 #elif defined(__APPLE__)
 #include <unistd.h>
-#include "protocol2_packet_handler.h"
+#include "dynamixel_sdk/protocol2_packet_handler.h"
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
 #include <Windows.h>
-#include "protocol2_packet_handler.h"
+#include "dynamixel_sdk/protocol2_packet_handler.h"
 #elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
 #include "../../include/dynamixel_sdk/protocol2_packet_handler.h"
 #endif
@@ -195,7 +195,7 @@ void Protocol2PacketHandler::addStuffing(uint8_t *packet)
 {
   int packet_length_in = DXL_MAKEWORD(packet[PKT_LENGTH_L], packet[PKT_LENGTH_H]);
   int packet_length_out = packet_length_in;
-  
+
   if (packet_length_in < 8) // INSTRUCTION, ADDR_L, ADDR_H, CRC16_L, CRC16_H + FF FF FD
     return;
 
@@ -207,10 +207,10 @@ void Protocol2PacketHandler::addStuffing(uint8_t *packet)
     if (packet_ptr[0] == 0xFF && packet_ptr[1] == 0xFF && packet_ptr[2] == 0xFD)
       packet_length_out++;
   }
-  
+
   if (packet_length_in == packet_length_out)  // no stuffing required
     return;
-  
+
   uint16_t out_index  = packet_length_out + 6 - 2;  // last index before crc
   uint16_t in_index   = packet_length_in + 6 - 2;   // last index before crc
   while (out_index != in_index)
@@ -679,10 +679,10 @@ int Protocol2PacketHandler::readRx(PortHandler *port, uint8_t id, uint16_t lengt
   int result                  = COMM_TX_FAIL;
   uint8_t *rxpacket           = (uint8_t *)malloc(RXPACKET_MAX_LEN);
   //(length + 11 + (length/3));  // (length/3): consider stuffing
-  
+
   if (rxpacket == NULL)
     return result;
-  
+
   do {
     result = rxPacket(port, rxpacket);
   } while (result == COMM_SUCCESS && rxpacket[PKT_ID] != id);
@@ -714,7 +714,7 @@ int Protocol2PacketHandler::readTxRx(PortHandler *port, uint8_t id, uint16_t add
 
   if (rxpacket == NULL)
     return result;
-  
+
   if (id >= BROADCAST_ID)
   {
     free(rxpacket);
@@ -817,7 +817,7 @@ int Protocol2PacketHandler::writeTxOnly(PortHandler *port, uint8_t id, uint16_t 
   int result                  = COMM_TX_FAIL;
 
   uint8_t *txpacket           = (uint8_t *)malloc(length + 12 + (length / 3));
-  
+
   if (txpacket == NULL)
     return result;
 
@@ -849,7 +849,7 @@ int Protocol2PacketHandler::writeTxRx(PortHandler *port, uint8_t id, uint16_t ad
 
   if (txpacket == NULL)
     return result;
-  
+
   txpacket[PKT_ID]            = id;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(length+5);
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(length+5);
@@ -909,7 +909,7 @@ int Protocol2PacketHandler::regWriteTxOnly(PortHandler *port, uint8_t id, uint16
 
   if (txpacket == NULL)
     return result;
-  
+
   txpacket[PKT_ID]            = id;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(length+5);
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(length+5);
@@ -938,7 +938,7 @@ int Protocol2PacketHandler::regWriteTxRx(PortHandler *port, uint8_t id, uint16_t
 
   if (txpacket == NULL)
     return result;
-  
+
   txpacket[PKT_ID]            = id;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(length+5);
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(length+5);
@@ -966,7 +966,7 @@ int Protocol2PacketHandler::syncReadTx(PortHandler *port, uint16_t start_address
 
   if (txpacket == NULL)
     return result;
-  
+
   txpacket[PKT_ID]            = BROADCAST_ID;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(param_length + 7); // 7: INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(param_length + 7); // 7: INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
@@ -997,7 +997,7 @@ int Protocol2PacketHandler::syncWriteTxOnly(PortHandler *port, uint16_t start_ad
 
   if (txpacket == NULL)
     return result;
-  
+
   txpacket[PKT_ID]            = BROADCAST_ID;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(param_length + 7); // 7: INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(param_length + 7); // 7: INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
@@ -1027,7 +1027,7 @@ int Protocol2PacketHandler::bulkReadTx(PortHandler *port, uint8_t *param, uint16
 
   if (txpacket == NULL)
     return result;
-  
+
   txpacket[PKT_ID]            = BROADCAST_ID;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(param_length + 3); // 3: INST CRC16_L CRC16_H
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(param_length + 3); // 3: INST CRC16_L CRC16_H
@@ -1060,7 +1060,7 @@ int Protocol2PacketHandler::bulkWriteTxOnly(PortHandler *port, uint8_t *param, u
 
   if (txpacket == NULL)
     return result;
-  
+
   txpacket[PKT_ID]            = BROADCAST_ID;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(param_length + 3); // 3: INST CRC16_L CRC16_H
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(param_length + 3); // 3: INST CRC16_L CRC16_H

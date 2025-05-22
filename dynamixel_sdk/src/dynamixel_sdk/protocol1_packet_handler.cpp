@@ -17,12 +17,12 @@
 /* Author: zerom, Ryu Woon Jung (Leon) */
 
 #if defined(__linux__)
-#include "protocol1_packet_handler.h"
+#include "dynamixel_sdk/protocol1_packet_handler.h"
 #elif defined(__APPLE__)
-#include "protocol1_packet_handler.h"
+#include "dynamixel_sdk/protocol1_packet_handler.h"
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
-#include "protocol1_packet_handler.h"
+#include "dynamixel_sdk/protocol1_packet_handler.h"
 #elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
 #include "../../include/dynamixel_sdk/protocol1_packet_handler.h"
 #endif

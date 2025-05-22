@@ -26,7 +26,7 @@
 #include <Arduino.h>
 #endif
 
-#include "port_handler.h"
+#include "dynamixel_sdk/port_handler.h"
 
 namespace dynamixel
 {

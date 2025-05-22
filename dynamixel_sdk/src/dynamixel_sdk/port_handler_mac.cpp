@@ -32,7 +32,7 @@
 #include <mach/mach.h>
 #endif
 
-#include "port_handler_mac.h"
+#include "dynamixel_sdk/port_handler_mac.h"
 
 #define LATENCY_TIMER   16  // msec (USB latency timer)
                             // You should adjust the latency timer value.

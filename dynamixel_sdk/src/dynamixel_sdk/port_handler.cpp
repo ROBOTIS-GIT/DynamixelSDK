@@ -17,15 +17,15 @@
 /* Author: zerom, Ryu Woon Jung (Leon) */
 
 #if defined(__linux__)
-#include "port_handler.h"
-#include "port_handler_linux.h"
+#include "dynamixel_sdk/port_handler.h"
+#include "dynamixel_sdk/port_handler_linux.h"
 #elif defined(__APPLE__)
-#include "port_handler.h"
-#include "port_handler_mac.h"
+#include "dynamixel_sdk/port_handler.h"
+#include "dynamixel_sdk/port_handler_mac.h"
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
-#include "port_handler.h"
-#include "port_handler_windows.h"
+#include "dynamixel_sdk/port_handler.h"
+#include "dynamixel_sdk/port_handler_windows.h"
 #elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__)
 #include "../../include/dynamixel_sdk/port_handler.h"
 #include "../../include/dynamixel_sdk/port_handler_arduino.h"
