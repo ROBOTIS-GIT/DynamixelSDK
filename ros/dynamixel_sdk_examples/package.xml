@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>dynamixel_sdk_examples</name>
-  <version>3.8.3</version>
+  <version>3.8.4</version>
   <description>ROS 2 examples using ROBOTIS DYNAMIXEL SDK</description>
   <license>Apache 2.0</license>
   <maintainer email="pyo@robotis.com">Pyo</maintainer>

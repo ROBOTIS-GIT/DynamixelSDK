@@ -1,5 +1,10 @@
 # Dynamixel SDK Release Notes
 
+3.8.4 (2025-05-28)
+------------------
+* Deprecate ament_include_dependency usage in CMakeLists.txt
+* Contributors: Wonho Yun
+
 3.8.3 (2025-03-31)
 ------------------
 * Modified the getError function for Group Read methods
