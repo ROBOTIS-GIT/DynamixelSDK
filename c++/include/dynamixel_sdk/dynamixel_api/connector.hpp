@@ -1,0 +1,57 @@
+// Copyright 2025 ROBOTIS CO., LTD.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Hyungyu Kim
+
+#ifndef DYNAMIXEL_SDK_DYNAMIXEL_API_CONNECTOR_HPP_
+#define DYNAMIXEL_SDK_DYNAMIXEL_API_CONNECTOR_HPP_
+
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "dynamixel_sdk/dynamixel_sdk.h"
+#include "dynamixel_sdk/dynamixel_api/dynamixel_error.hpp"
+#include "dynamixel_sdk/dynamixel_api/motor.hpp"
+
+
+namespace dynamixel
+{
+class Connector
+{
+public:
+  Connector(const std::string & port_name, float protocol_version, int baud_rate);
+
+  virtual ~Connector();
+
+  std::shared_ptr<Motor> getMotor(uint8_t id);
+  std::vector<std::shared_ptr<Motor>> getAllMotors(int start_id = 0, int end_id = 252);
+  Result<void, DxlError> write1ByteData(uint8_t id, uint16_t address, uint8_t value);
+  Result<void, DxlError> write2ByteData(uint8_t id, uint16_t address, uint16_t value);
+  Result<void, DxlError> write4ByteData(uint8_t id, uint16_t address, uint32_t value);
+
+  Result<uint8_t, DxlError> read1ByteData(uint8_t id, uint16_t address);
+  Result<uint16_t, DxlError> read2ByteData(uint8_t id, uint16_t address);
+  Result<uint32_t, DxlError> read4ByteData(uint8_t id, uint16_t address);
+
+  Result<void, DxlError> reboot(uint8_t id);
+  Result<uint16_t, DxlError> ping(uint8_t id);
+  Result<void, DxlError> factoryReset(uint8_t id, uint8_t option);
+
+private:
+  std::unique_ptr<PortHandler> port_handler_;
+  std::unique_ptr<PacketHandler> packet_handler_;
+};
+}  // namespace dynamixel
+#endif /* DYNAMIXEL_SDK_DYNAMIXEL_API_CONNECTOR_HPP_ */
