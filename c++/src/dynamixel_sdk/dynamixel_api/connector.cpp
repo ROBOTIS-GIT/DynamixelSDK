@@ -52,6 +52,9 @@ std::shared_ptr<Motor> Connector::getMotor(uint8_t id)
 
 std::vector<std::shared_ptr<Motor>> Connector::getAllMotors(int start_id, int end_id)
 {
+  if (start_id < 0 || start_id > 252 || end_id < 0 || end_id > 252 || start_id > end_id) {
+    throw DxlRuntimeError("Invalid ID range. ID should be in the range of 0 to 252.");
+  }
   std::vector<std::shared_ptr<Motor>> motors;
   for (uint8_t id = start_id; id <= end_id; ++id) {
     try {
