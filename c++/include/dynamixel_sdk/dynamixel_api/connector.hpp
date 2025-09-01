@@ -35,8 +35,8 @@ public:
 
   virtual ~Connector();
 
-  std::shared_ptr<Motor> getMotor(uint8_t id);
-  std::vector<std::shared_ptr<Motor>> getAllMotors(int start_id = 0, int end_id = 252);
+  std::unique_ptr<Motor> getMotor(uint8_t id);
+  std::vector<std::unique_ptr<Motor>> getAllMotors(int start_id = 0, int end_id = 252);
   Result<void, DxlError> write1ByteData(uint8_t id, uint16_t address, uint8_t value);
   Result<void, DxlError> write2ByteData(uint8_t id, uint16_t address, uint16_t value);
   Result<void, DxlError> write4ByteData(uint8_t id, uint16_t address, uint32_t value);

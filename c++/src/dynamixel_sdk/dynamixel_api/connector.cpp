@@ -41,25 +41,25 @@ Connector::~Connector()
   port_handler_->closePort();
 }
 
-std::shared_ptr<Motor> Connector::getMotor(uint8_t id)
+std::unique_ptr<Motor> Connector::getMotor(uint8_t id)
 {
   Result<uint16_t, DxlError> result = ping(id);
   if (!result.isSuccess()) {
     throw DxlRuntimeError(getErrorMessage(result.error()));
   }
-  return std::make_shared<Motor>(id, result.value(), this);
+  return std::make_unique<Motor>(id, result.value(), this);
 }
 
-std::vector<std::shared_ptr<Motor>> Connector::getAllMotors(int start_id, int end_id)
+std::vector<std::unique_ptr<Motor>> Connector::getAllMotors(int start_id, int end_id)
 {
   if (start_id < 0 || start_id > 252 || end_id < 0 || end_id > 252 || start_id > end_id) {
     throw DxlRuntimeError("Invalid ID range. ID should be in the range of 0 to 252.");
   }
-  std::vector<std::shared_ptr<Motor>> motors;
+  std::vector<std::unique_ptr<Motor>> motors;
   for (uint8_t id = start_id; id <= end_id; ++id) {
     try {
-      std::shared_ptr<Motor> motor = getMotor(id);
-      motors.push_back(motor);
+      std::unique_ptr<Motor> motor = getMotor(id);
+      motors.push_back(std::move(motor));
     } catch (const DxlRuntimeError & e) {
       continue;
     }
