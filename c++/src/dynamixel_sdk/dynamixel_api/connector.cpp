@@ -25,7 +25,7 @@ Connector::Connector(const std::string & port_name, float protocol_version, int 
   }
   port_handler_ = std::unique_ptr<PortHandler>(PortHandler::getPortHandler(port_name.c_str()));
   packet_handler_ = std::unique_ptr<PacketHandler>(
-    PacketHandler::getPacketHandler(protocol_version));
+  PacketHandler::getPacketHandler(protocol_version));
 
   if (!port_handler_->openPort()) {
     throw DxlRuntimeError("Failed to open the port!");
