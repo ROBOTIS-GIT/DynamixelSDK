@@ -23,7 +23,7 @@ namespace dynamixel
 const std::map<uint16_t, std::string> ControlTable::ParsingModelList()
 {
   std::map<uint16_t, std::string> tmp_model_list;
-  std::string file_name = "/usr/local/share/dynamixel_sdk/control_table/dynamixel.model";
+  std::string file_name = std::string(CONTROL_TABLE_PATH)+"/dynamixel.model";
   std::ifstream infile(file_name);
   if (!infile.is_open()) {
     throw std::runtime_error("Error: Could not open file " + file_name);
@@ -76,8 +76,7 @@ const std::map<std::string, ControlTableItem> & ControlTable::getControlTable(ui
   }
 
   const std::string & model_filename = getModelName(model_number);
-  std::string base_path = "/usr/local/share/dynamixel_sdk/control_table/";
-  std::string full_path = base_path + model_filename;
+  std::string full_path = std::string(CONTROL_TABLE_PATH) + "/" + model_filename;
 
   std::map<std::string, ControlTableItem> control_table;
   std::ifstream infile(full_path);

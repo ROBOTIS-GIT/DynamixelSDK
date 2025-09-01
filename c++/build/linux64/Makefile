@@ -35,8 +35,9 @@ SYMLINK     = ln -s
 MKDIR       = mkdir
 CC          = gcc
 CX          = g++
-CCFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) $(FORMAT) -fPIC -g
-CXFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) $(FORMAT) -fPIC -g
+CONTROL_TABLE_PATH_FLAG = -DCONTROL_TABLE_PATH=\"$(INSTALL_ROOT)/share/dynamixel_sdk/control_table\"
+CCFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) $(FORMAT) -fPIC -g $(CONTROL_TABLE_PATH_FLAG)
+CXFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) $(FORMAT) -fPIC -g $(CONTROL_TABLE_PATH_FLAG)
 FORMAT     = -m64
 INCLUDES    += -I$(DIR_DXL)/include/dynamixel_sdk
 INCLUDES    += -I$(DIR_DXL)/include
