@@ -23,7 +23,7 @@ namespace dynamixel
 const std::map<uint16_t, std::string> ControlTable::ParsingModelList()
 {
   std::map<uint16_t, std::string> tmp_model_list;
-  std::string file_name = std::string(CONTROL_TABLE_PATH)+"/dynamixel.model";
+  std::string file_name = std::string(CONTROL_TABLE_PATH) + "/dynamixel.model";
   std::ifstream infile(file_name);
   if (!infile.is_open()) {
     throw std::runtime_error("Error: Could not open file " + file_name);
@@ -48,7 +48,7 @@ const std::map<uint16_t, std::string> ControlTable::ParsingModelList()
         } catch (const std::out_of_range & e) {
           throw std::runtime_error("Model number out of range in " + file_name + ": " + number_str);
         } catch (...) {
-          throw std::runtime_error("Unknown error while parsing model number in " + file_name);
+          throw std::runtime_error("Unknown error while parsing model list in " + file_name);
         }
       }
     }
@@ -60,12 +60,11 @@ const std::string ControlTable::getModelName(uint16_t model_number)
 {
   static const std::map<uint16_t, std::string> model_name_list_ = ParsingModelList();
   auto it = model_name_list_.find(model_number);
-  if (it != model_name_list_.end()) {
-    return it->second;
-  } else {
+  if (it == model_name_list_.end()) {
     throw DxlRuntimeError(
             "Model number is not found in dynamixel.model: " + std::to_string(model_number));
   }
+  return it->second;
 }
 
 const std::map<std::string, ControlTableItem> & ControlTable::getControlTable(uint16_t model_number)
