@@ -62,10 +62,10 @@ SOURCES  = src/dynamixel_sdk/group_bulk_read.cpp \
            src/dynamixel_sdk/protocol1_packet_handler.cpp \
            src/dynamixel_sdk/protocol2_packet_handler.cpp \
            src/dynamixel_sdk/port_handler_linux.cpp \
-					 src/dynamixel_sdk/dynamixel_api/connector.cpp \
-					 src/dynamixel_sdk/dynamixel_api/control_table.cpp \
-					 src/dynamixel_sdk/dynamixel_api/motor.cpp \
-					 src/dynamixel_sdk/dynamixel_api/dynamixel_error.cpp
+           src/dynamixel_sdk/dynamixel_api/connector.cpp \
+           src/dynamixel_sdk/dynamixel_api/control_table.cpp \
+           src/dynamixel_sdk/dynamixel_api/motor.cpp \
+          src/dynamixel_sdk/dynamixel_api/dynamixel_error.cpp
 
 
 OBJECTS=$(addsuffix .o,$(addprefix $(DIR_OBJS)/,$(basename $(notdir $(SOURCES)))))
