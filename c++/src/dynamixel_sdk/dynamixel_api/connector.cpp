@@ -20,12 +20,12 @@ namespace dynamixel
 {
 Connector::Connector(const std::string & port_name, float protocol_version, int baud_rate)
 {
-  if (protocol_version != 2.0f){
+  if (protocol_version != 2.0f) {
     throw DxlRuntimeError("Only Protocol 2.0 is supported in this Dynamixel API.");
   }
   port_handler_ = std::unique_ptr<PortHandler>(PortHandler::getPortHandler(port_name.c_str()));
   packet_handler_ = std::unique_ptr<PacketHandler>(
-  PacketHandler::getPacketHandler(protocol_version));
+    PacketHandler::getPacketHandler(protocol_version));
 
   if (!port_handler_->openPort()) {
     throw DxlRuntimeError("Failed to open the port!");
@@ -61,10 +61,10 @@ std::vector<std::unique_ptr<Motor>> Connector::getAllMotors(int start_id, int en
   if (dxl_comm_result != COMM_SUCCESS) {
     throw DxlRuntimeError(getErrorMessage(static_cast<DxlError>(dxl_comm_result)));
   }
-  for (auto &id : ids) {
-      if (id >= start_id && id <= end_id) {
-          motors.push_back(getMotor(id));
-      }
+  for (auto & id : ids) {
+    if (id >= start_id && id <= end_id) {
+      motors.push_back(getMotor(id));
+    }
   }
   return motors;
 }

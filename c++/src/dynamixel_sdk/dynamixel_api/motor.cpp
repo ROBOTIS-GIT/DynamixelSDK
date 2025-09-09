@@ -353,8 +353,9 @@ Result<void, DxlError> Motor::factoryResetExceptIDAndBaudRate()
 Result<ControlTableItem, DxlError> Motor::getControlTableItem(const std::string & name)
 {
   auto it = control_table_.find(name);
-  if (it == control_table_.end())
+  if (it == control_table_.end()) {
     return DxlError::API_FUNCTION_NOT_SUPPORTED;
+  }
   return it->second;
 }
 }  // namespace dynamixel
