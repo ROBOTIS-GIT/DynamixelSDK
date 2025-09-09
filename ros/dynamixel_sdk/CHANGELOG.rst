@@ -2,6 +2,10 @@
 Changelog for package dynamixel_sdk
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.9.0 (2025-09-09)
+------------------
+* None
+
 3.8.4 (2025-05-28)
 ------------------
 * Deprecate ament_include_dependency usage in CMakeLists.txt
