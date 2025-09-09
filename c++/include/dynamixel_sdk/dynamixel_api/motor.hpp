@@ -54,7 +54,6 @@ public:
   Result<uint32_t, DxlError> getVelocityLimit();
 
   Result<void, DxlError> changeID(uint8_t new_id);
-  Result<void, DxlError> changeBaudRate(int new_baud_rate);
   Result<void, DxlError> setPositionControlMode();
   Result<void, DxlError> setVelocityControlMode();
   Result<void, DxlError> setCurrentControlMode();

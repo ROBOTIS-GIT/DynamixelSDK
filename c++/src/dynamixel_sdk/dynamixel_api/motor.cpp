@@ -213,18 +213,6 @@ Result<void, DxlError> Motor::changeID(uint8_t new_id)
   return result;
 }
 
-Result<void, DxlError> Motor::changeBaudRate(int new_baud_rate)
-{
-  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Baud Rate");
-  if (!item_result.isSuccess()) {
-    return item_result.error();
-  }
-  const ControlTableItem & item = item_result.value();
-  uint8_t baud_value = static_cast<uint8_t>(2000000 / new_baud_rate - 1);
-  Result<void, DxlError> result = connector_->write1ByteData(id_, item.address, baud_value);
-  return result;
-}
-
 Result<void, DxlError> Motor::setPositionControlMode()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Operating Mode");
