@@ -69,8 +69,19 @@ public:
     if (!isSuccess()) {throw std::logic_error("Result has no value.");}
     return std::get<T>(result);
   }
+  const T& value() const
+  {
+    if (!isSuccess()) {throw std::logic_error("Result has no value.");}
+    return std::get<T>(result);
+  }
 
   E & error()
+  {
+    if (isSuccess()) {throw std::logic_error("Result has no error.");}
+    return std::get<E>(result);
+  }
+
+  const E& error() const
   {
     if (isSuccess()) {throw std::logic_error("Result has no error.");}
     return std::get<E>(result);
@@ -98,6 +109,14 @@ public:
   }
 
   E & error()
+  {
+    if (!std::holds_alternative<E>(result)) {
+      throw std::logic_error("Result has no error.");
+    }
+    return std::get<E>(result);
+  }
+
+  const E& error() const
   {
     if (!std::holds_alternative<E>(result)) {
       throw std::logic_error("Result has no error.");
