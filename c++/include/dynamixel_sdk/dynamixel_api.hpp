@@ -14,12 +14,12 @@
 //
 // Author: Hyungyu Kim
 
-#ifndef DYNAMIXEL_API_INCLUDE_DYNAMIXEL_API_HPP_
-#define DYNAMIXEL_API_INCLUDE_DYNAMIXEL_API_HPP_
+#ifndef DYNAMIXEL_SDK_DYNAMIXEL_API_HPP_
+#define DYNAMIXEL_SDK_DYNAMIXEL_API_HPP_
 
 
 #include "dynamixel_sdk/dynamixel_api/connector.hpp"
-#include "dynamixel_sdk/dynamixel_api/motor.hpp"
 #include "dynamixel_sdk/dynamixel_api/dynamixel_error.hpp"
+#include "dynamixel_sdk/dynamixel_api/motor.hpp"
 
-#endif /* DYNAMIXEL_API_INCLUDE_DYNAMIXEL_API_HPP_ */
+#endif /* DYNAMIXEL_SDK_DYNAMIXEL_API_HPP_ */
