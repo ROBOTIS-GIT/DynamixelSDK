@@ -55,14 +55,16 @@ std::vector<std::unique_ptr<Motor>> Connector::getAllMotors(int start_id, int en
   if (start_id < 0 || start_id > 252 || end_id < 0 || end_id > 252 || start_id > end_id) {
     throw DxlRuntimeError("Invalid ID range. ID should be in the range of 0 to 252.");
   }
+  std::vector<uint8_t> ids;
   std::vector<std::unique_ptr<Motor>> motors;
-  for (uint8_t id = start_id; id <= end_id; ++id) {
-    try {
-      std::unique_ptr<Motor> motor = getMotor(id);
-      motors.push_back(std::move(motor));
-    } catch (const DxlRuntimeError & e) {
-      continue;
-    }
+  int dxl_comm_result = packet_handler_->broadcastPing(port_handler_.get(), ids);
+  if (dxl_comm_result != COMM_SUCCESS) {
+    throw DxlRuntimeError(getErrorMessage(static_cast<DxlError>(dxl_comm_result)));
+  }
+  for (auto &id : ids) {
+      if (id >= start_id && id <= end_id) {
+          motors.push_back(getMotor(id));
+      }
   }
   return motors;
 }
