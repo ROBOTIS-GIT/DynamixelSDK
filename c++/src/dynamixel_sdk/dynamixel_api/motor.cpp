@@ -213,40 +213,22 @@ Result<void, DxlError> Motor::changeID(uint8_t new_id)
   return result;
 }
 
-Result<void, DxlError> Motor::setPositionControlMode()
+Result<void, DxlError> Motor::setOperatingMode(OperatingMode mode)
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Operating Mode");
   if (!item_result.isSuccess()) {
     return item_result.error();
   }
   const ControlTableItem & item = item_result.value();
-  Result<void, DxlError> result = connector_->write1ByteData(id_, item.address, 3);
-  return result;
-}
-
-Result<void, DxlError> Motor::setVelocityControlMode()
-{
-  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Operating Mode");
-  if (!item_result.isSuccess()) {
-    return item_result.error();
+  uint8_t mode_value = static_cast<uint8_t>(mode);
+  Result<void, DxlError> result = connector_->write1ByteData(id_, item.address, mode_value);
+  if (!result.isSuccess()) {
+    return result.error();
   }
-  const ControlTableItem & item = item_result.value();
-  Result<void, DxlError> result = connector_->write1ByteData(id_, item.address, 1);
   return result;
 }
 
-Result<void, DxlError> Motor::setCurrentControlMode()
-{
-  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Operating Mode");
-  if (!item_result.isSuccess()) {
-    return item_result.error();
-  }
-  const ControlTableItem & item = item_result.value();
-  Result<void, DxlError> result = connector_->write1ByteData(id_, item.address, 0);
-  return result;
-}
-
-Result<void, DxlError> Motor::setTimeBasedProfile()
+Result<void, DxlError> Motor::setProfileConfiguration(ProfileConfiguration config)
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Drive Mode");
   if (!item_result.isSuccess()) {
@@ -257,13 +239,20 @@ Result<void, DxlError> Motor::setTimeBasedProfile()
   if (!read_result.isSuccess()) {
     return read_result.error();
   }
+
   uint8_t drive_mode = read_result.value();
-  drive_mode |= 0b00000100;
+  const uint8_t PROFILE_BIT_MASK = 0b00000100;
+
+  if (config == ProfileConfiguration::TIME_BASED) {
+    drive_mode |= PROFILE_BIT_MASK;
+  } else if(config == ProfileConfiguration::VELOCITY_BASED) {
+    drive_mode &= ~PROFILE_BIT_MASK;
+  }
   Result<void, DxlError> result = connector_->write1ByteData(id_, item.address, drive_mode);
   return result;
 }
 
-Result<void, DxlError> Motor::setVelocityBasedProfile()
+Result<void, DxlError> Motor::setDirection(Direction direction)
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Drive Mode");
   if (!item_result.isSuccess()) {
@@ -275,41 +264,12 @@ Result<void, DxlError> Motor::setVelocityBasedProfile()
     return read_result.error();
   }
   uint8_t drive_mode = read_result.value();
-  drive_mode &= 0b11111011;
-  Result<void, DxlError> result = connector_->write1ByteData(id_, item.address, drive_mode);
-  return result;
-}
-
-Result<void, DxlError> Motor::setNormalDirection()
-{
-  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Drive Mode");
-  if (!item_result.isSuccess()) {
-    return item_result.error();
+  const uint8_t DIRECTION_BIT_MASK = 0b00000001;
+  if (direction == Direction::NORMAL) {
+    drive_mode &= ~DIRECTION_BIT_MASK;
+  } else if (direction == Direction::REVERSE) {
+    drive_mode |= DIRECTION_BIT_MASK;
   }
-  const ControlTableItem & item = item_result.value();
-  auto read_result = connector_->read1ByteData(id_, item.address);
-  if (!read_result.isSuccess()) {
-    return read_result.error();
-  }
-  uint8_t drive_mode = read_result.value();
-  drive_mode &= 0b11111110;
-  Result<void, DxlError> result = connector_->write1ByteData(id_, item.address, drive_mode);
-  return result;
-}
-
-Result<void, DxlError> Motor::setReverseDirection()
-{
-  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Drive Mode");
-  if (!item_result.isSuccess()) {
-    return item_result.error();
-  }
-  const ControlTableItem & item = item_result.value();
-  auto read_result = connector_->read1ByteData(id_, item.address);
-  if (!read_result.isSuccess()) {
-    return read_result.error();
-  }
-  uint8_t drive_mode = read_result.value();
-  drive_mode |= 0b00000001;
   Result<void, DxlError> result = connector_->write1ByteData(id_, item.address, drive_mode);
   return result;
 }

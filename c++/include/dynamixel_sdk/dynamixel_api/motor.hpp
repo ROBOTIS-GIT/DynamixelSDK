@@ -33,6 +33,22 @@ class Connector;
 class Motor
 {
 public:
+  enum class OperatingMode {
+      POSITION = 3,
+      VELOCITY = 1,
+      CURRENT = 0
+  };
+
+  enum class ProfileConfiguration {
+      VELOCITY_BASED = 0,
+      TIME_BASED = 1
+  };
+
+  enum class Direction {
+      NORMAL = 0,
+      REVERSE = 1
+  };
+
   Motor(uint8_t id, uint16_t model_number, Connector * connector);
 
   virtual ~Motor();
@@ -54,13 +70,9 @@ public:
   Result<uint32_t, DxlError> getVelocityLimit();
 
   Result<void, DxlError> changeID(uint8_t new_id);
-  Result<void, DxlError> setPositionControlMode();
-  Result<void, DxlError> setVelocityControlMode();
-  Result<void, DxlError> setCurrentControlMode();
-  Result<void, DxlError> setTimeBasedProfile();
-  Result<void, DxlError> setVelocityBasedProfile();
-  Result<void, DxlError> setNormalDirection();
-  Result<void, DxlError> setReverseDirection();
+  Result<void, DxlError> setOperatingMode(OperatingMode mode);
+  Result<void, DxlError> setProfileConfiguration(ProfileConfiguration config);
+  Result<void, DxlError> setDirection(Direction direction);
 
   Result<void, DxlError> reboot();
   Result<void, DxlError> factoryResetAll();

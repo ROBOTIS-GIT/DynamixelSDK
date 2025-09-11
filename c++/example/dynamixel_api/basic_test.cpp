@@ -66,7 +66,7 @@ int kbhit(void)
 
 int main()
 {
-  int baudrate = 57600;
+  int baudrate = 3000000;
   std::cout << "Dynamixel API Source Test Code" << std::endl;
   std::cout << "┌─────[Test Process]────┐" << std::endl;
   std::cout << "│ 1. Ping Test          │" << std::endl;
@@ -149,7 +149,7 @@ int main()
   if (getch() == 0x1B) {
     return 0;
   }
-  result_void = motor1->setPositionControlMode();
+  result_void = motor1->setOperatingMode(dynamixel::Motor::OperatingMode::POSITION);
   if (!result_void.isSuccess()) {
     std::cerr << dynamixel::getErrorMessage(result_void.error()) << std::endl;
     return 1;
@@ -237,7 +237,7 @@ int main()
   }
 
   std::cout << "───────────[Velocity Control Test]─────────────" << std::endl;
-  result_void = motor1->setVelocityControlMode();
+  result_void = motor1->setOperatingMode(dynamixel::Motor::OperatingMode::VELOCITY);
   if (!result_void.isSuccess()) {
     std::cerr << dynamixel::getErrorMessage(result_void.error()) << std::endl;
     return 1;
@@ -303,7 +303,7 @@ int main()
   }
 
   std::cout << "───────────[Direction Test]─────────────" << std::endl;
-  result_void = motor1->setReverseDirection();
+  result_void = motor1->setDirection(dynamixel::Motor::Direction::REVERSE);
   if (!result_void.isSuccess()) {
     std::cerr << dynamixel::getErrorMessage(result_void.error()) << std::endl;
     return 1;
@@ -317,7 +317,7 @@ int main()
   usleep(3000000);
   motor1->setGoalVelocity(0);
   motor1->disableTorque();
-  result_void = motor1->setNormalDirection();
+  result_void = motor1->setDirection(dynamixel::Motor::Direction::NORMAL);
   if (!result_void.isSuccess()) {
     std::cerr << dynamixel::getErrorMessage(result_void.error()) << std::endl;
     return 1;
