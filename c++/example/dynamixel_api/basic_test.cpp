@@ -66,7 +66,7 @@ int kbhit(void)
 
 int main()
 {
-  int baudrate = 3000000;
+  int baudrate;
   std::cout << "Dynamixel API Source Test Code" << std::endl;
   std::cout << "┌─────[Test Process]────┐" << std::endl;
   std::cout << "│ 1. Ping Test          │" << std::endl;
@@ -76,6 +76,8 @@ int main()
   std::cout << "│ 5. LED Test           │" << std::endl;
   std::cout << "│ 6. Reverse Mode Test  │" << std::endl;
   std::cout << "└───────────────────────┘" << std::endl;
+  std::cout << "Enter the baudrate: ";
+  std::cin >> baudrate;
   std::cout << "Baudrate set to: " << baudrate << std::endl;
   std::cout << "Scanning all motors..." << std::endl;
 
@@ -269,6 +271,7 @@ int main()
     current_vel = result_int32_t.value();
   }
   std::cout << "\rTarget velocity reached." << current_vel << std::endl;
+  std::cout << "Rotating 3 seconds" << std::endl;
   usleep(3000000);
   target_velocity = -target_velocity;
   result_void = motor1->setGoalVelocity(target_velocity);
@@ -289,6 +292,7 @@ int main()
   }
 
   std::cout << "\rTarget velocity reached." << current_vel << std::endl;
+  std::cout << "Rotating 3 seconds" <<std::endl;
   usleep(3000000);
   result_void = motor1->disableTorque();
   if (!result_void.isSuccess()) {
@@ -313,6 +317,7 @@ int main()
   target_velocity = motor1->getVelocityLimit().value();
   motor1->enableTorque();
   motor1->setGoalVelocity(target_velocity);
+  std::cout << "Rotating 3 seconds with Velocity Limit" <<  std::endl;
   std::cout << "Set goal velocity :" << target_velocity << std::endl;
   usleep(3000000);
   motor1->setGoalVelocity(0);
