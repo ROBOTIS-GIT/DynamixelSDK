@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dynamixel-sdk"
+version = "3.8.4"
+description = "Dynamixel SDK 3. python package"
+readme = "README.txt"
+license = { text = "Apache 2.0" }
+authors = [
+    { name = "Leon Jung", email = "rwjung@robotis.com" },
+    { name = "Wonho Yun", email = "ywh@robotis.com" }
+]
+dependencies = [
+    "pyserial"
+]
+requires-python = ">=3.6"
+urls = { Homepage = "https://github.com/ROBOTIS-GIT/DynamixelSDK" }
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
