@@ -14,8 +14,8 @@
 //
 // Author: Hyungyu Kim
 
-#include "dynamixel_api/motor.hpp"
-#include "dynamixel_api/connector.hpp"
+#include "dynamixel_sdk/dynamixel_api/motor.hpp"
+#include "dynamixel_sdk/dynamixel_api/connector.hpp"
 
 namespace dynamixel
 {
@@ -245,7 +245,7 @@ Result<void, DxlError> Motor::setProfileConfiguration(ProfileConfiguration confi
 
   if (config == ProfileConfiguration::TIME_BASED) {
     drive_mode |= PROFILE_BIT_MASK;
-  } else if(config == ProfileConfiguration::VELOCITY_BASED) {
+  } else if (config == ProfileConfiguration::VELOCITY_BASED) {
     drive_mode &= ~PROFILE_BIT_MASK;
   }
   Result<void, DxlError> result = connector_->write1ByteData(id_, item.address, drive_mode);
