@@ -33,20 +33,23 @@ class Connector;
 class Motor
 {
 public:
-  enum class OperatingMode {
-      POSITION = 3,
-      VELOCITY = 1,
-      CURRENT = 0
+  enum class OperatingMode
+  {
+    POSITION = 3,
+    VELOCITY = 1,
+    CURRENT = 0
   };
 
-  enum class ProfileConfiguration {
-      VELOCITY_BASED = 0,
-      TIME_BASED = 1
+  enum class ProfileConfiguration
+  {
+    VELOCITY_BASED = 0,
+    TIME_BASED = 1
   };
 
-  enum class Direction {
-      NORMAL = 0,
-      REVERSE = 1
+  enum class Direction
+  {
+    NORMAL = 0,
+    REVERSE = 1
   };
 
   Motor(uint8_t id, uint16_t model_number, Connector * connector);

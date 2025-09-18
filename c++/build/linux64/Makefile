@@ -65,7 +65,8 @@ SOURCES  = src/dynamixel_sdk/group_bulk_read.cpp \
            src/dynamixel_sdk/dynamixel_api/connector.cpp \
            src/dynamixel_sdk/dynamixel_api/control_table.cpp \
            src/dynamixel_sdk/dynamixel_api/motor.cpp \
-           src/dynamixel_sdk/dynamixel_api/dynamixel_error.cpp
+           src/dynamixel_sdk/dynamixel_api/dynamixel_error.cpp \
+					 src/dynamixel_sdk/dynamixel_api/motor_group.cpp
 
 
 OBJECTS=$(addsuffix .o,$(addprefix $(DIR_OBJS)/,$(basename $(notdir $(SOURCES)))))

@@ -41,7 +41,12 @@ enum class DxlError
   SDK_ERRNUM_DATA_LENGTH = 5,       // Data length error
   SDK_ERRNUM_DATA_LIMIT = 6,        // Data limit error
   SDK_ERRNUM_ACCESS = 7,            // Access error
-  API_FUNCTION_NOT_SUPPORTED = 11   // API does not support this function
+  API_FUNCTION_NOT_SUPPORTED = 11,  // API does not support this function
+  API_ADD_PARAM_FAIL = 21,          // Failed to add parameter
+  API_COMMAND_IS_EMPTY = 22,        // No command to execute
+  API_INVALID_COMMAND_TYPE = 23,    // Invalid command type in staged commands
+  API_DUPLICATE_ID = 24,            // Duplicate ID in staged commands
+  API_FAIL_TO_GET_DATA = 25         // Failed to get data from motor
 };
 
 template<typename T, typename E>
@@ -51,6 +56,7 @@ private:
   std::variant<T, E> result;
 
 public:
+  Result() = default;
   Result(const T & return_value)
   : result(return_value)
   {}
@@ -69,7 +75,7 @@ public:
     if (!isSuccess()) {throw std::logic_error("Result has no value.");}
     return std::get<T>(result);
   }
-  const T& value() const
+  const T & value() const
   {
     if (!isSuccess()) {throw std::logic_error("Result has no value.");}
     return std::get<T>(result);
@@ -81,7 +87,7 @@ public:
     return std::get<E>(result);
   }
 
-  const E& error() const
+  const E & error() const
   {
     if (isSuccess()) {throw std::logic_error("Result has no error.");}
     return std::get<E>(result);
@@ -116,7 +122,7 @@ public:
     return std::get<E>(result);
   }
 
-  const E& error() const
+  const E & error() const
   {
     if (!std::holds_alternative<E>(result)) {
       throw std::logic_error("Result has no error.");
