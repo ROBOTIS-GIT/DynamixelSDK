@@ -24,8 +24,7 @@ Connector::Connector(const std::string & port_name, float protocol_version, int 
     throw DxlRuntimeError("Only Protocol 2.0 is supported in this Dynamixel API.");
   }
   port_handler_ = std::unique_ptr<PortHandler>(PortHandler::getPortHandler(port_name.c_str()));
-  packet_handler_ = std::unique_ptr<PacketHandler>(
-    PacketHandler::getPacketHandler(protocol_version));
+  packet_handler_ = PacketHandler::getPacketHandler(protocol_version);
 
   if (!port_handler_->openPort()) {
     throw DxlRuntimeError("Failed to open the port!");
@@ -193,8 +192,16 @@ Result<void, DxlError> Connector::reboot(uint8_t id)
 
 Result<uint16_t, DxlError> Connector::ping(uint8_t id)
 {
-  Result<uint16_t, DxlError> result = read2ByteData(id, 0);
-  return result;
+  uint8_t dxl_error = 0;
+  uint16_t data = 0;
+  int dxl_comm_result = packet_handler_->ping(port_handler_.get(), id, &data, &dxl_error);
+  if (dxl_comm_result != COMM_SUCCESS) {
+    return static_cast<DxlError>(dxl_comm_result);
+  }
+  if (dxl_error != 0) {
+    return static_cast<DxlError>(dxl_error);
+  }
+  return data;
 }
 
 Result<void, DxlError> Connector::factoryReset(uint8_t id, uint8_t option)

@@ -103,7 +103,7 @@ Result<void, DxlError> Motor::LEDOff()
 
 Result<uint16_t, DxlError> Motor::ping()
 {
-  Result<uint16_t, DxlError> result = connector_->read2ByteData(id_, 0);
+  Result<uint16_t, DxlError> result = connector_->ping(id_);
   return result;
 }
 
@@ -271,6 +271,120 @@ Result<void, DxlError> Motor::setDirection(Direction direction)
     drive_mode |= DIRECTION_BIT_MASK;
   }
   Result<void, DxlError> result = connector_->write1ByteData(id_, item.address, drive_mode);
+  return result;
+}
+
+Result<void, DxlError> Motor::setPositionPGain(uint16_t p_gain)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Position P Gain");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  if (item.size != 2) {
+    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+  }
+  Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, p_gain);
+  return result;
+}
+
+Result<void, DxlError> Motor::setPositionIGain(uint16_t i_gain)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Position I Gain");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  if (item.size != 2) {
+    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+  }
+  Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, i_gain);
+  return result;
+}
+
+Result<void, DxlError> Motor::setPositionDGain(uint16_t d_gain)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Position D Gain");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  if (item.size != 2) {
+    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+  }
+  Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, d_gain);
+  return result;
+}
+
+Result<void, DxlError> Motor::setVelocityPGain(uint16_t p_gain)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Velocity P Gain");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  if (item.size != 2) {
+    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+  }
+  Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, p_gain);
+  return result;
+}
+
+Result<void, DxlError> Motor::setVelocityIGain(uint16_t i_gain)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Velocity I Gain");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  if (item.size != 2) {
+    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+  }
+  Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, i_gain);
+  return result;
+}
+
+Result<void, DxlError> Motor::setHomingOffset(int32_t offset)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Homing Offset");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  Result<void, DxlError> result = connector_->write4ByteData(id_, item.address, static_cast<uint32_t>(offset));
+  return result;
+}
+
+Result<void, DxlError> Motor::setMaxPositionLimit(uint32_t limit)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Max Position Limit");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  Result<void, DxlError> result = connector_->write4ByteData(id_, item.address, limit);
+  return result;
+}
+
+Result<void, DxlError> Motor::setMinPositionLimit(uint32_t limit)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Min Position Limit");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  Result<void, DxlError> result = connector_->write4ByteData(id_, item.address, limit);
+  return result;
+}
+
+Result<void, DxlError> Motor::setVelocityLimit(uint32_t limit)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Velocity Limit");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  Result<void, DxlError> result = connector_->write4ByteData(id_, item.address, limit);
   return result;
 }
 

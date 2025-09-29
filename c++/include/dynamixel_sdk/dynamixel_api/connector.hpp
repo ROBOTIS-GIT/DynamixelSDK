@@ -39,6 +39,7 @@ public:
   std::unique_ptr<Motor> getMotor(uint8_t id);
   std::vector<std::unique_ptr<Motor>> getAllMotors(int start_id = 0, int end_id = 252);
   std::unique_ptr<MotorGroup> getMotorGroup();
+
   Result<void, DxlError> write1ByteData(uint8_t id, uint16_t address, uint8_t value);
   Result<void, DxlError> write2ByteData(uint8_t id, uint16_t address, uint16_t value);
   Result<void, DxlError> write4ByteData(uint8_t id, uint16_t address, uint32_t value);
@@ -52,11 +53,11 @@ public:
   Result<void, DxlError> factoryReset(uint8_t id, uint8_t option);
 
   PortHandler * getPortHandler() const {return port_handler_.get();}
-  PacketHandler * getPacketHandler() const {return packet_handler_.get();}
+  PacketHandler * getPacketHandler() const {return packet_handler_;}
 
 private:
   std::unique_ptr<PortHandler> port_handler_;
-  std::unique_ptr<PacketHandler> packet_handler_;
+  PacketHandler * packet_handler_;
 };
 }  // namespace dynamixel
 #endif /* DYNAMIXEL_SDK_DYNAMIXEL_API_CONNECTOR_HPP_ */
