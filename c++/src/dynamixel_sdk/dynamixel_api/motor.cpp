@@ -79,6 +79,34 @@ Result<void, DxlError> Motor::setGoalVelocity(uint32_t velocity)
   return result;
 }
 
+Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Current");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  if (item.size != 2) {
+    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+  }
+  Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, current);
+  return result;
+}
+
+Result<void, DxlError> Motor::setGoalPWM(int16_t pwm)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal PWM");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  if (item.size != 2) {
+    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+  }
+  Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, pwm);
+  return result;
+}
+
 Result<void, DxlError> Motor::LEDOn()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("LED");
@@ -196,6 +224,28 @@ Result<uint32_t, DxlError> Motor::getVelocityLimit()
     return DxlError::API_FUNCTION_NOT_SUPPORTED;
   }
   Result<uint32_t, DxlError> result = connector_->read4ByteData(id_, item.address);
+  return result;
+}
+
+Result<uint16_t, DxlError> Motor::getCurrentLimit()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Current Limit");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  Result<uint16_t, DxlError> result = connector_->read2ByteData(id_, item.address);
+  return result;
+}
+
+Result<uint16_t, DxlError> Motor::getPWMLimit()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("PWM Limit");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  Result<uint16_t, DxlError> result = connector_->read2ByteData(id_, item.address);
   return result;
 }
 
@@ -385,6 +435,28 @@ Result<void, DxlError> Motor::setVelocityLimit(uint32_t limit)
   }
   const ControlTableItem & item = item_result.value();
   Result<void, DxlError> result = connector_->write4ByteData(id_, item.address, limit);
+  return result;
+}
+
+Result<void, DxlError> Motor::setCurrentLimit(uint16_t limit)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Current Limit");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, limit);
+  return result;
+}
+
+Result<void, DxlError> Motor::setPWMLimit(uint16_t limit)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("PWM Limit");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, limit);
   return result;
 }
 

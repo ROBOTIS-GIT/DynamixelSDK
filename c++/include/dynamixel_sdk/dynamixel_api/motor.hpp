@@ -60,6 +60,8 @@ public:
   Result<void, DxlError> disableTorque();
   Result<void, DxlError> setGoalPosition(uint32_t position);
   Result<void, DxlError> setGoalVelocity(uint32_t velocity);
+  Result<void, DxlError> setGoalCurrent(int16_t current);
+  Result<void, DxlError> setGoalPWM(int16_t pwm);
   Result<void, DxlError> LEDOn();
   Result<void, DxlError> LEDOff();
 
@@ -71,6 +73,8 @@ public:
   Result<uint32_t, DxlError> getMaxPositionLimit();
   Result<uint32_t, DxlError> getMinPositionLimit();
   Result<uint32_t, DxlError> getVelocityLimit();
+  Result<uint16_t, DxlError> getCurrentLimit();
+  Result<uint16_t, DxlError> getPWMLimit();
 
   Result<void, DxlError> changeID(uint8_t new_id);
   Result<void, DxlError> setOperatingMode(OperatingMode mode);
@@ -86,6 +90,8 @@ public:
   Result<void, DxlError> setMaxPositionLimit(uint32_t limit);
   Result<void, DxlError> setMinPositionLimit(uint32_t limit);
   Result<void, DxlError> setVelocityLimit(uint32_t limit);
+  Result<void, DxlError> setCurrentLimit(uint16_t limit);
+  Result<void, DxlError> setPWMLimit(uint16_t limit);
 
   Result<void, DxlError> reboot();
   Result<void, DxlError> factoryResetAll();
