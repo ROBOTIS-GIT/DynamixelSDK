@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "dynamixel_sdk/dynamixel_sdk.h"
-#include "dynamixel_sdk/dynamixel_api/motor.hpp"
 #include "dynamixel_sdk/dynamixel_api/control_table.hpp"
 #include "dynamixel_sdk/dynamixel_api/dynamixel_error.hpp"
 #include "dynamixel_sdk/dynamixel_api/staged_command.hpp"
