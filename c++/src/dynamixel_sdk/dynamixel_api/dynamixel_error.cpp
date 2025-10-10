@@ -59,10 +59,6 @@ std::string getErrorMessage(DxlError error_code)
       return "[APIError] Failed to add parameter!";
     case DxlError::API_COMMAND_IS_EMPTY:
       return "[APIError] No command to execute!";
-    case DxlError::API_INVALID_COMMAND_TYPE:
-      return
-        "[APIError] Read commands can only be run with executeRead(),"
-        "and Write commands with executeWrite().";
     case DxlError::API_DUPLICATE_ID:
       return "[APIError] Duplicate ID found in staged commands.";
     default: return "Unknown Error";

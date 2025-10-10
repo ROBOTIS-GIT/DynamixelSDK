@@ -484,6 +484,172 @@ Result<void, DxlError> Motor::factoryResetExceptIDAndBaudRate()
   return result;
 }
 
+Result<StagedCommand, DxlError> Motor::stageEnableTorque()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Torque Enable");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  StagedCommand cmd(
+    CommandType::WRITE,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    {1});
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageDisableTorque()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Torque Enable");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  StagedCommand cmd(
+    CommandType::WRITE,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    {0});
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageSetGoalPosition(uint32_t position)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Position");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  std::vector<uint8_t> data;
+  for (size_t i = 0; i < item_result.value().size; ++i) {
+    data.push_back((position >> (8 * i)) & 0xFF);
+  }
+  StagedCommand cmd(
+    CommandType::WRITE,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    data
+  );
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageSetGoalVelocity(uint32_t velocity)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Velocity");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  std::vector<uint8_t> data;
+  for (size_t i = 0; i < item_result.value().size; ++i) {
+    data.push_back((velocity >> (8 * i)) & 0xFF);
+  }
+  StagedCommand cmd(
+    CommandType::WRITE,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    data
+  );
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageLEDOn()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("LED");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  StagedCommand cmd(
+    CommandType::WRITE,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    {1}
+  );
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageLEDOff()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("LED");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  StagedCommand cmd(
+    CommandType::WRITE,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    {0}
+  );
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageIsTorqueOn()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Torque Enable");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  StagedCommand cmd(
+    CommandType::READ,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    {}
+  );
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageIsLEDOn()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("LED");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  StagedCommand cmd(
+    CommandType::READ,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    {}
+  );
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageGetPresentPosition()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Present Position");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  StagedCommand cmd(
+    CommandType::READ,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    {}
+  );
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageGetPresentVelocity()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Present Velocity");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  StagedCommand cmd(
+    CommandType::READ,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    {}
+  );
+  return cmd;
+}
+
 Result<ControlTableItem, DxlError> Motor::getControlTableItem(const std::string & name)
 {
   auto it = control_table_.find(name);

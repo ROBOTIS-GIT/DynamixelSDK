@@ -68,10 +68,10 @@ std::vector<std::unique_ptr<Motor>> Connector::getAllMotors(int start_id, int en
   return motors;
 }
 
-std::unique_ptr<MotorGroup> Connector::getMotorGroup()
-{
-  return std::make_unique<MotorGroup>(this);
-}
+// std::unique_ptr<MotorGroup> Connector::getMotorGroup()
+// {
+//   return std::make_unique<MotorGroup>(this);
+// }
 
 Result<uint8_t, DxlError> Connector::read1ByteData(uint8_t id, uint16_t address)
 {

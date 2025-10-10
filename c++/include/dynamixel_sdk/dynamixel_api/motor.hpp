@@ -25,6 +25,7 @@
 #include "dynamixel_sdk/dynamixel_api/control_table.hpp"
 #include "dynamixel_sdk/dynamixel_sdk.h"
 #include "dynamixel_sdk/dynamixel_api/dynamixel_error.hpp"
+#include "dynamixel_sdk/dynamixel_api/staged_command.hpp"
 
 namespace dynamixel
 {
@@ -97,6 +98,18 @@ public:
   Result<void, DxlError> factoryResetAll();
   Result<void, DxlError> factoryResetExceptID();
   Result<void, DxlError> factoryResetExceptIDAndBaudRate();
+
+  Result<StagedCommand, DxlError> stageEnableTorque();
+  Result<StagedCommand, DxlError> stageDisableTorque();
+  Result<StagedCommand, DxlError> stageSetGoalPosition(uint32_t position);
+  Result<StagedCommand, DxlError> stageSetGoalVelocity(uint32_t velocity);
+  Result<StagedCommand, DxlError> stageLEDOn();
+  Result<StagedCommand, DxlError> stageLEDOff();
+
+  Result<StagedCommand, DxlError> stageIsTorqueOn();
+  Result<StagedCommand, DxlError> stageIsLEDOn();
+  Result<StagedCommand, DxlError> stageGetPresentPosition();
+  Result<StagedCommand, DxlError> stageGetPresentVelocity();
 
   uint8_t getID() const {return id_;}
   uint16_t getModelNumber() const {return model_number_;}

@@ -21,6 +21,6 @@
 #include "dynamixel_sdk/dynamixel_api/connector.hpp"
 #include "dynamixel_sdk/dynamixel_api/dynamixel_error.hpp"
 #include "dynamixel_sdk/dynamixel_api/motor.hpp"
-#include "dynamixel_sdk/dynamixel_api/motor_group.hpp"
+#include "dynamixel_sdk/dynamixel_api/group_executor.hpp"
 
 #endif /* DYNAMIXEL_SDK_DYNAMIXEL_API_HPP_ */

@@ -44,9 +44,8 @@ enum class DxlError
   API_FUNCTION_NOT_SUPPORTED = 11,  // API does not support this function
   API_ADD_PARAM_FAIL = 21,          // Failed to add parameter
   API_COMMAND_IS_EMPTY = 22,        // No command to execute
-  API_INVALID_COMMAND_TYPE = 23,    // Invalid command type in staged commands
-  API_DUPLICATE_ID = 24,            // Duplicate ID in staged commands
-  API_FAIL_TO_GET_DATA = 25         // Failed to get data from motor
+  API_DUPLICATE_ID = 23,            // Duplicate ID in staged commands
+  API_FAIL_TO_GET_DATA = 24         // Failed to get data from motor
 };
 
 template<typename T, typename E>
