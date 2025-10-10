@@ -40,7 +40,7 @@ Connector::~Connector()
   port_handler_->closePort();
 }
 
-std::unique_ptr<Motor> Connector::getMotor(uint8_t id)
+std::unique_ptr<Motor> Connector::createMotor(uint8_t id)
 {
   Result<uint16_t, DxlError> result = ping(id);
   if (!result.isSuccess()) {
@@ -49,7 +49,7 @@ std::unique_ptr<Motor> Connector::getMotor(uint8_t id)
   return std::make_unique<Motor>(id, result.value(), this);
 }
 
-std::vector<std::unique_ptr<Motor>> Connector::getAllMotors(int start_id, int end_id)
+std::vector<std::unique_ptr<Motor>> Connector::createAllMotors(int start_id, int end_id)
 {
   if (start_id < 0 || start_id > 252 || end_id < 0 || end_id > 252 || start_id > end_id) {
     throw DxlRuntimeError("Invalid ID range. ID should be in the range of 0 to 252.");
@@ -62,16 +62,16 @@ std::vector<std::unique_ptr<Motor>> Connector::getAllMotors(int start_id, int en
   }
   for (auto & id : ids) {
     if (id >= start_id && id <= end_id) {
-      motors.push_back(getMotor(id));
+      motors.push_back(createMotor(id));
     }
   }
   return motors;
 }
 
-// std::unique_ptr<MotorGroup> Connector::getMotorGroup()
-// {
-//   return std::make_unique<MotorGroup>(this);
-// }
+std::unique_ptr<GroupExecutor> Connector::createGroupExecutor()
+{
+  return std::make_unique<GroupExecutor>(this);
+}
 
 Result<uint8_t, DxlError> Connector::read1ByteData(uint8_t id, uint16_t address)
 {
