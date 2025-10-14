@@ -1,6 +1,6 @@
 # Dynamixel SDK Release Notes
 
-3.9.0 (2025-09-09)
+4.0.0 (2025-10-14)
 ------------------
 * Update Dynamixel API in C++ Linux 64bit
 * Contributors: Hyungyu Kim
