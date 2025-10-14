@@ -401,7 +401,10 @@ Result<void, DxlError> Motor::setHomingOffset(int32_t offset)
     return item_result.error();
   }
   const ControlTableItem & item = item_result.value();
-  Result<void, DxlError> result = connector_->write4ByteData(id_, item.address, static_cast<uint32_t>(offset));
+  Result<void, DxlError> result = connector_->write4ByteData(
+    id_,
+    item.address,
+    static_cast<uint32_t>(offset));
   return result;
 }
 

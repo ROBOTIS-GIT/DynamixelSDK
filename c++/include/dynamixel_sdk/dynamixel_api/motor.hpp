@@ -81,7 +81,6 @@ public:
   Result<void, DxlError> setOperatingMode(OperatingMode mode);
   Result<void, DxlError> setProfileConfiguration(ProfileConfiguration config);
   Result<void, DxlError> setDirection(Direction direction);
-  //New
   Result<void, DxlError> setPositionPGain(uint16_t p_gain);
   Result<void, DxlError> setPositionIGain(uint16_t i_gain);
   Result<void, DxlError> setPositionDGain(uint16_t d_gain);
