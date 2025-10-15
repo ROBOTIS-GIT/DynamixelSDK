@@ -31,7 +31,7 @@ namespace dynamixel
 class Connector
 {
 public:
-  Connector(const std::string & port_name, float protocol_version, int baud_rate);
+  Connector(const std::string & port_name, int baud_rate);
 
   virtual ~Connector();
 

@@ -18,13 +18,10 @@
 
 namespace dynamixel
 {
-Connector::Connector(const std::string & port_name, float protocol_version, int baud_rate)
+Connector::Connector(const std::string & port_name, int baud_rate)
 {
-  if (protocol_version != 2.0f) {
-    throw DxlRuntimeError("Only Protocol 2.0 is supported in this Dynamixel API.");
-  }
   port_handler_ = std::unique_ptr<PortHandler>(PortHandler::getPortHandler(port_name.c_str()));
-  packet_handler_ = PacketHandler::getPacketHandler(protocol_version);
+  packet_handler_ = PacketHandler::getPacketHandler(2.0);
 
   if (!port_handler_->openPort()) {
     throw DxlRuntimeError("Failed to open the port!");
