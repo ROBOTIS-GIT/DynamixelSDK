@@ -14,32 +14,41 @@
 //
 // Author: Hyungyu Kim
 
-#ifndef DYNAMIXEL_SDK_DYNAMIXEL_API_CONTROL_TABLE_HPP_
-#define DYNAMIXEL_SDK_DYNAMIXEL_API_CONTROL_TABLE_HPP_
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_STAGED_COMMAND_HPP_
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_STAGED_COMMAND_HPP_
 
 #include <cstdint>
-#include <fstream>
-#include <iostream>
-#include <map>
-#include <sstream>
-#include <string>
-
-#include "dynamixel_sdk/dynamixel_api/dynamixel_error.hpp"
+#include <vector>
 
 namespace dynamixel
 {
-struct ControlTableItem
+enum class CommandType
 {
-  uint16_t address;
-  uint8_t size;
+  WRITE,
+  READ
 };
 
-class ControlTable
+struct StagedCommand
 {
-public:
-  static const std::map<uint16_t, std::string> ParsingModelList();
-  static const std::string getModelName(uint16_t model_number);
-  static const std::map<std::string, ControlTableItem> & getControlTable(uint16_t model_number);
+  StagedCommand(
+    CommandType _command_type,
+    uint8_t _id,
+    uint16_t _address,
+    uint16_t _length,
+    const std::vector<uint8_t> & _data)
+  : command_type(_command_type),
+    id(_id),
+    address(_address),
+    length(_length),
+    data(_data) {}
+
+  CommandType command_type;
+  uint8_t id;
+  uint16_t address;
+  uint16_t length;
+  std::vector<uint8_t> data;
 };
+
 }  // namespace dynamixel
-#endif /* DYNAMIXEL_SDK_DYNAMIXEL_API_CONTROL_TABLE_HPP_ */
+
+#endif  // DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_STAGED_COMMAND_HPP_

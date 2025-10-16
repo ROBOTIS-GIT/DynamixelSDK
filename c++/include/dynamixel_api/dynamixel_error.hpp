@@ -14,8 +14,8 @@
 //
 // Author: Hyungyu Kim
 
-#ifndef DYNAMIXEL_SDK_DYNAMIXEL_API_DYNAMIXEL_ERROR_HPP_
-#define DYNAMIXEL_SDK_DYNAMIXEL_API_DYNAMIXEL_ERROR_HPP_
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_DYNAMIXEL_ERROR_HPP_
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_DYNAMIXEL_ERROR_HPP_
 
 #include <variant>
 #include <stdexcept>
@@ -142,4 +142,4 @@ public:
 std::string getErrorMessage(DxlError error_code);
 }  // namespace dynamixel
 
-#endif /* DYNAMIXEL_SDK_DYNAMIXEL_API_DYNAMIXEL_ERROR_HPP_ */
+#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_DYNAMIXEL_ERROR_HPP_ */

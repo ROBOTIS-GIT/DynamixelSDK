@@ -14,18 +14,18 @@
 //
 // Author: Hyungyu Kim
 
-#ifndef DYNAMIXEL_SDK_DYNAMIXEL_API_MOTOR_HPP_
-#define DYNAMIXEL_SDK_DYNAMIXEL_API_MOTOR_HPP_
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_MOTOR_HPP_
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_MOTOR_HPP_
 
 #include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
 
-#include "dynamixel_sdk/dynamixel_api/control_table.hpp"
 #include "dynamixel_sdk/dynamixel_sdk.h"
-#include "dynamixel_sdk/dynamixel_api/dynamixel_error.hpp"
-#include "dynamixel_sdk/dynamixel_api/staged_command.hpp"
+#include "dynamixel_api/control_table.hpp"
+#include "dynamixel_api/dynamixel_error.hpp"
+#include "dynamixel_api/staged_command.hpp"
 
 namespace dynamixel
 {
@@ -129,4 +129,4 @@ private:
   const std::map<std::string, ControlTableItem> & control_table_;
 };
 }  // namespace dynamixel
-#endif /* DYNAMIXEL_SDK_DYNAMIXEL_API_MOTOR_HPP_ */
+#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_MOTOR_HPP_ */

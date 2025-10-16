@@ -14,7 +14,7 @@
 //
 // Author: Hyungyu Kim
 
-#include "dynamixel_sdk/dynamixel_api/dynamixel_error.hpp"
+#include "dynamixel_api/dynamixel_error.hpp"
 
 namespace dynamixel
 {

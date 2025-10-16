@@ -14,8 +14,8 @@
 //
 // Author: Hyungyu Kim
 
-#include "dynamixel_sdk/dynamixel_api/motor.hpp"
-#include "dynamixel_sdk/dynamixel_api/connector.hpp"
+#include "dynamixel_api/motor.hpp"
+#include "dynamixel_api/connector.hpp"
 
 namespace dynamixel
 {

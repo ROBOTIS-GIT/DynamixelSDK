@@ -62,11 +62,11 @@ SOURCES  = src/dynamixel_sdk/group_bulk_read.cpp \
            src/dynamixel_sdk/protocol1_packet_handler.cpp \
            src/dynamixel_sdk/protocol2_packet_handler.cpp \
            src/dynamixel_sdk/port_handler_linux.cpp \
-           src/dynamixel_sdk/dynamixel_api/connector.cpp \
-           src/dynamixel_sdk/dynamixel_api/control_table.cpp \
-           src/dynamixel_sdk/dynamixel_api/motor.cpp \
-           src/dynamixel_sdk/dynamixel_api/dynamixel_error.cpp \
-           src/dynamixel_sdk/dynamixel_api/group_executor.cpp
+           src/dynamixel_api/connector.cpp \
+           src/dynamixel_api/control_table.cpp \
+           src/dynamixel_api/motor.cpp \
+           src/dynamixel_api/dynamixel_error.cpp \
+           src/dynamixel_api/group_executor.cpp
 
 
 OBJECTS=$(addsuffix .o,$(addprefix $(DIR_OBJS)/,$(basename $(notdir $(SOURCES)))))
@@ -95,6 +95,9 @@ install: $(TARGET)
     # copy the headers into the include directory
 	@$(CHK_DIR_EXISTS) $(INSTALL_ROOT)/include/dynamixel_sdk || $(MKDIR) $(INSTALL_ROOT)/include/dynamixel_sdk
 	$(CP_ALL) $(DIR_DXL)/include/dynamixel_sdk/* $(INSTALL_ROOT)/include/dynamixel_sdk
+
+	@$(CHK_DIR_EXISTS) $(INSTALL_ROOT)/include/dynamixel_api || $(MKDIR) $(INSTALL_ROOT)/include/dynamixel_api
+	$(CP_ALL) $(DIR_DXL)/include/dynamixel_api/* $(INSTALL_ROOT)/include/dynamixel_api
 
     # copy the control_table directory into the share directory
 	@$(CHK_DIR_EXISTS) $(INSTALL_ROOT)/share/dynamixel_sdk || $(MKDIR) -p $(INSTALL_ROOT)/share/dynamixel_sdk
