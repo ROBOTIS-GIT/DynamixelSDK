@@ -113,6 +113,7 @@ uninstall:
 
 	$(RM) $(INSTALL_ROOT)/include/dynamixel_sdk/dynamixel_sdk.h
 	$(RM_ALL) $(INSTALL_ROOT)/include/dynamixel_sdk/*
+	$(RM_ALL) $(INSTALL_ROOT)/include/dynamixel_api/*
 	$(RM_ALL) $(INSTALL_ROOT)/share/dynamixel_sdk/control_table
 
 reinstall: uninstall install
@@ -134,7 +135,7 @@ $(DIR_OBJS)/%.o: $(DIR_DXL)/src/dynamixel_sdk/%.c
 $(DIR_OBJS)/%.o: $(DIR_DXL)/src/dynamixel_sdk/%.cpp
 	$(CX) $(CXFLAGS) -c $? -o $@
 
-$(DIR_OBJS)/%.o: $(DIR_DXL)/src/dynamixel_sdk/dynamixel_api/%.cpp
+$(DIR_OBJS)/%.o: $(DIR_DXL)/src/dynamixel_api/%.cpp
 	$(CX) $(CXFLAGS) -c $? -o $@
 
 #---------------------------------------------------------------------
