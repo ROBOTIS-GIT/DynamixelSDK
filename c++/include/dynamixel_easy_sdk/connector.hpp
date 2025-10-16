@@ -14,17 +14,17 @@
 //
 // Author: Hyungyu Kim
 
-#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_CONNECTOR_HPP_
-#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_CONNECTOR_HPP_
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_CONNECTOR_HPP_
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_CONNECTOR_HPP_
 
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "dynamixel_sdk/dynamixel_sdk.h"
-#include "dynamixel_api/dynamixel_error.hpp"
-#include "dynamixel_api/motor.hpp"
-#include "dynamixel_api/group_executor.hpp"
+#include "dynamixel_easy_sdk/dynamixel_error.hpp"
+#include "dynamixel_easy_sdk/motor.hpp"
+#include "dynamixel_easy_sdk/group_executor.hpp"
 
 namespace dynamixel
 {
@@ -59,4 +59,4 @@ private:
   PacketHandler * packet_handler_;
 };
 }  // namespace dynamixel
-#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_CONNECTOR_HPP_ */
+#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_CONNECTOR_HPP_ */

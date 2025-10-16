@@ -16,7 +16,7 @@
 
 #include <stdexcept>
 
-#include "dynamixel_api/control_table.hpp"
+#include "dynamixel_easy_sdk/control_table.hpp"
 
 namespace dynamixel
 {

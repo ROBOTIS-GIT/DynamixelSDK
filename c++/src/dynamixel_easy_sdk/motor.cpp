@@ -14,8 +14,8 @@
 //
 // Author: Hyungyu Kim
 
-#include "dynamixel_api/motor.hpp"
-#include "dynamixel_api/connector.hpp"
+#include "dynamixel_easy_sdk/motor.hpp"
+#include "dynamixel_easy_sdk/connector.hpp"
 
 namespace dynamixel
 {
@@ -66,10 +66,10 @@ Result<void, DxlError> Motor::disableTorque()
 Result<void, DxlError> Motor::setGoalPosition(uint32_t position)
 {
   if(torque_ == 0) {
-    return DxlError::API_MOTOR_TORQUE_OFF;
+    return DxlError::EASY_SDK_MOTOR_TORQUE_OFF;
   }
   if(operating_mode_ != static_cast<uint8_t>(OperatingMode::POSITION)) {
-    return DxlError::API_OPERATING_MODE_MISMATCH;
+    return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Position");
   if (!item_result.isSuccess()) {
@@ -77,7 +77,7 @@ Result<void, DxlError> Motor::setGoalPosition(uint32_t position)
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 4) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<void, DxlError> result = connector_->write4ByteData(id_, item.address, position);
   return result;
@@ -86,10 +86,10 @@ Result<void, DxlError> Motor::setGoalPosition(uint32_t position)
 Result<void, DxlError> Motor::setGoalVelocity(uint32_t velocity)
 {
   if(torque_ == 0) {
-    return DxlError::API_MOTOR_TORQUE_OFF;
+    return DxlError::EASY_SDK_MOTOR_TORQUE_OFF;
   }
   if(operating_mode_ != static_cast<uint8_t>(OperatingMode::VELOCITY)) {
-    return DxlError::API_OPERATING_MODE_MISMATCH;
+    return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Velocity");
   if (!item_result.isSuccess()) {
@@ -97,7 +97,7 @@ Result<void, DxlError> Motor::setGoalVelocity(uint32_t velocity)
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 4) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<void, DxlError> result = connector_->write4ByteData(id_, item.address, velocity);
   return result;
@@ -106,10 +106,10 @@ Result<void, DxlError> Motor::setGoalVelocity(uint32_t velocity)
 Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
 {
   if(torque_ == 0) {
-    return DxlError::API_MOTOR_TORQUE_OFF;
+    return DxlError::EASY_SDK_MOTOR_TORQUE_OFF;
   }
   if(operating_mode_ != static_cast<uint8_t>(OperatingMode::CURRENT)) {
-    return DxlError::API_OPERATING_MODE_MISMATCH;
+    return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Current");
   if (!item_result.isSuccess()) {
@@ -117,7 +117,7 @@ Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 2) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, current);
   return result;
@@ -126,10 +126,10 @@ Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
 Result<void, DxlError> Motor::setGoalPWM(int16_t pwm)
 {
   if(torque_ == 0) {
-    return DxlError::API_MOTOR_TORQUE_OFF;
+    return DxlError::EASY_SDK_MOTOR_TORQUE_OFF;
   }
   if(operating_mode_ != static_cast<uint8_t>(OperatingMode::PWM)) {
-    return DxlError::API_OPERATING_MODE_MISMATCH;
+    return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal PWM");
   if (!item_result.isSuccess()) {
@@ -137,7 +137,7 @@ Result<void, DxlError> Motor::setGoalPWM(int16_t pwm)
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 2) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, pwm);
   return result;
@@ -229,7 +229,7 @@ Result<uint32_t, DxlError> Motor::getMaxPositionLimit()
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 4) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<uint32_t, DxlError> result = connector_->read4ByteData(id_, item.address);
   return result;
@@ -243,7 +243,7 @@ Result<uint32_t, DxlError> Motor::getMinPositionLimit()
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 4) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<uint32_t, DxlError> result = connector_->read4ByteData(id_, item.address);
   return result;
@@ -257,7 +257,7 @@ Result<uint32_t, DxlError> Motor::getVelocityLimit()
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 4) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<uint32_t, DxlError> result = connector_->read4ByteData(id_, item.address);
   return result;
@@ -379,7 +379,7 @@ Result<void, DxlError> Motor::setPositionPGain(uint16_t p_gain)
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 2) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, p_gain);
   return result;
@@ -393,7 +393,7 @@ Result<void, DxlError> Motor::setPositionIGain(uint16_t i_gain)
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 2) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, i_gain);
   return result;
@@ -407,7 +407,7 @@ Result<void, DxlError> Motor::setPositionDGain(uint16_t d_gain)
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 2) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, d_gain);
   return result;
@@ -421,7 +421,7 @@ Result<void, DxlError> Motor::setVelocityPGain(uint16_t p_gain)
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 2) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, p_gain);
   return result;
@@ -435,7 +435,7 @@ Result<void, DxlError> Motor::setVelocityIGain(uint16_t i_gain)
   }
   const ControlTableItem & item = item_result.value();
   if (item.size != 2) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   Result<void, DxlError> result = connector_->write2ByteData(id_, item.address, i_gain);
   return result;
@@ -704,7 +704,7 @@ Result<ControlTableItem, DxlError> Motor::getControlTableItem(const std::string 
 {
   auto it = control_table_.find(name);
   if (it == control_table_.end()) {
-    return DxlError::API_FUNCTION_NOT_SUPPORTED;
+    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
   }
   return it->second;
 }

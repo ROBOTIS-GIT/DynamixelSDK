@@ -14,8 +14,8 @@
 //
 // Author: Hyungyu Kim
 
-#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_DYNAMIXEL_ERROR_HPP_
-#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_DYNAMIXEL_ERROR_HPP_
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_DYNAMIXEL_ERROR_HPP_
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_DYNAMIXEL_ERROR_HPP_
 
 #include <variant>
 #include <stdexcept>
@@ -41,13 +41,13 @@ enum class DxlError
   SDK_ERRNUM_DATA_LENGTH = 5,       // Data length error
   SDK_ERRNUM_DATA_LIMIT = 6,        // Data limit error
   SDK_ERRNUM_ACCESS = 7,            // Access error
-  API_FUNCTION_NOT_SUPPORTED = 11,  // API does not support this function
-  API_MOTOR_TORQUE_OFF = 12,        // Motor torque is off
-  API_OPERATING_MODE_MISMATCH = 13, // Operating mode is not appropriate for this function
-  API_ADD_PARAM_FAIL = 21,          // Failed to add parameter
-  API_COMMAND_IS_EMPTY = 22,        // No command to execute
-  API_DUPLICATE_ID = 23,            // Duplicate ID in staged commands
-  API_FAIL_TO_GET_DATA = 24         // Failed to get data from motor
+  EASY_SDK_FUNCTION_NOT_SUPPORTED = 11,  // API does not support this function
+  EASY_SDK_MOTOR_TORQUE_OFF = 12,        // Motor torque is off
+  EASY_SDK_OPERATING_MODE_MISMATCH = 13, // Operating mode is not appropriate for this function
+  EASY_SDK_ADD_PARAM_FAIL = 21,          // Failed to add parameter
+  EASY_SDK_COMMAND_IS_EMPTY = 22,        // No command to execute
+  EASY_SDK_DUPLICATE_ID = 23,            // Duplicate ID in staged commands
+  EASY_SDK_FAIL_TO_GET_DATA = 24         // Failed to get data from motor
 };
 
 template<typename T, typename E>
@@ -142,4 +142,4 @@ public:
 std::string getErrorMessage(DxlError error_code);
 }  // namespace dynamixel
 
-#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_DYNAMIXEL_ERROR_HPP_ */
+#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_DYNAMIXEL_ERROR_HPP_ */

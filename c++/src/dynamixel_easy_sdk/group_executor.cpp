@@ -16,8 +16,8 @@
 
 #include <algorithm>
 
-#include "dynamixel_api/group_executor.hpp"
-#include "dynamixel_api/connector.hpp"
+#include "dynamixel_easy_sdk/group_executor.hpp"
+#include "dynamixel_easy_sdk/connector.hpp"
 
 namespace dynamixel
 {
@@ -55,7 +55,7 @@ void GroupExecutor::addCmd(Result<StagedCommand, DxlError> result)
 Result<void, DxlError> GroupExecutor::executeWrite()
 {
   if (staged_write_command_list_.empty()) {
-    return DxlError::API_COMMAND_IS_EMPTY;
+    return DxlError::EASY_SDK_COMMAND_IS_EMPTY;
   }
   const auto & reference_command = staged_write_command_list_.front();
   bool is_sync = true;
@@ -77,7 +77,7 @@ Result<void, DxlError> GroupExecutor::executeWrite()
   );
 
   if (it != sorted_list.end()) {
-    return DxlError::API_DUPLICATE_ID;
+    return DxlError::EASY_SDK_DUPLICATE_ID;
   }
 
   for (size_t i = 1; i < staged_write_command_list_.size(); ++i) {
@@ -101,7 +101,7 @@ Result<void, DxlError> GroupExecutor::executeWrite()
 Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeRead()
 {
   if (staged_read_command_list_.empty()) {
-    return DxlError::API_COMMAND_IS_EMPTY;
+    return DxlError::EASY_SDK_COMMAND_IS_EMPTY;
   }
   const auto & reference_command = staged_read_command_list_.front();
   bool is_sync = true;
@@ -128,7 +128,7 @@ Result<void, DxlError> GroupExecutor::executeSyncWrite(uint16_t address, uint16_
   GroupSyncWrite group_sync_write(port_handler_, packet_handler_, address, length);
   for (auto & command : staged_write_command_list_) {
     if (!group_sync_write.addParam(command.id, command.data.data())) {
-      return DxlError::API_ADD_PARAM_FAIL;
+      return DxlError::EASY_SDK_ADD_PARAM_FAIL;
     }
   }
   int dxl_comm_result = group_sync_write.txPacket();
@@ -149,7 +149,7 @@ Result<void, DxlError> GroupExecutor::executeBulkWrite()
         command.length,
         command.data.data()))
     {
-      return DxlError::API_ADD_PARAM_FAIL;
+      return DxlError::EASY_SDK_ADD_PARAM_FAIL;
     }
   }
 
@@ -167,7 +167,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeS
   GroupSyncRead group_sync_read(port_handler_, packet_handler_, address, length);
   for (const auto & command : staged_read_command_list_) {
     if (!group_sync_read.addParam(command.id)) {
-      return DxlError::API_ADD_PARAM_FAIL;
+      return DxlError::EASY_SDK_ADD_PARAM_FAIL;
     }
   }
 
@@ -178,7 +178,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeS
   std::vector<Result<int32_t, DxlError>> result_list;
   for (const auto & command : staged_read_command_list_) {
     if (!group_sync_read.isAvailable(command.id, address, length)) {
-      result_list.push_back(DxlError::API_FAIL_TO_GET_DATA);
+      result_list.push_back(DxlError::EASY_SDK_FAIL_TO_GET_DATA);
       continue;
     }
     int32_t value = group_sync_read.getData(command.id, address, length);
@@ -194,7 +194,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeB
 
   for (const auto & command : staged_read_command_list_) {
     if (!group_bulk_read_.addParam(command.id, command.address, command.length)) {
-      return DxlError::API_ADD_PARAM_FAIL;
+      return DxlError::EASY_SDK_ADD_PARAM_FAIL;
     }
   }
 
@@ -206,7 +206,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeB
   std::vector<Result<int32_t, DxlError>> result_list;
   for (const auto & command : staged_read_command_list_) {
     if (!group_bulk_read_.isAvailable(command.id, command.address, command.length)) {
-      result_list.push_back(DxlError::API_FAIL_TO_GET_DATA);
+      result_list.push_back(DxlError::EASY_SDK_FAIL_TO_GET_DATA);
       continue;
     }
 

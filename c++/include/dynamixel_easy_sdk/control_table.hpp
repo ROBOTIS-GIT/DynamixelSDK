@@ -14,8 +14,8 @@
 //
 // Author: Hyungyu Kim
 
-#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_CONTROL_TABLE_HPP_
-#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_CONTROL_TABLE_HPP_
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_CONTROL_TABLE_HPP_
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_CONTROL_TABLE_HPP_
 
 #include <cstdint>
 #include <fstream>
@@ -24,7 +24,7 @@
 #include <sstream>
 #include <string>
 
-#include "dynamixel_api/dynamixel_error.hpp"
+#include "dynamixel_easy_sdk/dynamixel_error.hpp"
 
 namespace dynamixel
 {
@@ -42,4 +42,4 @@ public:
   static const std::map<std::string, ControlTableItem> & getControlTable(uint16_t model_number);
 };
 }  // namespace dynamixel
-#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_CONTROL_TABLE_HPP_ */
+#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_CONTROL_TABLE_HPP_ */

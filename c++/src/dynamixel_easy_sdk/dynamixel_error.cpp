@@ -14,7 +14,7 @@
 //
 // Author: Hyungyu Kim
 
-#include "dynamixel_api/dynamixel_error.hpp"
+#include "dynamixel_easy_sdk/dynamixel_error.hpp"
 
 namespace dynamixel
 {
@@ -53,13 +53,13 @@ std::string getErrorMessage(DxlError error_code)
       return "[RxPacketError] The data value exceeds the limit value!";
     case DxlError::SDK_ERRNUM_ACCESS:
       return "[RxPacketError] Writing or Reading is not available to target address!";
-    case DxlError::API_FUNCTION_NOT_SUPPORTED:
+    case DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED:
       return "[APIError] API function is not supported on this model!";
-    case DxlError::API_ADD_PARAM_FAIL:
+    case DxlError::EASY_SDK_ADD_PARAM_FAIL:
       return "[APIError] Failed to add parameter!";
-    case DxlError::API_COMMAND_IS_EMPTY:
+    case DxlError::EASY_SDK_COMMAND_IS_EMPTY:
       return "[APIError] No command to execute!";
-    case DxlError::API_DUPLICATE_ID:
+    case DxlError::EASY_SDK_DUPLICATE_ID:
       return "[APIError] Duplicate ID found in staged commands.";
     default: return "Unknown Error";
   }

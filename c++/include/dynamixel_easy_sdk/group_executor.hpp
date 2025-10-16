@@ -14,8 +14,8 @@
 //
 // Author: Hyungyu Kim
 
-#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_GROUP_EXECUTOR_HPP_
-#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_GROUP_EXECUTOR_HPP_
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_GROUP_EXECUTOR_HPP_
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_GROUP_EXECUTOR_HPP_
 
 #include <cstdint>
 #include <map>
@@ -25,9 +25,9 @@
 #include <vector>
 
 #include "dynamixel_sdk/dynamixel_sdk.h"
-#include "dynamixel_api/control_table.hpp"
-#include "dynamixel_api/dynamixel_error.hpp"
-#include "dynamixel_api/staged_command.hpp"
+#include "dynamixel_easy_sdk/control_table.hpp"
+#include "dynamixel_easy_sdk/dynamixel_error.hpp"
+#include "dynamixel_easy_sdk/staged_command.hpp"
 
 namespace dynamixel
 {
@@ -68,4 +68,4 @@ private:
 
 }  // namespace dynamixel
 
-#endif  // DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_API_GROUP_EXECUTOR_HPP_
+#endif  // DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_GROUP_EXECUTOR_HPP_

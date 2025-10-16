@@ -14,7 +14,7 @@
 //
 // Author: Hyungyu Kim
 
-#include "dynamixel_api/connector.hpp"
+#include "dynamixel_easy_sdk/connector.hpp"
 
 namespace dynamixel
 {
