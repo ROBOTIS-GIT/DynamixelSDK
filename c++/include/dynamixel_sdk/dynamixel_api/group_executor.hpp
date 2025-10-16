@@ -43,6 +43,10 @@ public:
   void addCmd(Result<StagedCommand, DxlError> result);
   Result<void, DxlError> executeWrite();
   Result<std::vector<Result<int32_t, DxlError>>, DxlError> executeRead();
+  std::vector<StagedCommand> getStagedWriteCommands() const { return staged_write_command_list_; }
+  std::vector<StagedCommand> getStagedReadCommands() const { return staged_read_command_list_; }
+  void clearStagedWriteCommands() { staged_write_command_list_.clear(); }
+  void clearStagedReadCommands() { staged_read_command_list_.clear(); }
 
 private:
   Result<void, DxlError> executeSyncWrite(uint16_t address, uint16_t length);

@@ -25,7 +25,19 @@ Motor::Motor(uint8_t id, uint16_t model_number, Connector * connector)
   model_name_(ControlTable::getModelName(model_number)),
   connector_(connector),
   control_table_(ControlTable::getControlTable(model_number))
-{}
+{
+  Result<uint8_t, DxlError> torque_result = this->isTorqueOn();
+  if (!torque_result.isSuccess()) {
+    throw DxlRuntimeError("Failed to get torque status: " + getErrorMessage(torque_result.error()));
+  }
+  torque_ = torque_result.value();
+
+  Result<uint8_t, DxlError> mode_result = this->getOperatingMode();
+  if (!mode_result.isSuccess()) {
+    throw DxlRuntimeError("Failed to get operating mode: " + getErrorMessage(mode_result.error()));
+  }
+  operating_mode_ = mode_result.value();
+}
 
 Motor::~Motor() {}
 
@@ -53,6 +65,12 @@ Result<void, DxlError> Motor::disableTorque()
 
 Result<void, DxlError> Motor::setGoalPosition(uint32_t position)
 {
+  if(torque_ == 0) {
+    return DxlError::API_MOTOR_TORQUE_OFF;
+  }
+  if(operating_mode_ != static_cast<uint8_t>(OperatingMode::POSITION)) {
+    return DxlError::API_OPERATING_MODE_MISMATCH;
+  }
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Position");
   if (!item_result.isSuccess()) {
     return item_result.error();
@@ -67,6 +85,12 @@ Result<void, DxlError> Motor::setGoalPosition(uint32_t position)
 
 Result<void, DxlError> Motor::setGoalVelocity(uint32_t velocity)
 {
+  if(torque_ == 0) {
+    return DxlError::API_MOTOR_TORQUE_OFF;
+  }
+  if(operating_mode_ != static_cast<uint8_t>(OperatingMode::VELOCITY)) {
+    return DxlError::API_OPERATING_MODE_MISMATCH;
+  }
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Velocity");
   if (!item_result.isSuccess()) {
     return item_result.error();
@@ -81,6 +105,12 @@ Result<void, DxlError> Motor::setGoalVelocity(uint32_t velocity)
 
 Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
 {
+  if(torque_ == 0) {
+    return DxlError::API_MOTOR_TORQUE_OFF;
+  }
+  if(operating_mode_ != static_cast<uint8_t>(OperatingMode::CURRENT)) {
+    return DxlError::API_OPERATING_MODE_MISMATCH;
+  }
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Current");
   if (!item_result.isSuccess()) {
     return item_result.error();
@@ -95,6 +125,12 @@ Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
 
 Result<void, DxlError> Motor::setGoalPWM(int16_t pwm)
 {
+  if(torque_ == 0) {
+    return DxlError::API_MOTOR_TORQUE_OFF;
+  }
+  if(operating_mode_ != static_cast<uint8_t>(OperatingMode::PWM)) {
+    return DxlError::API_OPERATING_MODE_MISMATCH;
+  }
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal PWM");
   if (!item_result.isSuccess()) {
     return item_result.error();
@@ -246,6 +282,17 @@ Result<uint16_t, DxlError> Motor::getPWMLimit()
   }
   const ControlTableItem & item = item_result.value();
   Result<uint16_t, DxlError> result = connector_->read2ByteData(id_, item.address);
+  return result;
+}
+
+Result<uint8_t, DxlError> Motor::getOperatingMode()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Operating Mode");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  const ControlTableItem & item = item_result.value();
+  Result<uint8_t, DxlError> result = connector_->read1ByteData(id_, item.address);
   return result;
 }
 

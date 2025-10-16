@@ -36,9 +36,11 @@ class Motor
 public:
   enum class OperatingMode
   {
-    POSITION = 3,
+    CURRENT = 0,
     VELOCITY = 1,
-    CURRENT = 0
+    POSITION = 3,
+    EXTENDED_POSITION = 4,
+    PWM = 16
   };
 
   enum class ProfileConfiguration
@@ -76,6 +78,7 @@ public:
   Result<uint32_t, DxlError> getVelocityLimit();
   Result<uint16_t, DxlError> getCurrentLimit();
   Result<uint16_t, DxlError> getPWMLimit();
+  Result<uint8_t, DxlError> getOperatingMode();
 
   Result<void, DxlError> changeID(uint8_t new_id);
   Result<void, DxlError> setOperatingMode(OperatingMode mode);
@@ -119,6 +122,8 @@ private:
   uint8_t id_;
   uint16_t model_number_;
   std::string model_name_;
+  uint8_t torque_;
+  uint8_t operating_mode_;
 
   Connector * connector_;
   const std::map<std::string, ControlTableItem> & control_table_;

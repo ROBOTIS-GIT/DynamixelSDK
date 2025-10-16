@@ -95,8 +95,6 @@ Result<void, DxlError> GroupExecutor::executeWrite()
   } else {
     result = executeBulkWrite();
   }
-
-  staged_write_command_list_.clear();
   return result;
 }
 
@@ -122,10 +120,8 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeR
   } else {
     result = executeBulkRead();
   }
-  staged_read_command_list_.clear();
   return result;
 }
-
 
 Result<void, DxlError> GroupExecutor::executeSyncWrite(uint16_t address, uint16_t length)
 {
