@@ -32,7 +32,7 @@ std::string getErrorMessage(DxlError error_code)
     case DxlError::SDK_COMM_TX_ERROR:
       return "[TxRxResult] Incorrect instruction packet!";
     case DxlError::SDK_COMM_RX_WAITING:
-      return "[TxRxResult] Now recieving status packet!";
+      return "[TxRxResult] Now receiving status packet!";
     case DxlError::SDK_COMM_RX_TIMEOUT:
       return "[TxRxResult] There is no status packet!";
     case DxlError::SDK_COMM_RX_CORRUPT:
@@ -55,12 +55,18 @@ std::string getErrorMessage(DxlError error_code)
       return "[RxPacketError] Writing or Reading is not available to target address!";
     case DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED:
       return "[EasySDKError] Easy SDK function is not supported on this model!";
+    case DxlError::EASY_SDK_MOTOR_TORQUE_OFF:
+      return "[EasySDKError] Motor torque is off!";
+    case DxlError::EASY_SDK_OPERATING_MODE_MISMATCH:
+      return "[EasySDKError] Operating mode is not appropriate for this function!";
     case DxlError::EASY_SDK_ADD_PARAM_FAIL:
       return "[EasySDKError] Failed to add parameter!";
     case DxlError::EASY_SDK_COMMAND_IS_EMPTY:
       return "[EasySDKError] No command to execute!";
     case DxlError::EASY_SDK_DUPLICATE_ID:
       return "[EasySDKError] Duplicate ID found in staged commands.";
+    case DxlError::EASY_SDK_FAIL_TO_GET_DATA:
+      return "[EasySDKError] Failed to get data from motor.";
     default: return "Unknown Error";
   }
 }
