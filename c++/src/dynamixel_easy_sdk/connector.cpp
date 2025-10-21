@@ -16,12 +16,14 @@
 
 #include "dynamixel_easy_sdk/connector.hpp"
 
+static constexpr float PROTOCOL_VERSION = 2.0f;
+
 namespace dynamixel
 {
 Connector::Connector(const std::string & port_name, int baud_rate)
 {
   port_handler_ = std::unique_ptr<PortHandler>(PortHandler::getPortHandler(port_name.c_str()));
-  packet_handler_ = PacketHandler::getPacketHandler(2.0);
+  packet_handler_ = PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
   if (!port_handler_->openPort()) {
     throw DxlRuntimeError("Failed to open the port!");

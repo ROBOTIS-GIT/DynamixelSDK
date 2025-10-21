@@ -38,7 +38,7 @@ std::string getErrorMessage(DxlError error_code)
     case DxlError::SDK_COMM_RX_CORRUPT:
       return "[TxRxResult] Incorrect status packet!";
     case DxlError::SDK_COMM_NOT_AVAILABLE:
-      return "[TxRxResult] Protocol does not support This function!";
+      return "[TxRxResult] Protocol does not support this function!";
     case DxlError::SDK_ERRNUM_RESULT_FAIL:
       return "[RxPacketError] Failed to process the instruction packet!";
     case DxlError::SDK_ERRNUM_INSTRUCTION:
@@ -54,13 +54,13 @@ std::string getErrorMessage(DxlError error_code)
     case DxlError::SDK_ERRNUM_ACCESS:
       return "[RxPacketError] Writing or Reading is not available to target address!";
     case DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED:
-      return "[APIError] API function is not supported on this model!";
+      return "[EasySDKError] Easy SDK function is not supported on this model!";
     case DxlError::EASY_SDK_ADD_PARAM_FAIL:
-      return "[APIError] Failed to add parameter!";
+      return "[EasySDKError] Failed to add parameter!";
     case DxlError::EASY_SDK_COMMAND_IS_EMPTY:
-      return "[APIError] No command to execute!";
+      return "[EasySDKError] No command to execute!";
     case DxlError::EASY_SDK_DUPLICATE_ID:
-      return "[APIError] Duplicate ID found in staged commands.";
+      return "[EasySDKError] Duplicate ID found in staged commands.";
     default: return "Unknown Error";
   }
 }
