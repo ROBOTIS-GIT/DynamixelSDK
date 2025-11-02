@@ -35,10 +35,12 @@ SYMLINK     = ln -s
 MKDIR       = mkdir
 CC          = gcc
 CX          = g++
-CCFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) $(FORMAT) -fPIC -g
-CXFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) $(FORMAT) -fPIC -g
+CONTROL_TABLE_PATH_FLAG = -DCONTROL_TABLE_PATH=\"$(INSTALL_ROOT)/share/dynamixel_sdk/control_table\"
+CCFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) $(FORMAT) -fPIC -g $(CONTROL_TABLE_PATH_FLAG)
+CXFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) $(FORMAT) -fPIC -g $(CONTROL_TABLE_PATH_FLAG)
 FORMAT     = -m64
 INCLUDES    += -I$(DIR_DXL)/include/dynamixel_sdk
+INCLUDES    += -I$(DIR_DXL)/include
 
 #---------------------------------------------------------------------
 # Required external libraries
@@ -60,6 +62,11 @@ SOURCES  = src/dynamixel_sdk/group_bulk_read.cpp \
            src/dynamixel_sdk/protocol1_packet_handler.cpp \
            src/dynamixel_sdk/protocol2_packet_handler.cpp \
            src/dynamixel_sdk/port_handler_linux.cpp \
+           src/dynamixel_easy_sdk/connector.cpp \
+           src/dynamixel_easy_sdk/control_table.cpp \
+           src/dynamixel_easy_sdk/motor.cpp \
+           src/dynamixel_easy_sdk/dynamixel_error.cpp \
+           src/dynamixel_easy_sdk/group_executor.cpp
 
 
 OBJECTS=$(addsuffix .o,$(addprefix $(DIR_OBJS)/,$(basename $(notdir $(SOURCES)))))
@@ -89,6 +96,13 @@ install: $(TARGET)
 	@$(CHK_DIR_EXISTS) $(INSTALL_ROOT)/include/dynamixel_sdk || $(MKDIR) $(INSTALL_ROOT)/include/dynamixel_sdk
 	$(CP_ALL) $(DIR_DXL)/include/dynamixel_sdk/* $(INSTALL_ROOT)/include/dynamixel_sdk
 
+	@$(CHK_DIR_EXISTS) $(INSTALL_ROOT)/include/dynamixel_easy_sdk || $(MKDIR) $(INSTALL_ROOT)/include/dynamixel_easy_sdk
+	$(CP_ALL) $(DIR_DXL)/include/dynamixel_easy_sdk/* $(INSTALL_ROOT)/include/dynamixel_easy_sdk
+
+    # copy the control_table directory into the share directory
+	@$(CHK_DIR_EXISTS) $(INSTALL_ROOT)/share/dynamixel_sdk || $(MKDIR) -p $(INSTALL_ROOT)/share/dynamixel_sdk
+	$(CP_ALL) $(DIR_DXL)/../control_table $(INSTALL_ROOT)/share/dynamixel_sdk/
+
 	$(LD_CONFIG)
 
 uninstall:
@@ -99,6 +113,8 @@ uninstall:
 
 	$(RM) $(INSTALL_ROOT)/include/dynamixel_sdk/dynamixel_sdk.h
 	$(RM_ALL) $(INSTALL_ROOT)/include/dynamixel_sdk/*
+	$(RM_ALL) $(INSTALL_ROOT)/include/dynamixel_easy_sdk/*
+	$(RM_ALL) $(INSTALL_ROOT)/share/dynamixel_sdk/control_table
 
 reinstall: uninstall install
 
@@ -117,6 +133,9 @@ $(DIR_OBJS)/%.o: $(DIR_DXL)/src/dynamixel_sdk/%.c
 	$(CC) $(CCFLAGS) -c $? -o $@
 
 $(DIR_OBJS)/%.o: $(DIR_DXL)/src/dynamixel_sdk/%.cpp
+	$(CX) $(CXFLAGS) -c $? -o $@
+
+$(DIR_OBJS)/%.o: $(DIR_DXL)/src/dynamixel_easy_sdk/%.cpp
 	$(CX) $(CXFLAGS) -c $? -o $@
 
 #---------------------------------------------------------------------
