@@ -122,8 +122,8 @@ private:
   uint8_t id_;
   uint16_t model_number_;
   std::string model_name_;
-  uint8_t torque_;
-  uint8_t operating_mode_;
+  uint8_t torque_status_;
+  OperatingMode operating_mode_status_;
 
   Connector * connector_;
   const std::map<std::string, ControlTableItem> & control_table_;
