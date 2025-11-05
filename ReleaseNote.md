@@ -1,5 +1,10 @@
 # Dynamixel SDK Release Notes
 
+4.0.1 (2025-11-05)
+------------------
+* Fix error that cache status is not updated
+* Contributors: Hyungyu Kim
+
 4.0.0 (2025-10-14)
 ------------------
 * Update Dynamixel Easy SDK in C++ Linux 64bit
