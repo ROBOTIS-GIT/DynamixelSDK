@@ -42,7 +42,7 @@ enum class DxlError
   SDK_ERRNUM_DATA_LIMIT = 6,        // Data limit error
   SDK_ERRNUM_ACCESS = 7,            // Access error
   EASY_SDK_FUNCTION_NOT_SUPPORTED = 11,  // API does not support this function
-  EASY_SDK_MOTOR_TORQUE_OFF = 12,        // Motor torque is off
+  EASY_SDK_TORQUE_STATUS_MISMATCH = 12,        // Motor torque is off
   EASY_SDK_OPERATING_MODE_MISMATCH = 13, // Operating mode is not appropriate for this function
   EASY_SDK_ADD_PARAM_FAIL = 21,          // Failed to add parameter
   EASY_SDK_COMMAND_IS_EMPTY = 22,        // No command to execute

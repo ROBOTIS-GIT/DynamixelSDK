@@ -75,7 +75,7 @@ def getErrorMessage(error_code):
         DxlErrorCode.SDK_ERRNUM_DATA_LIMIT: "[RxPacketError] The data value exceeds the limit value!",
         DxlErrorCode.SDK_ERRNUM_ACCESS: "[RxPacketError] Writing or Reading is not available to target address!",
         DxlErrorCode.EASY_SDK_FUNCTION_NOT_SUPPORTED: "[EasySDKUsageError] Function not supported",
-        DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH: "[EasySDKUsageError] Motor torque mismatch",
+        DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH: "[EasySDKUsageError] Motor torque status mismatch",
         DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH: "[EasySDKUsageError] Operating mode mismatch",
         DxlErrorCode.EASY_SDK_ADD_PARAM_FAIL: "[EasySDKUsageError] Failed to add parameter",
         DxlErrorCode.EASY_SDK_COMMAND_IS_EMPTY: "[EasySDKUsageError] No command to execute",

@@ -72,6 +72,34 @@ std::unique_ptr<GroupExecutor> Connector::createGroupExecutor()
   return std::make_unique<GroupExecutor>(this);
 }
 
+// Result<uint32_t, DxlError> Connector::readData(uint8_t id, uint16_t address, uint8_t size)
+// {
+//   switch (size) {
+//     case 1: {
+//       Result<uint8_t, DxlError> result = read1ByteData(id, address);
+//       if (!result.isSuccess()) {
+//         return result.error();
+//       }
+//       return static_cast<uint32_t>(result.value());
+//     }
+//     case 2: {
+//       Result<uint16_t, DxlError> result = read2ByteData(id, address);
+//       if (!result.isSuccess()) {
+//         return result.error();
+//       }
+//       return static_cast<uint32_t>(result.value());
+//     }
+//     case 4: {
+//       Result<uint32_t, DxlError> result = read4ByteData(id, address);
+//       if (!result.isSuccess()) {
+//         return result.error();
+//       }
+//       return result.value();
+//     }
+//   }
+//   return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
+// }
+
 Result<uint8_t, DxlError> Connector::read1ByteData(uint8_t id, uint16_t address)
 {
   uint8_t dxl_error = 0;
@@ -125,6 +153,19 @@ Result<uint32_t, DxlError> Connector::read4ByteData(uint8_t id, uint16_t address
   }
   return data;
 }
+
+// Result<void, DxlError> Connector::writeData(uint8_t id, uint16_t address, uint8_t size, uint32_t value)
+// {
+//   switch (size) {
+//     case 1:
+//       return write1ByteData(id, address, static_cast<uint8_t>(value));
+//     case 2:
+//       return write2ByteData(id, address, static_cast<uint16_t>(value));
+//     case 4:
+//       return write4ByteData(id, address, value);
+//   }
+//   return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
+// }
 
 Result<void, DxlError> Connector::write1ByteData(uint8_t id, uint16_t address, uint8_t value)
 {

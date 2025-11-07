@@ -78,7 +78,7 @@ public:
   Result<uint32_t, DxlError> getVelocityLimit();
   Result<uint16_t, DxlError> getCurrentLimit();
   Result<uint16_t, DxlError> getPWMLimit();
-  Result<uint8_t, DxlError> getOperatingMode();
+  Result<OperatingMode, DxlError> getOperatingMode();
 
   Result<void, DxlError> changeID(uint8_t new_id);
   Result<void, DxlError> setOperatingMode(OperatingMode mode);
@@ -119,6 +119,9 @@ public:
 
 private:
   Result<ControlTableItem, DxlError> getControlTableItem(const std::string & item_name);
+  Result<void, DxlError> writeData(uint8_t id, const std::string & item_name, uint32_t value);
+  Result<uint32_t, DxlError> readData(uint8_t id, const std::string & item_name);
+
   uint8_t id_;
   uint16_t model_number_;
   std::string model_name_;
