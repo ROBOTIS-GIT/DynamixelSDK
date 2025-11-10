@@ -171,7 +171,14 @@ Result<int16_t, DxlError> Motor::getPresentCurrent()
   return static_cast<int16_t>(result.value());
 }
 
-Result<int16_t, DxlError> getPresentPWM();
+Result<int16_t, DxlError> Motor::getPresentPWM()
+{
+  Result<uint32_t, DxlError> result = readData(id_, "Present PWM");
+  if (!result.isSuccess()) {
+    return result.error();
+  }
+  return static_cast<int16_t>(result.value());
+}
 
 Result<uint32_t, DxlError> Motor::getMaxPositionLimit()
 {
