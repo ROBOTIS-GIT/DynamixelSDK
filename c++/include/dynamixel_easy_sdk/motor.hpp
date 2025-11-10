@@ -73,6 +73,8 @@ public:
   Result<uint8_t, DxlError> isLEDOn();
   Result<int32_t, DxlError> getPresentPosition();
   Result<int32_t, DxlError> getPresentVelocity();
+  Result<int16_t, DxlError> getPresentCurrent();
+  Result<int16_t, DxlError> getPresentPWM();
   Result<uint32_t, DxlError> getMaxPositionLimit();
   Result<uint32_t, DxlError> getMinPositionLimit();
   Result<uint32_t, DxlError> getVelocityLimit();
@@ -105,6 +107,8 @@ public:
   Result<StagedCommand, DxlError> stageDisableTorque();
   Result<StagedCommand, DxlError> stageSetGoalPosition(uint32_t position);
   Result<StagedCommand, DxlError> stageSetGoalVelocity(uint32_t velocity);
+  Result<StagedCommand, DxlError> stageSetGoalCurrent(int16_t current);
+  Result<StagedCommand, DxlError> stageSetGoalPWM(int16_t pwm);
   Result<StagedCommand, DxlError> stageLEDOn();
   Result<StagedCommand, DxlError> stageLEDOff();
 
@@ -112,6 +116,8 @@ public:
   Result<StagedCommand, DxlError> stageIsLEDOn();
   Result<StagedCommand, DxlError> stageGetPresentPosition();
   Result<StagedCommand, DxlError> stageGetPresentVelocity();
+  Result<StagedCommand, DxlError> stageGetPresentCurrent();
+  Result<StagedCommand, DxlError> stageGetPresentPWM();
 
   uint8_t getID() const {return id_;}
   uint16_t getModelNumber() const {return model_number_;}

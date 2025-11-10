@@ -162,6 +162,17 @@ Result<int32_t, DxlError> Motor::getPresentVelocity()
   return static_cast<int32_t>(result.value());
 }
 
+Result<int16_t, DxlError> Motor::getPresentCurrent()
+{
+  Result<uint32_t, DxlError> result = readData(id_, "Present Current");
+  if (!result.isSuccess()) {
+    return result.error();
+  }
+  return static_cast<int16_t>(result.value());
+}
+
+Result<int16_t, DxlError> getPresentPWM();
+
 Result<uint32_t, DxlError> Motor::getMaxPositionLimit()
 {
   Result<uint32_t, DxlError> result = readData(id_, "Max Position Limit");
@@ -486,6 +497,46 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalVelocity(uint32_t velocity)
   return cmd;
 }
 
+Result<StagedCommand, DxlError> Motor::stageSetGoalCurrent(int16_t current)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Current");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  std::vector<uint8_t> data;
+  for (size_t i = 0; i < item_result.value().size; ++i) {
+    data.push_back((current >> (8 * i)) & 0xFF);
+  }
+  StagedCommand cmd(
+    CommandType::WRITE,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    data
+  );
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageSetGoalPWM(int16_t pwm)
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal PWM");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  std::vector<uint8_t> data;
+  for (size_t i = 0; i < item_result.value().size; ++i) {
+    data.push_back((pwm >> (8 * i)) & 0xFF);
+  }
+  StagedCommand cmd(
+    CommandType::WRITE,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    data
+  );
+  return cmd;
+}
+
 Result<StagedCommand, DxlError> Motor::stageLEDOn()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("LED");
@@ -569,6 +620,38 @@ Result<StagedCommand, DxlError> Motor::stageGetPresentPosition()
 Result<StagedCommand, DxlError> Motor::stageGetPresentVelocity()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Present Velocity");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  StagedCommand cmd(
+    CommandType::READ,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    {}
+  );
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageGetPresentCurrent()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Present Current");
+  if (!item_result.isSuccess()) {
+    return item_result.error();
+  }
+  StagedCommand cmd(
+    CommandType::READ,
+    id_,
+    item_result.value().address,
+    item_result.value().size,
+    {}
+  );
+  return cmd;
+}
+
+Result<StagedCommand, DxlError> Motor::stageGetPresentPWM()
+{
+  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Present PWM");
   if (!item_result.isSuccess()) {
     return item_result.error();
   }

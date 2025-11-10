@@ -78,7 +78,7 @@ class Motor:
         item = self._getControlTableItem("Goal Current")
         self._writeData(self.id, item.address, item.size, current)
 
-    def setGoalPwm(self, pwm: int) -> None:
+    def setGoalPWM(self, pwm: int) -> None:
         self._checkTorqueStatus(1)
         self._checkOperatingModeStatus(OperatingMode.PWM)
         item = self._getControlTableItem("Goal PWM")
@@ -116,6 +116,16 @@ class Motor:
         unsigned_value = self._readData(self.id, item.address, item.size)
         return self._toSignedInt(unsigned_value, item.size)
 
+    def getPresentCurrent(self) -> int:
+        item = self._getControlTableItem("Present Current")
+        unsigned_value = self._readData(self.id, item.address, item.size)
+        return self._toSignedInt(unsigned_value, item.size)
+
+    def getPresentPWM(self) -> int:
+        item = self._getControlTableItem("Present PWM")
+        unsigned_value = self._readData(self.id, item.address, item.size)
+        return self._toSignedInt(unsigned_value, item.size)
+
     def getMaxPositionLimit(self) -> int:
         item = self._getControlTableItem("Max Position Limit")
         value = self._readData(self.id, item.address, item.size)
@@ -136,7 +146,7 @@ class Motor:
         value = self._readData(self.id, item.address, item.size)
         return value
 
-    def getPwmLimit(self) -> int:
+    def getPWMLimit(self) -> int:
         item = self._getControlTableItem("PWM Limit")
         value = self._readData(self.id, item.address, item.size)
         return value
@@ -193,11 +203,11 @@ class Motor:
 
     def stageEnableTorque(self) -> StagedCommand:
         item = self._getControlTableItem("Torque Enable")
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, 1)
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [1])
 
     def stageDisableTorque(self) -> StagedCommand:
         item = self._getControlTableItem("Torque Enable")
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, 0)
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [0])
 
     def stageSetGoalPosition(self, position: int) -> StagedCommand:
         item = self._getControlTableItem("Goal Position")
@@ -213,13 +223,27 @@ class Motor:
             data.append((velocity >> (8 * i)) & 0xFF)
         return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data)
 
+    def stageSetGoalCurrent(self, current: int) -> StagedCommand:
+        item = self._getControlTableItem("Goal Current")
+        data = []
+        for i in range(item.size):
+            data.append((current >> (8 * i)) & 0xFF)
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data)
+
+    def stageSetGoalPWM(self, pwm: int) -> StagedCommand:
+        item = self._getControlTableItem("Goal PWM")
+        data = []
+        for i in range(item.size):
+            data.append((pwm >> (8 * i)) & 0xFF)
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data)
+
     def stageLEDOn(self) -> StagedCommand:
         item = self._getControlTableItem("LED")
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, 1)
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [1])
 
     def stageLEDOff(self) -> StagedCommand:
         item = self._getControlTableItem("LED")
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, 0)
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [0])
 
     def stageIsTorqueOn(self) -> StagedCommand:
         item = self._getControlTableItem("Torque Enable")
@@ -235,6 +259,14 @@ class Motor:
 
     def stageGetPresentVelocity(self) -> StagedCommand:
         item = self._getControlTableItem("Present Velocity")
+        return StagedCommand(CommandType.READ, self.id, item.address, item.size, [])
+
+    def stageGetPresentCurrent(self) -> StagedCommand:
+        item = self._getControlTableItem("Present Current")
+        return StagedCommand(CommandType.READ, self.id, item.address, item.size, [])
+
+    def stageGetPresentPWM(self) -> StagedCommand:
+        item = self._getControlTableItem("Present PWM")
         return StagedCommand(CommandType.READ, self.id, item.address, item.size, [])
 
     def _getControlTableItem(self, name):

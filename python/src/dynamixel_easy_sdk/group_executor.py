@@ -42,7 +42,7 @@ class StagedCommand:
 class GroupExecutor:
     def __init__(self, connector):
         self.connector = connector
-        self.port_handler = connector._portHandler
+        self.port_handler = connector._port_handler
         self.packet_handler = connector._packet_handler
         self.group_bulk_write = GroupBulkWrite(self.port_handler, self.packet_handler)
         self.group_bulk_read = GroupBulkRead(self.port_handler, self.packet_handler)
@@ -55,10 +55,10 @@ class GroupExecutor:
         elif command.command_type == CommandType.READ:
             self._staged_read_commands.append(command)
 
-    def clearStagedWrite(self) -> None:
+    def clearStagedWriteCommands(self) -> None:
         self._staged_write_commands.clear()
 
-    def clearStagedRead(self) -> None:
+    def clearStagedReadCommands(self) -> None:
         self._staged_read_commands.clear()
 
     def executeWrite(self) -> None:
@@ -77,9 +77,9 @@ class GroupExecutor:
         )
 
         if is_sync:
-            self._execute_sync_write(ref.address, ref.length)
+            self._executeSyncWrite(ref.address, ref.length)
         else:
-            self._execute_bulk_write()
+            self._executeBulkWrite()
 
     def _executeSyncWrite(self, address: int, length: int) -> None:
         group = GroupSyncWrite(self.port_handler, self.packet_handler, address, length)
@@ -91,7 +91,7 @@ class GroupExecutor:
         if dxl_comm_result != DxlErrorCode.SDK_COMM_SUCCESS:
             raise DxlRuntimeError(dxl_comm_result)
 
-    def _execute_bulk_write(self) -> None:
+    def _executeBulkWrite(self) -> None:
         self.group_bulk_write.clearParam()
         for cmd in self._staged_write_commands:
             if not self.group_bulk_write.addParam(cmd.id, cmd.address, cmd.length, bytes(cmd.data)):
@@ -104,7 +104,7 @@ class GroupExecutor:
     # -----------------------------
     # Execute Read
     # -----------------------------
-    def execute_read(self) -> List[Optional[int]]:
+    def executeRead(self) -> List[Optional[int]]:
         if not self._staged_read_commands:
             raise DxlRuntimeError(DxlErrorCode.EASY_SDK_COMMAND_IS_EMPTY)
 
@@ -120,11 +120,11 @@ class GroupExecutor:
         )
 
         if is_sync:
-            return self._execute_sync_read(ref.address, ref.length)
+            return self._executeSyncRead(ref.address, ref.length)
         else:
-            return self._execute_bulk_read()
+            return self._executeBulkRead()
 
-    def _execute_sync_read(self, address: int, length: int) -> List[Optional[int]]:
+    def _executeSyncRead(self, address: int, length: int) -> List[Optional[int]]:
         group = GroupSyncRead(self.port_handler, self.packet_handler, address, length)
         for cmd in self._staged_read_commands:
             if not group.addParam(cmd.id):
@@ -143,7 +143,7 @@ class GroupExecutor:
             results.append(value)
         return results
 
-    def _execute_bulk_read(self) -> List[Optional[int]]:
+    def _executeBulkRead(self) -> List[Optional[int]]:
         self.group_bulk_read.clearParam()
         for cmd in self._staged_read_commands:
             if not self.group_bulk_read.addParam(cmd.id, cmd.address, cmd.length):
