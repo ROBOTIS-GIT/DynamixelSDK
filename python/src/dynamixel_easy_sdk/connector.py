@@ -22,7 +22,8 @@
 from typing import List
 from dynamixel_easy_sdk.dynamixel_error import *
 from dynamixel_easy_sdk.motor import Motor
-from dynamixel_sdk import PortHandler, PacketHandler #GroupExecutor
+from dynamixel_easy_sdk.group_executor import GroupExecutor
+from dynamixel_sdk import PortHandler, PacketHandler
 
 
 class Connector:
@@ -59,30 +60,14 @@ class Connector:
 
         return motors
 
-    # def createGroupExecutor(self):
-    #     return GroupExecutor(self)
+    def createGroupExecutor(self):
+        return GroupExecutor(self)
 
     def _checkError(self, dxl_comm_result, dxl_error):
         if dxl_comm_result != DxlErrorCode.SDK_COMM_SUCCESS:
             raise DxlRuntimeError(DxlErrorCode(dxl_comm_result))
         if dxl_error != DxlErrorCode.SDK_COMM_SUCCESS:
             raise DxlRuntimeError(DxlErrorCode(dxl_error))
-
-    def readData(self, dxl_id: int, address: int, length: int):
-        if length == 1:
-            return self.read1ByteData(dxl_id, address)
-        elif length == 2:
-            return self.read2ByteData(dxl_id, address)
-        elif length == 4:
-            return self.read4ByteData(dxl_id, address)
-
-    def writeData(self, dxl_id: int, address: int, length: int, value: int):
-        if length == 1:
-            return self.write1ByteData(dxl_id, address, value)
-        elif length == 2:
-            return self.write2ByteData(dxl_id, address, value)
-        elif length == 4:
-            return self.write4ByteData(dxl_id, address, value)
 
     def read1ByteData(self, motor_id: int, address: int) -> int:
         value, dxl_comm_result, dxl_error = Connector._packet_handler.read1ByteTxRx(self._port_handler, motor_id, address)

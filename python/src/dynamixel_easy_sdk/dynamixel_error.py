@@ -48,12 +48,12 @@ class DxlErrorCode(IntEnum):
 
 class DxlRuntimeError(Exception):
     def __init__(self, error_code: DxlErrorCode):
-        self.error_code = error_code
-        message = getErrorMessage(self.error_code)
-        super().__init__(message)
-
-    def __init__(self, message: str):
-        self.error_code = None
+        if isinstance(error_code, DxlErrorCode):
+            self.error_code = error_code
+            message = getErrorMessage(error_code)
+        else:
+            self.error_code = None
+            message = str(error_code)
         super().__init__(message)
 
 def getErrorMessage(error_code):
@@ -82,4 +82,5 @@ def getErrorMessage(error_code):
         DxlErrorCode.EASY_SDK_DUPLICATE_ID: "[EasySDKUsageError] Duplicate ID in staged commands",
         DxlErrorCode.EASY_SDK_FAIL_TO_GET_DATA: "[EasySDKUsageError] Failed to get data from motor",
     }
-    return messages.get(error_code, f"Unknown error code: {error_code}")
+    message = messages.get(error_code, "Unknown error code")
+    return f"{error_code.name} ({error_code.value}): {message}"
