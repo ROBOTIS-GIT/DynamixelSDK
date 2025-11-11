@@ -283,26 +283,26 @@ Result<void,DxlError> GroupExecutor::processStatusRequests(StagedCommand & cmd, 
       return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
     }
   } else if (cmd.status_request == StatusRequest::CHECK_CURRENT_MODE) {
-    if (cmd.motor_ptr->getOperatingModeStatus() != Motor::OperatingMode::CURRENT) {
+    if (cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::CURRENT) {
       return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
     }
     if (cmd.motor_ptr->getTorqueStatus() != 1) {
       return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
     }
   } else if (cmd.status_request == StatusRequest::CHECK_VELOCITY_MODE) {
-    if (cmd.motor_ptr->getOperatingModeStatus() != Motor::OperatingMode::VELOCITY) {
+    if (cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::VELOCITY) {
       return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
     }
     if (cmd.motor_ptr->getTorqueStatus() != 1) {
       return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
     }
   } else if (cmd.status_request == StatusRequest::CHECK_POSITION_MODE) {
-    if (cmd.motor_ptr->getOperatingModeStatus() != Motor::OperatingMode::POSITION &&
-        cmd.motor_ptr->getOperatingModeStatus() != Motor::OperatingMode::EXTENDED_POSITION) {
+    if (cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::POSITION &&
+        cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::EXTENDED_POSITION) {
       return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
     }
   } else if (cmd.status_request == StatusRequest::CHECK_PWM_MODE) {
-    if (cmd.motor_ptr->getOperatingModeStatus() != Motor::OperatingMode::PWM) {
+    if (cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::PWM) {
       return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
     }
     if (cmd.motor_ptr->getTorqueStatus() != 1) {

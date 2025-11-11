@@ -14,8 +14,8 @@
 //
 // Author: Hyungyu Kim
 
-#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_STAGED_COMMAND_HPP_
-#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_STAGED_COMMAND_HPP_
+#ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_DATA_TYPES_HPP_
+#define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_DATA_TYPES_HPP_
 
 #include <cstdint>
 #include <vector>
@@ -23,6 +23,34 @@
 namespace dynamixel
 {
 class Motor;
+
+struct ControlTableItem
+{
+  uint16_t address;
+  uint8_t size;
+};
+
+enum class OperatingMode
+{
+  CURRENT = 0,
+  VELOCITY = 1,
+  POSITION = 3,
+  EXTENDED_POSITION = 4,
+  PWM = 16
+};
+
+enum class Direction
+{
+  NORMAL = 0,
+  REVERSE = 1
+};
+
+enum class ProfileConfiguration
+{
+  VELOCITY_BASED = 0,
+  TIME_BASED = 1
+};
+
 enum class CommandType
 {
   WRITE,
@@ -69,4 +97,4 @@ struct StagedCommand
 
 }  // namespace dynamixel
 
-#endif  // DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_STAGED_COMMAND_HPP_
+#endif  // DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_DATA_TYPES_HPP_

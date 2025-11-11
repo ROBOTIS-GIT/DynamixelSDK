@@ -216,7 +216,7 @@ Result<uint16_t, DxlError> Motor::getPWMLimit()
   return static_cast<uint16_t>(result.value());
 }
 
-Result<Motor::OperatingMode, DxlError> Motor::getOperatingMode()
+Result<OperatingMode, DxlError> Motor::getOperatingMode()
 {
   Result<uint32_t, DxlError> result = readData(id_, "Operating Mode");
   if (!result.isSuccess()) {

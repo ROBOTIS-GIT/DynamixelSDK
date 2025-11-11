@@ -25,7 +25,7 @@
 #include "dynamixel_sdk/dynamixel_sdk.h"
 #include "dynamixel_easy_sdk/control_table.hpp"
 #include "dynamixel_easy_sdk/dynamixel_error.hpp"
-#include "dynamixel_easy_sdk/staged_command.hpp"
+#include "dynamixel_easy_sdk/data_types.hpp"
 
 namespace dynamixel
 {
@@ -34,27 +34,6 @@ class Connector;
 class Motor
 {
 public:
-  enum class OperatingMode
-  {
-    CURRENT = 0,
-    VELOCITY = 1,
-    POSITION = 3,
-    EXTENDED_POSITION = 4,
-    PWM = 16
-  };
-
-  enum class ProfileConfiguration
-  {
-    VELOCITY_BASED = 0,
-    TIME_BASED = 1
-  };
-
-  enum class Direction
-  {
-    NORMAL = 0,
-    REVERSE = 1
-  };
-
   Motor(uint8_t id, uint16_t model_number, Connector * connector);
 
   virtual ~Motor();
