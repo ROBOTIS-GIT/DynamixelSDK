@@ -21,6 +21,7 @@
 
 from enum import IntEnum
 
+
 class DxlErrorCode(IntEnum):
     SDK_COMM_SUCCESS = 0
     SDK_COMM_PORT_BUSY = -1000
@@ -46,7 +47,9 @@ class DxlErrorCode(IntEnum):
     EASY_SDK_DUPLICATE_ID = 23
     EASY_SDK_FAIL_TO_GET_DATA = 24
 
+
 class DxlRuntimeError(Exception):
+
     def __init__(self, error_code: DxlErrorCode):
         if isinstance(error_code, DxlErrorCode):
             self.error_code = error_code
@@ -56,31 +59,55 @@ class DxlRuntimeError(Exception):
             message = str(error_code)
         super().__init__(message)
 
+
 def getErrorMessage(error_code):
     messages = {
-        DxlErrorCode.SDK_COMM_SUCCESS: "[TxRxResult] Communication success!",
-        DxlErrorCode.SDK_COMM_PORT_BUSY: "[TxRxResult] Port is in use!",
-        DxlErrorCode.SDK_COMM_TX_FAIL: "[TxRxResult] Failed to transmit instruction packet",
-        DxlErrorCode.SDK_COMM_RX_FAIL: "[TxRxResult] Failed to get status packet from device",
-        DxlErrorCode.SDK_COMM_TX_ERROR: "[TxRxResult] Incorrect instruction packet",
-        DxlErrorCode.SDK_COMM_RX_WAITING: "[TxRxResult] Receiving status packet",
-        DxlErrorCode.SDK_COMM_RX_TIMEOUT: "[TxRxResult] No status packet received",
-        DxlErrorCode.SDK_COMM_RX_CORRUPT: "[TxRxResult] Incorrect status packet",
-        DxlErrorCode.SDK_COMM_NOT_AVAILABLE: "[TxRxResult] Protocol does not support this function",
-        DxlErrorCode.SDK_ERRNUM_RESULT_FAIL: "[RxPacketError] Failed to process the instruction packet!",
-        DxlErrorCode.SDK_ERRNUM_INSTRUCTION: "[RxPacketError] Undefined instruction or incorrect instruction!",
-        DxlErrorCode.SDK_ERRNUM_CRC: "[RxPacketError] CRC doesn't match!",
-        DxlErrorCode.SDK_ERRNUM_DATA_RANGE: "[RxPacketError] The data value is out of range!",
-        DxlErrorCode.SDK_ERRNUM_DATA_LENGTH: "[RxPacketError] The data length does not match as expected!",
-        DxlErrorCode.SDK_ERRNUM_DATA_LIMIT: "[RxPacketError] The data value exceeds the limit value!",
-        DxlErrorCode.SDK_ERRNUM_ACCESS: "[RxPacketError] Writing or Reading is not available to target address!",
-        DxlErrorCode.EASY_SDK_FUNCTION_NOT_SUPPORTED: "[EasySDKUsageError] Function not supported",
-        DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH: "[EasySDKUsageError] Motor torque status mismatch",
-        DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH: "[EasySDKUsageError] Operating mode mismatch",
-        DxlErrorCode.EASY_SDK_ADD_PARAM_FAIL: "[EasySDKUsageError] Failed to add parameter",
-        DxlErrorCode.EASY_SDK_COMMAND_IS_EMPTY: "[EasySDKUsageError] No command to execute",
-        DxlErrorCode.EASY_SDK_DUPLICATE_ID: "[EasySDKUsageError] Duplicate ID in staged commands",
-        DxlErrorCode.EASY_SDK_FAIL_TO_GET_DATA: "[EasySDKUsageError] Failed to get data from motor",
+        DxlErrorCode.SDK_COMM_SUCCESS:
+            '[TxRxResult] Communication success!',
+        DxlErrorCode.SDK_COMM_PORT_BUSY:
+            '[TxRxResult] Port is in use!',
+        DxlErrorCode.SDK_COMM_TX_FAIL:
+            '[TxRxResult] Failed to transmit instruction packet',
+        DxlErrorCode.SDK_COMM_RX_FAIL:
+            '[TxRxResult] Failed to get status packet from device',
+        DxlErrorCode.SDK_COMM_TX_ERROR:
+            '[TxRxResult] Incorrect instruction packet',
+        DxlErrorCode.SDK_COMM_RX_WAITING:
+            '[TxRxResult] Receiving status packet',
+        DxlErrorCode.SDK_COMM_RX_TIMEOUT:
+            '[TxRxResult] No status packet received',
+        DxlErrorCode.SDK_COMM_RX_CORRUPT:
+            '[TxRxResult] Incorrect status packet',
+        DxlErrorCode.SDK_COMM_NOT_AVAILABLE:
+            '[TxRxResult] Protocol does not support this function',
+        DxlErrorCode.SDK_ERRNUM_RESULT_FAIL:
+            '[RxPacketError] Failed to process the instruction packet!',
+        DxlErrorCode.SDK_ERRNUM_INSTRUCTION:
+            '[RxPacketError] Undefined instruction or incorrect instruction!',
+        DxlErrorCode.SDK_ERRNUM_CRC:
+            "[RxPacketError] CRC doesn't match!",
+        DxlErrorCode.SDK_ERRNUM_DATA_RANGE:
+            '[RxPacketError] The data value is out of range!',
+        DxlErrorCode.SDK_ERRNUM_DATA_LENGTH:
+            '[RxPacketError] The data length does not match as expected!',
+        DxlErrorCode.SDK_ERRNUM_DATA_LIMIT:
+            '[RxPacketError] The data value exceeds the limit value!',
+        DxlErrorCode.SDK_ERRNUM_ACCESS:
+            '[RxPacketError] Writing or Reading is not available to target address!',
+        DxlErrorCode.EASY_SDK_FUNCTION_NOT_SUPPORTED:
+            '[EasySDKUsageError] Function not supported',
+        DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH:
+            '[EasySDKUsageError] Motor torque status mismatch',
+        DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH:
+            '[EasySDKUsageError] Operating mode mismatch',
+        DxlErrorCode.EASY_SDK_ADD_PARAM_FAIL:
+            '[EasySDKUsageError] Failed to add parameter',
+        DxlErrorCode.EASY_SDK_COMMAND_IS_EMPTY:
+            '[EasySDKUsageError] No command to execute',
+        DxlErrorCode.EASY_SDK_DUPLICATE_ID:
+            '[EasySDKUsageError] Duplicate ID in staged commands',
+        DxlErrorCode.EASY_SDK_FAIL_TO_GET_DATA:
+            '[EasySDKUsageError] Failed to get data from motor',
     }
-    message = messages.get(error_code, "Unknown error code")
-    return f"{error_code.name} ({error_code.value}): {message}"
+    message = messages.get(error_code, 'Unknown error code')
+    return f'{error_code.name} ({error_code.value}): {message}'

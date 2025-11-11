@@ -19,13 +19,14 @@
 
 # Author: Hyungyu Kim
 
-import os
-from pathlib import Path
 from importlib.resources import files
+import os
+
 from dynamixel_easy_sdk.data_types import ControlTableItem
 from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
 
-CONTROL_TABLE_PATH = files("dynamixel_easy_sdk.control_table") / "control_table"
+CONTROL_TABLE_PATH = files('dynamixel_easy_sdk.control_table') / 'control_table'
+
 
 class ControlTable:
     _model_name_list = None
@@ -34,13 +35,12 @@ class ControlTable:
     @staticmethod
     def parsingModelList():
         tmp_model_list = {}
-        print(CONTROL_TABLE_PATH)
-        file_name = os.path.join(CONTROL_TABLE_PATH, "dynamixel.model")
+        file_name = os.path.join(CONTROL_TABLE_PATH, 'dynamixel.model')
         try:
-            with open(file_name, encoding="utf-8") as infile:
+            with open(file_name, encoding='utf-8') as infile:
                 lines = infile.readlines()
         except Exception as e:
-            raise RuntimeError(f"Error: Could not open file {file_name}") from e
+            raise RuntimeError(f'Error: Could not open file {file_name}') from e
 
         for line in lines[1:]:
             if not line.strip():
@@ -52,9 +52,10 @@ class ControlTable:
                     name = parts[1]
                     tmp_model_list[number] = name
                 except ValueError:
-                    raise RuntimeError(f"Invalid model number in {file_name}: {parts[0]}")
+                    raise RuntimeError(f'Invalid model number in {file_name}: {parts[0]}')
                 except Exception as e:
-                    raise RuntimeError(f"Unknown error while parsing model list in {file_name}: {e}")
+                    raise RuntimeError(
+                        f'Unknown error while parsing model list in {file_name}: {e}')
         return tmp_model_list
 
     @classmethod
@@ -62,7 +63,7 @@ class ControlTable:
         if cls._model_name_list is None:
             cls._model_name_list = cls.parsingModelList()
         if model_number not in cls._model_name_list:
-            raise DxlRuntimeError(f"Model number is not found in dynamixel.model: {model_number}")
+            raise DxlRuntimeError(f'Model number is not found in dynamixel.model: {model_number}')
         return cls._model_name_list[model_number]
 
     @classmethod
@@ -75,18 +76,18 @@ class ControlTable:
         control_table = {}
 
         try:
-            with open(full_path, encoding="utf-8") as infile:
+            with open(full_path, encoding='utf-8') as infile:
                 lines = infile.readlines()
                 line_iterator = iter(lines)
         except Exception as e:
-            raise RuntimeError(f"Error: Could not open model file: {full_path}") from e
+            raise RuntimeError(f'Error: Could not open model file: {full_path}') from e
 
         in_section = False
         for line in line_iterator:
             line = line.strip()
             if not line:
                 continue
-            if line == "[control table]":
+            if line == '[control table]':
                 in_section = True
                 next(line_iterator, None)
                 continue
@@ -99,6 +100,6 @@ class ControlTable:
                         name = parts[2]
                         control_table[name] = ControlTableItem(address, size)
                     except Exception as e:
-                        raise RuntimeError(f"Error parsing control table item: {line} - {e}")
+                        raise RuntimeError(f'Error parsing control table item: {line} - {e}')
         cls._control_tables_cache[model_number] = control_table
         return control_table

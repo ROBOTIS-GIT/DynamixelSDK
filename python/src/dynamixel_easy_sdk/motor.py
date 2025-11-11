@@ -19,12 +19,22 @@
 
 # Author: Hyungyu Kim
 
-from dynamixel_easy_sdk.dynamixel_error import *
 from dynamixel_easy_sdk.control_table import ControlTable
-from dynamixel_easy_sdk.data_types import OperatingMode, ProfileConfiguration, Direction, StagedCommand, CommandType, StatusRequest
+from dynamixel_easy_sdk.data_types import (
+    CommandType,
+    ControlTableItem,
+    Direction,
+    OperatingMode,
+    ProfileConfiguration,
+    StagedCommand,
+    StatusRequest,
+)
+from dynamixel_easy_sdk.dynamixel_error import DxlErrorCode
+from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
 
 
 class Motor:
+
     def __init__(self, motor_id: int, model_number: int, connector):
         self.id = motor_id
         self.model_number = model_number
@@ -35,46 +45,49 @@ class Motor:
         self.operating_mode_status = self.getOperatingMode()
 
     def enableTorque(self) -> None:
-        item = self._getControlTableItem("Torque Enable")
+        item = self._getControlTableItem('Torque Enable')
         self._writeData(self.id, item.address, item.size, 1)
         self.torque_status = 1
 
     def disableTorque(self) -> None:
-        item = self._getControlTableItem("Torque Enable")
+        item = self._getControlTableItem('Torque Enable')
         self._writeData(self.id, item.address, item.size, 0)
         self.torque_status = 0
 
     def setGoalPosition(self, position: int) -> None:
         self._checkTorqueStatus(1)
-        if self.operating_mode_status != OperatingMode.POSITION and self.operating_mode_status != OperatingMode.EXTENDED_POSITION:
+        if self.operating_mode_status not in (
+            OperatingMode.POSITION,
+            OperatingMode.EXTENDED_POSITION
+        ):
             raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
-        item = self._getControlTableItem("Goal Position")
+        item = self._getControlTableItem('Goal Position')
         self._writeData(self.id, item.address, item.size, position)
 
     def setGoalVelocity(self, velocity: int) -> None:
         self._checkTorqueStatus(1)
         self._checkOperatingModeStatus(OperatingMode.VELOCITY)
-        item = self._getControlTableItem("Goal Velocity")
+        item = self._getControlTableItem('Goal Velocity')
         self._writeData(self.id, item.address, item.size, velocity)
 
     def setGoalCurrent(self, current: int) -> None:
         self._checkTorqueStatus(1)
         self._checkOperatingModeStatus(OperatingMode.CURRENT)
-        item = self._getControlTableItem("Goal Current")
+        item = self._getControlTableItem('Goal Current')
         self._writeData(self.id, item.address, item.size, current)
 
     def setGoalPWM(self, pwm: int) -> None:
         self._checkTorqueStatus(1)
         self._checkOperatingModeStatus(OperatingMode.PWM)
-        item = self._getControlTableItem("Goal PWM")
+        item = self._getControlTableItem('Goal PWM')
         self._writeData(self.id, item.address, item.size, pwm)
 
-    def ledOn(self) -> None:
-        item = self._getControlTableItem("LED")
+    def LEDOn(self) -> None:
+        item = self._getControlTableItem('LED')
         self._writeData(self.id, item.address, item.size, 1)
 
-    def ledOff(self) -> None:
-        item = self._getControlTableItem("LED")
+    def LEDOff(self) -> None:
+        item = self._getControlTableItem('LED')
         self._writeData(self.id, item.address, item.size, 0)
 
     def ping(self) -> int:
@@ -82,81 +95,81 @@ class Motor:
         return value
 
     def isTorqueOn(self) -> int:
-        item = self._getControlTableItem("Torque Enable")
+        item = self._getControlTableItem('Torque Enable')
         self.torque_status = self._readData(self.id, item.address, item.size)
         return self.torque_status
 
-    def isLedOn(self) -> int:
-        item = self._getControlTableItem("LED")
+    def isLEDOn(self) -> int:
+        item = self._getControlTableItem('LED')
         value = self._readData(self.id, item.address, item.size)
         return value
 
     def getPresentPosition(self) -> int:
-        item = self._getControlTableItem("Present Position")
+        item = self._getControlTableItem('Present Position')
         unsigned_value = self._readData(self.id, item.address, item.size)
         return self._toSignedInt(unsigned_value, item.size)
 
     def getPresentVelocity(self) -> int:
-        item = self._getControlTableItem("Present Velocity")
+        item = self._getControlTableItem('Present Velocity')
         unsigned_value = self._readData(self.id, item.address, item.size)
         return self._toSignedInt(unsigned_value, item.size)
 
     def getPresentCurrent(self) -> int:
-        item = self._getControlTableItem("Present Current")
+        item = self._getControlTableItem('Present Current')
         unsigned_value = self._readData(self.id, item.address, item.size)
         return self._toSignedInt(unsigned_value, item.size)
 
     def getPresentPWM(self) -> int:
-        item = self._getControlTableItem("Present PWM")
+        item = self._getControlTableItem('Present PWM')
         unsigned_value = self._readData(self.id, item.address, item.size)
         return self._toSignedInt(unsigned_value, item.size)
 
     def getMaxPositionLimit(self) -> int:
-        item = self._getControlTableItem("Max Position Limit")
+        item = self._getControlTableItem('Max Position Limit')
         value = self._readData(self.id, item.address, item.size)
         return value
 
     def getMinPositionLimit(self) -> int:
-        item = self._getControlTableItem("Min Position Limit")
+        item = self._getControlTableItem('Min Position Limit')
         value = self._readData(self.id, item.address, item.size)
         return value
 
     def getVelocityLimit(self) -> int:
-        item = self._getControlTableItem("Velocity Limit")
+        item = self._getControlTableItem('Velocity Limit')
         value = self._readData(self.id, item.address, item.size)
         return value
 
     def getCurrentLimit(self) -> int:
-        item = self._getControlTableItem("Current Limit")
+        item = self._getControlTableItem('Current Limit')
         value = self._readData(self.id, item.address, item.size)
         return value
 
     def getPWMLimit(self) -> int:
-        item = self._getControlTableItem("PWM Limit")
+        item = self._getControlTableItem('PWM Limit')
         value = self._readData(self.id, item.address, item.size)
         return value
 
     def getOperatingMode(self) -> OperatingMode:
-        item = self._getControlTableItem("Operating Mode")
+        item = self._getControlTableItem('Operating Mode')
         value = self._readData(self.id, item.address, item.size)
         self.operating_mode_status = OperatingMode(value)
         return self.operating_mode_status
 
-    def changeId(self, newId: int) -> None:
+    def changeID(self, newId: int) -> None:
         self._checkTorqueStatus(0)
-        item = self._getControlTableItem("ID")
+        item = self._getControlTableItem('ID')
         self._writeData(self.id, item.address, item.size, newId)
         self.id = newId
 
     def setOperatingMode(self, mode: OperatingMode) -> None:
         self._checkTorqueStatus(0)
-        item = self._getControlTableItem("Operating Mode")
+        item = self._getControlTableItem('Operating Mode')
         self._writeData(self.id, item.address, item.size, int(mode))
         self.operating_mode_status = mode
 
     def setProfileConfiguration(self, config: ProfileConfiguration) -> None:
         self._checkTorqueStatus(0)
-        item = self._getControlTableItem("Drive Mode")
+        item = self._getControlTableItem('Drive Mode')
         mode_value = self._readData(self.id, item.address, item.size)
 
         PROFILE_BIT = 0b00000100
@@ -169,7 +182,7 @@ class Motor:
 
     def setDirection(self, direction: Direction) -> None:
         self._checkTorqueStatus(0)
-        item = self._getControlTableItem("Drive Mode")
+        item = self._getControlTableItem('Drive Mode')
         mode_value = self._readData(self.id, item.address, item.size)
 
         DIR_BIT = 0b00000001
@@ -180,81 +193,137 @@ class Motor:
 
         self._writeData(self.id, item.address, item.size, mode_value)
 
-    def setPositionPGain(self, value: int) -> None: self._writeGain("Position P Gain", value)
-    def setPositionIGain(self, value: int) -> None: self._writeGain("Position I Gain", value)
-    def setPositionDGain(self, value: int) -> None: self._writeGain("Position D Gain", value)
-    def setVelocityPGain(self, value: int) -> None: self._writeGain("Velocity P Gain", value)
-    def setVelocityIGain(self, value: int) -> None: self._writeGain("Velocity I Gain", value)
+    def setPositionPGain(self, value: int) -> None: self._writeGain('Position P Gain', value)
+    def setPositionIGain(self, value: int) -> None: self._writeGain('Position I Gain', value)
+    def setPositionDGain(self, value: int) -> None: self._writeGain('Position D Gain', value)
+    def setVelocityPGain(self, value: int) -> None: self._writeGain('Velocity P Gain', value)
+    def setVelocityIGain(self, value: int) -> None: self._writeGain('Velocity I Gain', value)
 
     def stageEnableTorque(self) -> StagedCommand:
-        item = self._getControlTableItem("Torque Enable")
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [1], StatusRequest.UPDATE_TORQUE_STATUS, self)
+        item = self._getControlTableItem('Torque Enable')
+        return StagedCommand(
+            CommandType.WRITE,
+            self.id,
+            item.address,
+            item.size,
+            [1],
+            StatusRequest.UPDATE_TORQUE_STATUS,
+            self
+        )
 
     def stageDisableTorque(self) -> StagedCommand:
-        item = self._getControlTableItem("Torque Enable")
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [0], StatusRequest.UPDATE_TORQUE_STATUS, self)
+        item = self._getControlTableItem('Torque Enable')
+        return StagedCommand(
+            CommandType.WRITE,
+            self.id,
+            item.address,
+            item.size,
+            [0],
+            StatusRequest.UPDATE_TORQUE_STATUS,
+            self
+        )
 
     def stageSetGoalPosition(self, position: int) -> StagedCommand:
-        item = self._getControlTableItem("Goal Position")
+        item = self._getControlTableItem('Goal Position')
         data = []
         for i in range(item.size):
             data.append((position >> (8 * i)) & 0xFF)
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data, StatusRequest.CHECK_POSITION_MODE, self)
+        return StagedCommand(
+            CommandType.WRITE,
+            self.id,
+            item.address,
+            item.size,
+            data,
+            StatusRequest.CHECK_POSITION_MODE,
+            self
+        )
 
     def stageSetGoalVelocity(self, velocity: int) -> StagedCommand:
-        item = self._getControlTableItem("Goal Velocity")
+        item = self._getControlTableItem('Goal Velocity')
         data = []
         for i in range(item.size):
             data.append((velocity >> (8 * i)) & 0xFF)
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data, StatusRequest.CHECK_VELOCITY_MODE, self)
+        return StagedCommand(
+            CommandType.WRITE,
+            self.id,
+            item.address,
+            item.size,
+            data,
+            StatusRequest.CHECK_VELOCITY_MODE,
+            self
+        )
 
     def stageSetGoalCurrent(self, current: int) -> StagedCommand:
-        item = self._getControlTableItem("Goal Current")
+        item = self._getControlTableItem('Goal Current')
         data = []
         for i in range(item.size):
             data.append((current >> (8 * i)) & 0xFF)
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data, StatusRequest.CHECK_CURRENT_MODE, self)
+        return StagedCommand(
+            CommandType.WRITE,
+            self.id,
+            item.address,
+            item.size,
+            data,
+            StatusRequest.CHECK_CURRENT_MODE,
+            self
+        )
 
     def stageSetGoalPWM(self, pwm: int) -> StagedCommand:
-        item = self._getControlTableItem("Goal PWM")
+        item = self._getControlTableItem('Goal PWM')
         data = []
         for i in range(item.size):
             data.append((pwm >> (8 * i)) & 0xFF)
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data, StatusRequest.CHECK_PWM_MODE, self)
+        return StagedCommand(
+            CommandType.WRITE,
+            self.id,
+            item.address,
+            item.size,
+            data,
+            StatusRequest.CHECK_PWM_MODE,
+            self
+        )
 
     def stageLEDOn(self) -> StagedCommand:
-        item = self._getControlTableItem("LED")
+        item = self._getControlTableItem('LED')
         return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [1])
 
     def stageLEDOff(self) -> StagedCommand:
-        item = self._getControlTableItem("LED")
+        item = self._getControlTableItem('LED')
         return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [0])
 
     def stageIsTorqueOn(self) -> StagedCommand:
-        item = self._getControlTableItem("Torque Enable")
-        return StagedCommand(CommandType.READ, self.id, item.address, item.size, [], StatusRequest.UPDATE_TORQUE_STATUS, self)
+        item = self._getControlTableItem('Torque Enable')
+        return StagedCommand(
+            CommandType.READ,
+            self.id,
+            item.address,
+            item.size,
+            [],
+            StatusRequest.UPDATE_TORQUE_STATUS,
+            self
+        )
 
     def stageIsLEDOn(self) -> StagedCommand:
-        item = self._getControlTableItem("LED")
+        item = self._getControlTableItem('LED')
         return StagedCommand(CommandType.READ, self.id, item.address, item.size, [])
 
     def stageGetPresentPosition(self) -> StagedCommand:
-        item = self._getControlTableItem("Present Position")
+        item = self._getControlTableItem('Present Position')
         return StagedCommand(CommandType.READ, self.id, item.address, item.size, [])
 
     def stageGetPresentVelocity(self) -> StagedCommand:
-        item = self._getControlTableItem("Present Velocity")
+        item = self._getControlTableItem('Present Velocity')
         return StagedCommand(CommandType.READ, self.id, item.address, item.size, [])
 
     def stageGetPresentCurrent(self) -> StagedCommand:
-        item = self._getControlTableItem("Present Current")
+        item = self._getControlTableItem('Present Current')
         return StagedCommand(CommandType.READ, self.id, item.address, item.size, [])
 
     def stageGetPresentPWM(self) -> StagedCommand:
-        item = self._getControlTableItem("Present PWM")
+        item = self._getControlTableItem('Present PWM')
         return StagedCommand(CommandType.READ, self.id, item.address, item.size, [])
 
-    def _getControlTableItem(self, name):
+    def _getControlTableItem(self, name) -> ControlTableItem:
         item = self.control_table.get(name)
         if item is None:
             raise DxlRuntimeError(DxlErrorCode.EASY_SDK_FUNCTION_NOT_SUPPORTED)

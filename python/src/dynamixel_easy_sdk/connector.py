@@ -20,10 +20,13 @@
 # Author: Hyungyu Kim
 
 from typing import List
-from dynamixel_easy_sdk.dynamixel_error import *
-from dynamixel_easy_sdk.motor import Motor
+
+from dynamixel_easy_sdk.dynamixel_error import DxlErrorCode
+from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
 from dynamixel_easy_sdk.group_executor import GroupExecutor
-from dynamixel_sdk import PortHandler, PacketHandler
+from dynamixel_easy_sdk.motor import Motor
+from dynamixel_sdk import PacketHandler
+from dynamixel_sdk import PortHandler
 
 
 class Connector:
@@ -37,10 +40,10 @@ class Connector:
             Connector._packet_handler = PacketHandler(Connector.PROTOCOL_VERSION)
 
         if not self._port_handler.openPort():
-            raise DxlRuntimeError("Failed to open the port")
+            raise DxlRuntimeError('Failed to open the port')
 
         if not self._port_handler.setBaudRate(baud_rate):
-            raise DxlRuntimeError("Failed to set baud rate")
+            raise DxlRuntimeError('Failed to set baud rate')
 
     def createMotor(self, motor_id: int) -> Motor:
         model_number = self.ping(motor_id)
@@ -48,16 +51,13 @@ class Connector:
 
     def createAllMotors(self, start_id: int = 0, end_id: int = 252) -> List[Motor]:
         if not (0 <= start_id <= 252 and 0 <= end_id <= 252 and start_id <= end_id):
-            raise DxlRuntimeError("ID must be between 0 and 252, and start <= end")
+            raise DxlRuntimeError('ID must be between 0 and 252, and start_id <= end_id')
 
-        ids, result = Connector._packet_handler.broadcastPing(self._port_handler)
-        if result != DxlErrorCode.SDK_COMM_SUCCESS:
-            raise DxlRuntimeError(DxlErrorCode(result))
+        motor_ids = self.broadcastPing()
         motors = []
-        for id in ids:
-            if start_id <= id <= end_id:
-                motors.append(self.createMotor(id))
-
+        for motor_id in motor_ids:
+            if start_id <= motor_id <= end_id:
+                motors.append(self.createMotor(motor_id))
         return motors
 
     def createGroupExecutor(self):
@@ -70,30 +70,51 @@ class Connector:
             raise DxlRuntimeError(DxlErrorCode(dxl_error))
 
     def read1ByteData(self, motor_id: int, address: int) -> int:
-        value, dxl_comm_result, dxl_error = Connector._packet_handler.read1ByteTxRx(self._port_handler, motor_id, address)
+        value, dxl_comm_result, dxl_error = Connector._packet_handler.read1ByteTxRx(
+            self._port_handler,
+            motor_id,
+            address)
         self._checkError(dxl_comm_result, dxl_error)
         return value
 
     def read2ByteData(self, motor_id: int, address: int) -> int:
-        value, dxl_comm_result, dxl_error = Connector._packet_handler.read2ByteTxRx(self._port_handler, motor_id, address)
+        value, dxl_comm_result, dxl_error = Connector._packet_handler.read2ByteTxRx(
+            self._port_handler,
+            motor_id,
+            address)
         self._checkError(dxl_comm_result, dxl_error)
         return value
 
     def read4ByteData(self, motor_id: int, address: int) -> int:
-        value, dxl_comm_result, dxl_error = Connector._packet_handler.read4ByteTxRx(self._port_handler, motor_id, address)
+        value, dxl_comm_result, dxl_error = Connector._packet_handler.read4ByteTxRx(
+            self._port_handler,
+            motor_id,
+            address)
         self._checkError(dxl_comm_result, dxl_error)
         return value
 
     def write1ByteData(self, motor_id: int, address: int, value: int):
-        dxl_comm_result, dxl_error = Connector._packet_handler.write1ByteTxRx(self._port_handler, motor_id, address, value)
+        dxl_comm_result, dxl_error = Connector._packet_handler.write1ByteTxRx(
+            self._port_handler,
+            motor_id,
+            address,
+            value)
         self._checkError(dxl_comm_result, dxl_error)
 
     def write2ByteData(self, motor_id: int, address: int, value: int):
-        dxl_comm_result, dxl_error = Connector._packet_handler.write2ByteTxRx(self._port_handler, motor_id, address, value)
+        dxl_comm_result, dxl_error = Connector._packet_handler.write2ByteTxRx(
+            self._port_handler,
+            motor_id,
+            address,
+            value)
         self._checkError(dxl_comm_result, dxl_error)
 
     def write4ByteData(self, motor_id: int, address: int, value: int):
-        dxl_comm_result, dxl_error = Connector._packet_handler.write4ByteTxRx(self._port_handler, motor_id, address, value)
+        dxl_comm_result, dxl_error = Connector._packet_handler.write4ByteTxRx(
+            self._port_handler,
+            motor_id,
+            address,
+            value)
         self._checkError(dxl_comm_result, dxl_error)
 
     def reboot(self, motor_id: int):
@@ -101,12 +122,22 @@ class Connector:
         self._checkError(dxl_comm_result, dxl_error)
 
     def ping(self, motor_id: int) -> int:
-        model_number, dxl_comm_result, dxl_error = Connector._packet_handler.ping(self._port_handler, motor_id)
+        model_number, dxl_comm_result, dxl_error = Connector._packet_handler.ping(
+            self._port_handler,
+            motor_id)
         self._checkError(dxl_comm_result, dxl_error)
         return model_number
 
+    def broadcastPing(self) -> List[int]:
+        ids, dxl_comm_result = Connector._packet_handler.broadcastPing(self._port_handler)
+        self._checkError(dxl_comm_result, DxlErrorCode.SDK_COMM_SUCCESS)
+        return ids
+
     def factory_reset(self, motor_id: int, option: int):
-        dxl_comm_result, dxl_error = Connector._packet_handler.factoryReset(self._port_handler, motor_id, option)
+        dxl_comm_result, dxl_error = Connector._packet_handler.factoryReset(
+            self._port_handler,
+            motor_id,
+            option)
         self._checkError(dxl_comm_result, dxl_error)
 
     def closePort(self):

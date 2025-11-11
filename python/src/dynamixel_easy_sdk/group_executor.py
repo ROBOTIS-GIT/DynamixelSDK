@@ -21,13 +21,21 @@
 
 from typing import List
 from typing import Optional
-from dynamixel_easy_sdk.dynamixel_error import *
+
+from dynamixel_easy_sdk.data_types import CommandType
+from dynamixel_easy_sdk.data_types import StagedCommand
+from dynamixel_easy_sdk.data_types import StatusRequest
+from dynamixel_easy_sdk.dynamixel_error import DxlErrorCode
+from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
 from dynamixel_easy_sdk.motor import OperatingMode
-from dynamixel_easy_sdk.data_types import StagedCommand, CommandType, StatusRequest, CommandType
-from dynamixel_sdk import GroupBulkRead, GroupBulkWrite, GroupSyncRead, GroupSyncWrite
+from dynamixel_sdk import GroupBulkRead
+from dynamixel_sdk import GroupBulkWrite
+from dynamixel_sdk import GroupSyncRead
+from dynamixel_sdk import GroupSyncWrite
 
 
 class GroupExecutor:
+
     def __init__(self, connector):
         self.connector = connector
         self.port_handler = connector._port_handler
@@ -84,7 +92,12 @@ class GroupExecutor:
         self.group_bulk_write.clearParam()
         for cmd in self._staged_write_commands:
             self._processStatusRequests(cmd)
-            if not self.group_bulk_write.addParam(cmd.id, cmd.address, cmd.length, bytes(cmd.data)):
+            if not self.group_bulk_write.addParam(
+                cmd.id,
+                cmd.address,
+                cmd.length,
+                bytes(cmd.data)
+            ):
                 raise DxlRuntimeError(DxlErrorCode.EASY_SDK_ADD_PARAM_FAIL)
 
         dxl_comm_result = self.group_bulk_write.txPacket()
@@ -168,7 +181,10 @@ class GroupExecutor:
             if cmd.motor.operating_mode_status != OperatingMode.VELOCITY:
                 raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
         elif cmd.status_request == StatusRequest.CHECK_POSITION_MODE:
-            if cmd.motor.operating_mode_status != OperatingMode.POSITION and cmd.motor.operating_mode_status != OperatingMode.EXTERNAL_POSITION:
+            if cmd.motor.operating_mode_status not in (
+                OperatingMode.POSITION,
+                OperatingMode.EXTENDED_POSITION
+            ):
                 raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
         elif cmd.status_request == StatusRequest.CHECK_PWM_MODE:
             if cmd.motor.operating_mode_status != OperatingMode.PWM:
