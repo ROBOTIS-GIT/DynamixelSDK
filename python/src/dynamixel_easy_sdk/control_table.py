@@ -22,15 +22,10 @@
 import os
 from pathlib import Path
 from importlib.resources import files
-from dataclasses import dataclass
+from dynamixel_easy_sdk.data_types import ControlTableItem
 from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
 
 CONTROL_TABLE_PATH = files("dynamixel_easy_sdk.control_table") / "control_table"
-
-@dataclass
-class ControlTableItem:
-    address: int
-    size: int
 
 class ControlTable:
     _model_name_list = None

@@ -21,23 +21,8 @@
 
 from dynamixel_easy_sdk.dynamixel_error import *
 from dynamixel_easy_sdk.control_table import ControlTable
-from dynamixel_easy_sdk.group_executor import StagedCommand, CommandType
-from enum import IntEnum
+from dynamixel_easy_sdk.data_types import OperatingMode, ProfileConfiguration, Direction, StagedCommand, CommandType, StatusRequest
 
-class OperatingMode(IntEnum):
-    POSITION = 3
-    VELOCITY = 1
-    CURRENT = 0
-    PWM = 16
-    EXTENDED_POSITION = 4
-
-class Direction(IntEnum):
-    NORMAL = 0
-    REVERSE = 1
-
-class ProfileConfiguration(IntEnum):
-    VELOCITY_BASED = 0
-    TIME_BASED = 1
 
 class Motor:
     def __init__(self, motor_id: int, model_number: int, connector):
@@ -203,39 +188,39 @@ class Motor:
 
     def stageEnableTorque(self) -> StagedCommand:
         item = self._getControlTableItem("Torque Enable")
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [1])
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [1], StatusRequest.UPDATE_TORQUE_STATUS, self)
 
     def stageDisableTorque(self) -> StagedCommand:
         item = self._getControlTableItem("Torque Enable")
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [0])
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, [0], StatusRequest.UPDATE_TORQUE_STATUS, self)
 
     def stageSetGoalPosition(self, position: int) -> StagedCommand:
         item = self._getControlTableItem("Goal Position")
         data = []
         for i in range(item.size):
             data.append((position >> (8 * i)) & 0xFF)
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data)
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data, StatusRequest.CHECK_POSITION_MODE, self)
 
     def stageSetGoalVelocity(self, velocity: int) -> StagedCommand:
         item = self._getControlTableItem("Goal Velocity")
         data = []
         for i in range(item.size):
             data.append((velocity >> (8 * i)) & 0xFF)
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data)
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data, StatusRequest.CHECK_VELOCITY_MODE, self)
 
     def stageSetGoalCurrent(self, current: int) -> StagedCommand:
         item = self._getControlTableItem("Goal Current")
         data = []
         for i in range(item.size):
             data.append((current >> (8 * i)) & 0xFF)
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data)
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data, StatusRequest.CHECK_CURRENT_MODE, self)
 
     def stageSetGoalPWM(self, pwm: int) -> StagedCommand:
         item = self._getControlTableItem("Goal PWM")
         data = []
         for i in range(item.size):
             data.append((pwm >> (8 * i)) & 0xFF)
-        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data)
+        return StagedCommand(CommandType.WRITE, self.id, item.address, item.size, data, StatusRequest.CHECK_PWM_MODE, self)
 
     def stageLEDOn(self) -> StagedCommand:
         item = self._getControlTableItem("LED")
@@ -247,7 +232,7 @@ class Motor:
 
     def stageIsTorqueOn(self) -> StagedCommand:
         item = self._getControlTableItem("Torque Enable")
-        return StagedCommand(CommandType.READ, self.id, item.address, item.size, [])
+        return StagedCommand(CommandType.READ, self.id, item.address, item.size, [], StatusRequest.UPDATE_TORQUE_STATUS, self)
 
     def stageIsLEDOn(self) -> StagedCommand:
         item = self._getControlTableItem("LED")

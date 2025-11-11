@@ -21,23 +21,11 @@
 
 from typing import List
 from typing import Optional
-from enum import Enum
-from dataclasses import dataclass
 from dynamixel_easy_sdk.dynamixel_error import *
+from dynamixel_easy_sdk.motor import OperatingMode
+from dynamixel_easy_sdk.data_types import StagedCommand, CommandType, StatusRequest, CommandType
 from dynamixel_sdk import GroupBulkRead, GroupBulkWrite, GroupSyncRead, GroupSyncWrite
 
-
-class CommandType(Enum):
-    WRITE = 0
-    READ = 1
-
-@dataclass
-class StagedCommand:
-    command_type: CommandType
-    id: int
-    address: int
-    length: int
-    data: List[int]
 
 class GroupExecutor:
     def __init__(self, connector):
@@ -84,6 +72,7 @@ class GroupExecutor:
     def _executeSyncWrite(self, address: int, length: int) -> None:
         group = GroupSyncWrite(self.port_handler, self.packet_handler, address, length)
         for cmd in self._staged_write_commands:
+            self._processStatusRequests(cmd)
             if not group.addParam(cmd.id, bytes(cmd.data)):
                 raise DxlRuntimeError(DxlErrorCode.EASY_SDK_ADD_PARAM_FAIL)
 
@@ -94,6 +83,7 @@ class GroupExecutor:
     def _executeBulkWrite(self) -> None:
         self.group_bulk_write.clearParam()
         for cmd in self._staged_write_commands:
+            self._processStatusRequests(cmd)
             if not self.group_bulk_write.addParam(cmd.id, cmd.address, cmd.length, bytes(cmd.data)):
                 raise DxlRuntimeError(DxlErrorCode.EASY_SDK_ADD_PARAM_FAIL)
 
@@ -140,7 +130,8 @@ class GroupExecutor:
                 results.append(None)
                 continue
             value = group.getData(cmd.id, address, length)
-            results.append(value)
+            intvalue = self._toSignedInt(value, length)
+            results.append(intvalue)
         return results
 
     def _executeBulkRead(self) -> List[Optional[int]]:
@@ -159,6 +150,34 @@ class GroupExecutor:
                 results.append(None)
                 continue
             value = self.group_bulk_read.getData(cmd.id, cmd.address, cmd.length)
-            results.append(value)
+            intvalue = self._toSignedInt(value, cmd.length)
+            results.append(intvalue)
         return results
 
+    def _processStatusRequests(self, cmd: StagedCommand) -> None:
+        if not cmd.status_request:
+            return
+
+        if cmd.status_request == StatusRequest.CHECK_TORQUE_ON:
+            if cmd.motor.torque_status != 1:
+                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH)
+        elif cmd.status_request == StatusRequest.CHECK_CURRENT_MODE:
+            if cmd.motor.operating_mode_status != OperatingMode.CURRENT:
+                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+        elif cmd.status_request == StatusRequest.CHECK_VELOCITY_MODE:
+            if cmd.motor.operating_mode_status != OperatingMode.VELOCITY:
+                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+        elif cmd.status_request == StatusRequest.CHECK_POSITION_MODE:
+            if cmd.motor.operating_mode_status != OperatingMode.POSITION and cmd.motor.operating_mode_status != OperatingMode.EXTERNAL_POSITION:
+                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+        elif cmd.status_request == StatusRequest.CHECK_PWM_MODE:
+            if cmd.motor.operating_mode_status != OperatingMode.PWM:
+                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+        elif cmd.status_request == StatusRequest.UPDATE_TORQUE_STATUS:
+            cmd.motor.torque_status = cmd.data[0]
+
+    def _toSignedInt(self, value: int, size: int) -> int:
+        bits = size * 8
+        if value >= (1 << (bits - 1)):
+            value -= (1 << bits)
+        return value
