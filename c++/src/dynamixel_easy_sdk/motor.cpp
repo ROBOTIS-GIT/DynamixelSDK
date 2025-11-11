@@ -346,16 +346,9 @@ Result<void, DxlError> Motor::setHomingOffset(int32_t offset)
   if (torque_status_ == 1) {
     return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
   }
-
-  Result<ControlTableItem, DxlError> item_result = getControlTableItem("Homing Offset");
-  if (!item_result.isSuccess()) {
-    return item_result.error();
-  }
-  const ControlTableItem & item = item_result.value();
-  Result<void, DxlError> result = connector_->writeData(
+  Result<void, DxlError> result = writeData(
     id_,
-    item.address,
-    item.size,
+    "Homing Offset",
     static_cast<uint32_t>(offset));
   return result;
 }
@@ -445,7 +438,10 @@ Result<StagedCommand, DxlError> Motor::stageEnableTorque()
     id_,
     item_result.value().address,
     item_result.value().size,
-    {1});
+    {1},
+    StatusRequest::UPDATE_TORQUE_STATUS,
+    this
+  );
   return cmd;
 }
 
@@ -460,7 +456,10 @@ Result<StagedCommand, DxlError> Motor::stageDisableTorque()
     id_,
     item_result.value().address,
     item_result.value().size,
-    {0});
+    {0},
+    StatusRequest::UPDATE_TORQUE_STATUS,
+    this
+  );
   return cmd;
 }
 
@@ -479,7 +478,9 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalPosition(uint32_t position)
     id_,
     item_result.value().address,
     item_result.value().size,
-    data
+    data,
+    StatusRequest::CHECK_POSITION_MODE,
+    this
   );
   return cmd;
 }
@@ -499,7 +500,9 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalVelocity(uint32_t velocity)
     id_,
     item_result.value().address,
     item_result.value().size,
-    data
+    data,
+    StatusRequest::CHECK_VELOCITY_MODE,
+    this
   );
   return cmd;
 }
@@ -519,7 +522,9 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalCurrent(int16_t current)
     id_,
     item_result.value().address,
     item_result.value().size,
-    data
+    data,
+    StatusRequest::CHECK_CURRENT_MODE,
+    this
   );
   return cmd;
 }
@@ -539,7 +544,9 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalPWM(int16_t pwm)
     id_,
     item_result.value().address,
     item_result.value().size,
-    data
+    data,
+    StatusRequest::CHECK_PWM_MODE,
+    this
   );
   return cmd;
 }
@@ -587,7 +594,9 @@ Result<StagedCommand, DxlError> Motor::stageIsTorqueOn()
     id_,
     item_result.value().address,
     item_result.value().size,
-    {}
+    {},
+    StatusRequest::UPDATE_TORQUE_STATUS,
+    this
   );
   return cmd;
 }

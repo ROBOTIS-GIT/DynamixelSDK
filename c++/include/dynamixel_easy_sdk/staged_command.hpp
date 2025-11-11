@@ -22,10 +22,22 @@
 
 namespace dynamixel
 {
+class Motor;
 enum class CommandType
 {
   WRITE,
   READ
+};
+
+enum class StatusRequest
+{
+  NONE = 0,
+  CHECK_TORQUE_ON = 1,
+  CHECK_CURRENT_MODE = 2,
+  CHECK_VELOCITY_MODE = 3,
+  CHECK_POSITION_MODE = 4,
+  CHECK_PWM_MODE = 5,
+  UPDATE_TORQUE_STATUS = 6
 };
 
 struct StagedCommand
@@ -35,18 +47,24 @@ struct StagedCommand
     uint8_t _id,
     uint16_t _address,
     uint16_t _length,
-    const std::vector<uint8_t> & _data)
+    const std::vector<uint8_t> & _data,
+    StatusRequest _status_request = StatusRequest::NONE,
+    Motor * _motor_ptr = nullptr)
   : command_type(_command_type),
     id(_id),
     address(_address),
     length(_length),
-    data(_data) {}
+    data(_data),
+    status_request(_status_request),
+    motor_ptr(_motor_ptr) {}
 
   CommandType command_type;
   uint8_t id;
   uint16_t address;
   uint16_t length;
   std::vector<uint8_t> data;
+  StatusRequest status_request;
+  Motor * motor_ptr;
 };
 
 }  // namespace dynamixel

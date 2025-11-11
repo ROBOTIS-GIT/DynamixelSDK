@@ -143,6 +143,7 @@ class GroupExecutor:
                 results.append(None)
                 continue
             value = group.getData(cmd.id, address, length)
+            self._processStatusRequests(cmd, value)
             intvalue = self._toSignedInt(value, length)
             results.append(intvalue)
         return results
@@ -163,11 +164,12 @@ class GroupExecutor:
                 results.append(None)
                 continue
             value = self.group_bulk_read.getData(cmd.id, cmd.address, cmd.length)
+            self._processStatusRequests(cmd, value)
             intvalue = self._toSignedInt(value, cmd.length)
             results.append(intvalue)
         return results
 
-    def _processStatusRequests(self, cmd: StagedCommand) -> None:
+    def _processStatusRequests(self, cmd: StagedCommand, data = None) -> None:
         if not cmd.status_request:
             return
 
@@ -177,19 +179,30 @@ class GroupExecutor:
         elif cmd.status_request == StatusRequest.CHECK_CURRENT_MODE:
             if cmd.motor.operating_mode_status != OperatingMode.CURRENT:
                 raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+            if cmd.motor.torque_status != 1:
+                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH)
         elif cmd.status_request == StatusRequest.CHECK_VELOCITY_MODE:
             if cmd.motor.operating_mode_status != OperatingMode.VELOCITY:
                 raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+            if cmd.motor.torque_status != 1:
+                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH)
         elif cmd.status_request == StatusRequest.CHECK_POSITION_MODE:
             if cmd.motor.operating_mode_status not in (
                 OperatingMode.POSITION,
                 OperatingMode.EXTENDED_POSITION
             ):
                 raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+            if cmd.motor.torque_status != 1:
+                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH)
         elif cmd.status_request == StatusRequest.CHECK_PWM_MODE:
             if cmd.motor.operating_mode_status != OperatingMode.PWM:
                 raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+            if cmd.motor.torque_status != 1:
+                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH)
         elif cmd.status_request == StatusRequest.UPDATE_TORQUE_STATUS:
+            if data is not None:
+                cmd.motor.torque_status = data
+                return
             cmd.motor.torque_status = cmd.data[0]
 
     def _toSignedInt(self, value: int, size: int) -> int:

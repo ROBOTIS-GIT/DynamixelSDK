@@ -55,6 +55,7 @@ private:
     uint16_t address,
     uint16_t length);
   Result<std::vector<Result<int32_t, DxlError>>, DxlError> executeBulkRead();
+  Result<void, DxlError> processStatusRequests(StagedCommand & cmd, int data = -1);
 
   Connector * connector_;
   PortHandler * port_handler_;

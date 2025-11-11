@@ -122,6 +122,10 @@ public:
   uint8_t getID() const {return id_;}
   uint16_t getModelNumber() const {return model_number_;}
   std::string getModelName() const {return model_name_;}
+  uint8_t getTorqueStatus() const {return torque_status_;}
+  OperatingMode getOperatingModeStatus() const {return operating_mode_status_;}
+  void setTorqueStatus(uint8_t status) {torque_status_ = status;}
+  void setOperatingModeStatus(OperatingMode mode) {operating_mode_status_ = mode;}
 
 private:
   Result<ControlTableItem, DxlError> getControlTableItem(const std::string & item_name);

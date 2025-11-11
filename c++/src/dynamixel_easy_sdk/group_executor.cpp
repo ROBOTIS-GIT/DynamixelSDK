@@ -105,6 +105,27 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeR
   }
   const auto & reference_command = staged_read_command_list_.front();
   bool is_sync = true;
+  std::vector<StagedCommand> sorted_list = staged_read_command_list_;
+  std::sort(
+    sorted_list.begin(),
+    sorted_list.end(),
+    [](const StagedCommand & a, const StagedCommand & b) {
+      return a.id < b.id;
+    }
+  );
+
+  auto it = std::adjacent_find(
+    sorted_list.begin(),
+    sorted_list.end(),
+    [](const StagedCommand & a, const StagedCommand & b) {
+      return a.id == b.id;
+    }
+  );
+
+  if (it != sorted_list.end()) {
+    return DxlError::EASY_SDK_DUPLICATE_ID;
+  }
+
   for (size_t i = 1; i < staged_read_command_list_.size(); ++i) {
     if (staged_read_command_list_[i].address != reference_command.address ||
       staged_read_command_list_[i].length != reference_command.length)
@@ -127,6 +148,10 @@ Result<void, DxlError> GroupExecutor::executeSyncWrite(uint16_t address, uint16_
 {
   GroupSyncWrite group_sync_write(port_handler_, packet_handler_, address, length);
   for (auto & command : staged_write_command_list_) {
+    Result<void, DxlError> result = processStatusRequests(command);
+    if (!result.isSuccess()) {
+      return result.error();
+    }
     if (!group_sync_write.addParam(command.id, command.data.data())) {
       return DxlError::EASY_SDK_ADD_PARAM_FAIL;
     }
@@ -143,6 +168,10 @@ Result<void, DxlError> GroupExecutor::executeBulkWrite()
   group_bulk_write_.clearParam();
 
   for (auto & command : staged_write_command_list_) {
+    Result<void, DxlError> result = processStatusRequests(command);
+    if (!result.isSuccess()) {
+      return result.error();
+    }
     if (!group_bulk_write_.addParam(
         command.id,
         command.address,
@@ -165,7 +194,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeS
   uint16_t length)
 {
   GroupSyncRead group_sync_read(port_handler_, packet_handler_, address, length);
-  for (const auto & command : staged_read_command_list_) {
+  for (auto & command : staged_read_command_list_) {
     if (!group_sync_read.addParam(command.id)) {
       return DxlError::EASY_SDK_ADD_PARAM_FAIL;
     }
@@ -176,13 +205,27 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeS
     return static_cast<DxlError>(dxl_comm_result);
   }
   std::vector<Result<int32_t, DxlError>> result_list;
-  for (const auto & command : staged_read_command_list_) {
+  for (auto & command : staged_read_command_list_) {
     if (!group_sync_read.isAvailable(command.id, address, length)) {
       result_list.push_back(DxlError::EASY_SDK_FAIL_TO_GET_DATA);
       continue;
     }
-    int32_t value = group_sync_read.getData(command.id, address, length);
-    result_list.push_back(value);
+
+    uint32_t value = group_sync_read.getData(command.id, address, length);
+    int32_t signed_value;
+    if (command.length == 1) {
+      signed_value = static_cast<int32_t>(static_cast<int8_t>(value & 0xFF));
+    } else if (command.length == 2) {
+      signed_value = static_cast<int32_t>(static_cast<int16_t>(value & 0xFFFF));
+    } else {
+      signed_value = static_cast<int32_t>(value);
+    }
+
+    Result<void, DxlError> result = processStatusRequests(command, signed_value);
+    if (!result.isSuccess()) {
+      return result.error();
+    }
+    result_list.push_back(signed_value);
   }
 
   return result_list;
@@ -192,7 +235,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeB
 {
   group_bulk_read_.clearParam();
 
-  for (const auto & command : staged_read_command_list_) {
+  for (auto & command : staged_read_command_list_) {
     if (!group_bulk_read_.addParam(command.id, command.address, command.length)) {
       return DxlError::EASY_SDK_ADD_PARAM_FAIL;
     }
@@ -204,17 +247,75 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeB
   }
 
   std::vector<Result<int32_t, DxlError>> result_list;
-  for (const auto & command : staged_read_command_list_) {
+  for (auto & command : staged_read_command_list_) {
     if (!group_bulk_read_.isAvailable(command.id, command.address, command.length)) {
       result_list.push_back(DxlError::EASY_SDK_FAIL_TO_GET_DATA);
       continue;
     }
 
-    int32_t value = group_bulk_read_.getData(command.id, command.address, command.length);
-    result_list.push_back(value);
+    uint32_t value = group_bulk_read_.getData(command.id, command.address, command.length);
+    int32_t signed_value;
+    if (command.length == 1) {
+      signed_value = static_cast<int32_t>(static_cast<int8_t>(value & 0xFF));
+    } else if (command.length == 2) {
+      signed_value = static_cast<int32_t>(static_cast<int16_t>(value & 0xFFFF));
+    } else {
+      signed_value = static_cast<int32_t>(value);
+    }
+    Result<void, DxlError> result = processStatusRequests(command, signed_value);
+    if (!result.isSuccess()) {
+      return result.error();
+    }
+    result_list.push_back(signed_value);
   }
 
   return result_list;
 }
 
+Result<void,DxlError> GroupExecutor::processStatusRequests(StagedCommand & cmd, int data)
+{
+  if (cmd.status_request == StatusRequest::NONE) {
+    return {};
+  }
+
+  if (cmd.status_request == StatusRequest::CHECK_TORQUE_ON) {
+    if (cmd.motor_ptr->getTorqueStatus() != 1) {
+      return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    }
+  } else if (cmd.status_request == StatusRequest::CHECK_CURRENT_MODE) {
+    if (cmd.motor_ptr->getOperatingModeStatus() != Motor::OperatingMode::CURRENT) {
+      return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
+    }
+    if (cmd.motor_ptr->getTorqueStatus() != 1) {
+      return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    }
+  } else if (cmd.status_request == StatusRequest::CHECK_VELOCITY_MODE) {
+    if (cmd.motor_ptr->getOperatingModeStatus() != Motor::OperatingMode::VELOCITY) {
+      return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
+    }
+    if (cmd.motor_ptr->getTorqueStatus() != 1) {
+      return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    }
+  } else if (cmd.status_request == StatusRequest::CHECK_POSITION_MODE) {
+    if (cmd.motor_ptr->getOperatingModeStatus() != Motor::OperatingMode::POSITION &&
+        cmd.motor_ptr->getOperatingModeStatus() != Motor::OperatingMode::EXTENDED_POSITION) {
+      return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    }
+  } else if (cmd.status_request == StatusRequest::CHECK_PWM_MODE) {
+    if (cmd.motor_ptr->getOperatingModeStatus() != Motor::OperatingMode::PWM) {
+      return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
+    }
+    if (cmd.motor_ptr->getTorqueStatus() != 1) {
+      return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    }
+  } else if (cmd.status_request == StatusRequest::UPDATE_TORQUE_STATUS) {
+    if (data != -1) {
+      cmd.motor_ptr->setTorqueStatus(data);
+      return {};
+    }
+    cmd.motor_ptr->setTorqueStatus(cmd.data[0]);
+    return {};
+  }
+  return {};
+}
 }  // namespace dynamixel
