@@ -54,6 +54,8 @@ private:
     uint16_t address,
     uint16_t length);
   Result<std::vector<Result<int32_t, DxlError>>, DxlError> executeBulkRead();
+  bool checkDuplicateId(const std::vector<StagedCommand> & cmd_list);
+  bool checkSync(const std::vector<StagedCommand> & cmd_list);
   Result<void, DxlError> processStatusRequests(StagedCommand & cmd, int data = -1);
 
   Connector * connector_;

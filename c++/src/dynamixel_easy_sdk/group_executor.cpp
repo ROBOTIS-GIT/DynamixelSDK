@@ -57,37 +57,12 @@ Result<void, DxlError> GroupExecutor::executeWrite()
   if (staged_write_command_list_.empty()) {
     return DxlError::EASY_SDK_COMMAND_IS_EMPTY;
   }
-  const auto & reference_command = staged_write_command_list_.front();
-  bool is_sync = true;
-  std::vector<StagedCommand> sorted_list = staged_write_command_list_;
-  std::sort(
-    sorted_list.begin(),
-    sorted_list.end(),
-    [](const StagedCommand & a, const StagedCommand & b) {
-      return a.id < b.id;
-    }
-  );
-
-  auto it = std::adjacent_find(
-    sorted_list.begin(),
-    sorted_list.end(),
-    [](const StagedCommand & a, const StagedCommand & b) {
-      return a.id == b.id;
-    }
-  );
-
-  if (it != sorted_list.end()) {
+  if (checkDuplicateId(staged_write_command_list_)) {
     return DxlError::EASY_SDK_DUPLICATE_ID;
   }
 
-  for (size_t i = 1; i < staged_write_command_list_.size(); ++i) {
-    if (staged_write_command_list_[i].address != reference_command.address ||
-      staged_write_command_list_[i].length != reference_command.length)
-    {
-      is_sync = false;
-      break;
-    }
-  }
+  const auto & reference_command = staged_write_command_list_.front();
+  bool is_sync = checkSync(staged_write_command_list_);
 
   Result<void, DxlError> result;
   if (is_sync) {
@@ -103,37 +78,12 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeR
   if (staged_read_command_list_.empty()) {
     return DxlError::EASY_SDK_COMMAND_IS_EMPTY;
   }
-  const auto & reference_command = staged_read_command_list_.front();
-  bool is_sync = true;
-  std::vector<StagedCommand> sorted_list = staged_read_command_list_;
-  std::sort(
-    sorted_list.begin(),
-    sorted_list.end(),
-    [](const StagedCommand & a, const StagedCommand & b) {
-      return a.id < b.id;
-    }
-  );
-
-  auto it = std::adjacent_find(
-    sorted_list.begin(),
-    sorted_list.end(),
-    [](const StagedCommand & a, const StagedCommand & b) {
-      return a.id == b.id;
-    }
-  );
-
-  if (it != sorted_list.end()) {
+  if (checkDuplicateId(staged_read_command_list_)) {
     return DxlError::EASY_SDK_DUPLICATE_ID;
   }
 
-  for (size_t i = 1; i < staged_read_command_list_.size(); ++i) {
-    if (staged_read_command_list_[i].address != reference_command.address ||
-      staged_read_command_list_[i].length != reference_command.length)
-    {
-      is_sync = false;
-      break;
-    }
-  }
+  const auto & reference_command = staged_read_command_list_.front();
+  bool is_sync = checkSync(staged_read_command_list_);
 
   Result<std::vector<Result<int32_t, DxlError>>, DxlError> result;
   if (is_sync) {
@@ -270,6 +220,47 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeB
   }
 
   return result_list;
+}
+
+bool GroupExecutor::checkDuplicateId(const std::vector<StagedCommand> & cmd_list)
+{
+  std::vector<StagedCommand> sorted_list = cmd_list;
+  std::sort(
+    sorted_list.begin(),
+    sorted_list.end(),
+    [](const StagedCommand & a, const StagedCommand & b) {
+      return a.id < b.id;
+    }
+  );
+
+  auto it = std::adjacent_find(
+    sorted_list.begin(),
+    sorted_list.end(),
+    [](const StagedCommand & a, const StagedCommand & b) {
+      return a.id == b.id;
+    }
+  );
+
+  if (it != sorted_list.end()) {
+    return true;
+  }
+  return false;
+}
+
+bool GroupExecutor::checkSync(const std::vector<StagedCommand> & cmd_list)
+{
+  if (cmd_list.size() < 2) {
+    return true;
+  }
+  const auto & reference_command = cmd_list.front();
+  for (size_t i = 1; i < cmd_list.size(); ++i) {
+    if (cmd_list[i].address != reference_command.address ||
+      cmd_list[i].length != reference_command.length)
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 Result<void, DxlError> GroupExecutor::processStatusRequests(StagedCommand & cmd, int data)
