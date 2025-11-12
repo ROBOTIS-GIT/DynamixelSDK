@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "dynamixel_sdk/dynamixel_sdk.h"
-#include "dynamixel_easy_sdk/control_table.hpp"
 #include "dynamixel_easy_sdk/dynamixel_error.hpp"
 #include "dynamixel_easy_sdk/data_types.hpp"
 
