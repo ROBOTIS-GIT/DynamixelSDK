@@ -19,7 +19,10 @@
 
 # Author: Hyungyu Kim
 
-from importlib.resources import files
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 import os
 
 from dynamixel_easy_sdk.data_types import ControlTableItem

@@ -13,7 +13,8 @@ authors = [
     { name = "Wonho Yun", email = "ywh@robotis.com" }
 ]
 dependencies = [
-    "pyserial"
+    "pyserial",
+    'importlib_resources; python_version < "3.9"'
 ]
 requires-python = ">=3.6"
 urls = { Homepage = "https://github.com/ROBOTIS-GIT/DynamixelSDK" }
