@@ -39,12 +39,9 @@ public:
   std::vector<std::unique_ptr<Motor>> createAllMotors(int start_id = 0, int end_id = 252);
   std::unique_ptr<GroupExecutor> createGroupExecutor();
 
-  Result<void, DxlError> writeData(uint8_t id, uint16_t address, uint8_t size, uint32_t value);
   Result<void, DxlError> write1ByteData(uint8_t id, uint16_t address, uint8_t value);
   Result<void, DxlError> write2ByteData(uint8_t id, uint16_t address, uint16_t value);
   Result<void, DxlError> write4ByteData(uint8_t id, uint16_t address, uint32_t value);
-
-  Result<uint32_t, DxlError> readData(uint8_t id, uint16_t address, uint8_t size);
   Result<uint8_t, DxlError> read1ByteData(uint8_t id, uint16_t address);
   Result<uint16_t, DxlError> read2ByteData(uint8_t id, uint16_t address);
   Result<uint32_t, DxlError> read4ByteData(uint8_t id, uint16_t address);

@@ -272,7 +272,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeB
   return result_list;
 }
 
-Result<void,DxlError> GroupExecutor::processStatusRequests(StagedCommand & cmd, int data)
+Result<void, DxlError> GroupExecutor::processStatusRequests(StagedCommand & cmd, int data)
 {
   if (cmd.status_request == StatusRequest::NONE) {
     return {};
@@ -298,7 +298,8 @@ Result<void,DxlError> GroupExecutor::processStatusRequests(StagedCommand & cmd, 
     }
   } else if (cmd.status_request == StatusRequest::CHECK_POSITION_MODE) {
     if (cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::POSITION &&
-        cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::EXTENDED_POSITION) {
+      cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::EXTENDED_POSITION)
+    {
       return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
     }
   } else if (cmd.status_request == StatusRequest::CHECK_PWM_MODE) {

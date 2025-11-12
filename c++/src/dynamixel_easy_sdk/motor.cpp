@@ -61,10 +61,12 @@ Result<void, DxlError> Motor::disableTorque()
 
 Result<void, DxlError> Motor::setGoalPosition(uint32_t position)
 {
-  if(torque_status_ == 0) {
+  if (torque_status_ == 0) {
     return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
   }
-  if(operating_mode_status_ != OperatingMode::POSITION && operating_mode_status_ != OperatingMode::EXTENDED_POSITION) {
+  if (operating_mode_status_ != OperatingMode::POSITION &&
+    operating_mode_status_ != OperatingMode::EXTENDED_POSITION)
+  {
     return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
   Result<void, DxlError> result = writeData(id_, "Goal Position", position);
@@ -73,10 +75,10 @@ Result<void, DxlError> Motor::setGoalPosition(uint32_t position)
 
 Result<void, DxlError> Motor::setGoalVelocity(uint32_t velocity)
 {
-  if(torque_status_ == 0) {
+  if (torque_status_ == 0) {
     return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
   }
-  if(operating_mode_status_ != OperatingMode::VELOCITY) {
+  if (operating_mode_status_ != OperatingMode::VELOCITY) {
     return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
   Result<void, DxlError> result = writeData(id_, "Goal Velocity", velocity);
@@ -85,10 +87,10 @@ Result<void, DxlError> Motor::setGoalVelocity(uint32_t velocity)
 
 Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
 {
-  if(torque_status_ == 0) {
+  if (torque_status_ == 0) {
     return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
   }
-  if(operating_mode_status_ != OperatingMode::CURRENT) {
+  if (operating_mode_status_ != OperatingMode::CURRENT) {
     return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
   Result<void, DxlError> result = writeData(id_, "Goal Current", current);
@@ -97,10 +99,10 @@ Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
 
 Result<void, DxlError> Motor::setGoalPWM(int16_t pwm)
 {
-  if(torque_status_ == 0) {
+  if (torque_status_ == 0) {
     return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
   }
-  if(operating_mode_status_ != OperatingMode::PWM) {
+  if (operating_mode_status_ != OperatingMode::PWM) {
     return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
   Result<void, DxlError> result = writeData(id_, "Goal PWM", pwm);
@@ -201,7 +203,7 @@ Result<uint32_t, DxlError> Motor::getVelocityLimit()
 Result<uint16_t, DxlError> Motor::getCurrentLimit()
 {
   Result<uint32_t, DxlError> result = readData(id_, "Current Limit");
-  if(!result.isSuccess()) {
+  if (!result.isSuccess()) {
     return result.error();
   }
   return static_cast<uint16_t>(result.value());
@@ -210,7 +212,7 @@ Result<uint16_t, DxlError> Motor::getCurrentLimit()
 Result<uint16_t, DxlError> Motor::getPWMLimit()
 {
   Result<uint32_t, DxlError> result = readData(id_, "PWM Limit");
-  if(!result.isSuccess()) {
+  if (!result.isSuccess()) {
     return result.error();
   }
   return static_cast<uint16_t>(result.value());
@@ -725,26 +727,26 @@ Result<uint32_t, DxlError> Motor::readData(uint8_t id, const std::string & item_
 
   switch (size) {
     case 1: {
-      Result<uint8_t, DxlError> result = connector_->read1ByteData(id, address);
-      if (!result.isSuccess()) {
-        return result.error();
+        Result<uint8_t, DxlError> result = connector_->read1ByteData(id, address);
+        if (!result.isSuccess()) {
+          return result.error();
+        }
+        return static_cast<uint32_t>(result.value());
       }
-      return static_cast<uint32_t>(result.value());
-    }
     case 2: {
-      Result<uint16_t, DxlError> result = connector_->read2ByteData(id, address);
-      if (!result.isSuccess()) {
-        return result.error();
+        Result<uint16_t, DxlError> result = connector_->read2ByteData(id, address);
+        if (!result.isSuccess()) {
+          return result.error();
+        }
+        return static_cast<uint32_t>(result.value());
       }
-      return static_cast<uint32_t>(result.value());
-    }
     case 4: {
-      Result<uint32_t, DxlError> result = connector_->read4ByteData(id, address);
-      if (!result.isSuccess()) {
-        return result.error();
+        Result<uint32_t, DxlError> result = connector_->read4ByteData(id, address);
+        if (!result.isSuccess()) {
+          return result.error();
+        }
+        return result.value();
       }
-      return result.value();
-    }
   }
   return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
 }
