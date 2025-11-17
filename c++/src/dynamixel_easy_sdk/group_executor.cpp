@@ -291,6 +291,9 @@ Result<void, DxlError> GroupExecutor::processStatusRequests(StagedCommand & cmd,
     if (cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::POSITION &&
       cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::EXTENDED_POSITION)
     {
+      return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
+    }
+    if (cmd.motor_ptr->getTorqueStatus() != 1) {
       return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
     }
   } else if (cmd.status_request == StatusRequest::CHECK_PWM_MODE) {
