@@ -336,6 +336,8 @@ class Motor:
             return self.connector.read2ByteData(dxl_id, address)
         elif length == 4:
             return self.connector.read4ByteData(dxl_id, address)
+        else:
+            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_FUNCTION_NOT_SUPPORTED)
 
     def _writeData(self, dxl_id: int, address: int, length: int, value: int):
         if length == 1:
@@ -344,6 +346,8 @@ class Motor:
             return self.connector.write2ByteData(dxl_id, address, value)
         elif length == 4:
             return self.connector.write4ByteData(dxl_id, address, value)
+        else:
+            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_FUNCTION_NOT_SUPPORTED)
 
     def _checkTorqueStatus(self, status: int):
         if self.torque_status != status:
