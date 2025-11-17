@@ -141,4 +141,4 @@ class Connector:
         self._checkError(dxl_comm_result, dxl_error)
 
     def closePort(self):
-        Connector._packet_handler.closePort()
+        self._port_handler.closePort()
