@@ -104,9 +104,6 @@ class GroupExecutor:
         if dxl_comm_result != DxlErrorCode.SDK_COMM_SUCCESS:
             raise DxlRuntimeError(dxl_comm_result)
 
-    # -----------------------------
-    # Execute Read
-    # -----------------------------
     def executeRead(self) -> List[Optional[int]]:
         if not self._staged_read_commands:
             raise DxlRuntimeError(DxlErrorCode.EASY_SDK_COMMAND_IS_EMPTY)

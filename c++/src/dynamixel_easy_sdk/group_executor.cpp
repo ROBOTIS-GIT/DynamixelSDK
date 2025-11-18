@@ -167,7 +167,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeS
       signed_value = static_cast<int32_t>(static_cast<int8_t>(value & 0xFF));
     } else if (command.length == 2) {
       signed_value = static_cast<int32_t>(static_cast<int16_t>(value & 0xFFFF));
-    } else {
+    } else if (command.length == 4) {
       signed_value = static_cast<int32_t>(value);
     }
 
@@ -209,7 +209,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeB
       signed_value = static_cast<int32_t>(static_cast<int8_t>(value & 0xFF));
     } else if (command.length == 2) {
       signed_value = static_cast<int32_t>(static_cast<int16_t>(value & 0xFFFF));
-    } else {
+    } else if (command.length == 4) {
       signed_value = static_cast<int32_t>(value);
     }
     Result<void, DxlError> result = processStatusRequests(command, signed_value);
