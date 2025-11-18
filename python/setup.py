@@ -17,7 +17,7 @@ setup(
     packages=['dynamixel_sdk'],
     package_dir={'': 'src'},
     license='Apache 2.0',
-    description='Dynamixel SDK 3. python package',
+    description='Dynamixel SDK 4. python package',
     long_description=open('README.txt').read(),
     url='https://github.com/ROBOTIS-GIT/DynamixelSDK',
     author=authors,
