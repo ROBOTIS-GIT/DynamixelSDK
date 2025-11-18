@@ -21,7 +21,7 @@
 
 try:
     from importlib.resources import files
-except ImportError:
+except (ImportError, AttributeError):
     from importlib_resources import files
 import os
 
