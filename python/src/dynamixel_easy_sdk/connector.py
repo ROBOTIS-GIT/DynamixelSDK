@@ -20,6 +20,7 @@
 # Author: Hyungyu Kim
 
 from typing import List
+import serial
 
 from dynamixel_easy_sdk.dynamixel_error import DxlErrorCode
 from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
@@ -39,11 +40,17 @@ class Connector:
         if Connector._packet_handler is None:
             Connector._packet_handler = PacketHandler(Connector.PROTOCOL_VERSION)
 
-        if not self._port_handler.openPort():
-            raise DxlRuntimeError('Failed to open the port')
-
-        if not self._port_handler.setBaudRate(baud_rate):
-            raise DxlRuntimeError('Failed to set baud rate')
+        try:
+            if not self._port_handler.setBaudRate(baud_rate):
+                raise DxlRuntimeError('Invalid baudrate specified')
+        except serial.SerialException as e:
+            errno = getattr(e, 'errno', None)
+            if errno == 2:
+                raise DxlRuntimeError(f'Port "{port_name}" does not exist') from e
+            elif errno == 16:
+                raise DxlRuntimeError(DxlErrorCode.SDK_COMM_PORT_BUSY) from e
+        except Exception as e:
+            raise DxlRuntimeError('Failed to open port') from e
 
     def createMotor(self, motor_id: int) -> Motor:
         model_number = self.ping(motor_id)
