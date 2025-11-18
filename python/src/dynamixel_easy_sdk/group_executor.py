@@ -25,9 +25,10 @@ from typing import Optional
 from dynamixel_easy_sdk.data_types import CommandType
 from dynamixel_easy_sdk.data_types import StagedCommand
 from dynamixel_easy_sdk.data_types import StatusRequest
+from dynamixel_easy_sdk.data_types import OperatingMode
+from dynamixel_easy_sdk.data_types import toSignedInt
 from dynamixel_easy_sdk.dynamixel_error import DxlErrorCode
 from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
-from dynamixel_easy_sdk.motor import OperatingMode
 from dynamixel_sdk import GroupBulkRead
 from dynamixel_sdk import GroupBulkWrite
 from dynamixel_sdk import GroupSyncRead
@@ -141,7 +142,7 @@ class GroupExecutor:
                 continue
             value = group.getData(cmd.id, address, length)
             self._processStatusRequests(cmd, value)
-            intvalue = self._toSignedInt(value, length)
+            intvalue = toSignedInt(value, length)
             results.append(intvalue)
         return results
 
@@ -162,7 +163,7 @@ class GroupExecutor:
                 continue
             value = self.group_bulk_read.getData(cmd.id, cmd.address, cmd.length)
             self._processStatusRequests(cmd, value)
-            intvalue = self._toSignedInt(value, cmd.length)
+            intvalue = toSignedInt(value, cmd.length)
             results.append(intvalue)
         return results
 
@@ -201,9 +202,3 @@ class GroupExecutor:
                 cmd.motor.torque_status = data
                 return
             cmd.motor.torque_status = cmd.data[0]
-
-    def _toSignedInt(self, value: int, size: int) -> int:
-        bits = size * 8
-        if value >= (1 << (bits - 1)):
-            value -= (1 << bits)
-        return value

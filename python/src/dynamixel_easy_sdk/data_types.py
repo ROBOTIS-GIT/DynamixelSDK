@@ -72,3 +72,11 @@ class StagedCommand:
     data: List[int]
     status_request: Optional[StatusRequest] = None
     motor: Optional['Motor'] = None  # noqa: F821
+
+
+def toSignedInt(value: int, size: int) -> int:
+    bits = size * 8
+    if value >= (1 << (bits - 1)):
+        value -= (1 << bits)
+    return value
+

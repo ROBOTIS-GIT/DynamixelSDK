@@ -29,6 +29,7 @@ from dynamixel_easy_sdk.data_types import (
     StagedCommand,
     StatusRequest,
 )
+from dynamixel_easy_sdk.data_types import toSignedInt
 from dynamixel_easy_sdk.dynamixel_error import DxlErrorCode
 from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
 
@@ -107,22 +108,22 @@ class Motor:
     def getPresentPosition(self) -> int:
         item = self._getControlTableItem('Present Position')
         unsigned_value = self._readData(self.id, item.address, item.size)
-        return self._toSignedInt(unsigned_value, item.size)
+        return toSignedInt(unsigned_value, item.size)
 
     def getPresentVelocity(self) -> int:
         item = self._getControlTableItem('Present Velocity')
         unsigned_value = self._readData(self.id, item.address, item.size)
-        return self._toSignedInt(unsigned_value, item.size)
+        return toSignedInt(unsigned_value, item.size)
 
     def getPresentCurrent(self) -> int:
         item = self._getControlTableItem('Present Current')
         unsigned_value = self._readData(self.id, item.address, item.size)
-        return self._toSignedInt(unsigned_value, item.size)
+        return toSignedInt(unsigned_value, item.size)
 
     def getPresentPWM(self) -> int:
         item = self._getControlTableItem('Present PWM')
         unsigned_value = self._readData(self.id, item.address, item.size)
-        return self._toSignedInt(unsigned_value, item.size)
+        return toSignedInt(unsigned_value, item.size)
 
     def getMaxPositionLimit(self) -> int:
         item = self._getControlTableItem('Max Position Limit')
@@ -361,9 +362,3 @@ class Motor:
         self._checkTorqueStatus(0)
         item = self._getControlTableItem(name)
         self._writeData(self.id, item.address, item.size, value)
-
-    def _toSignedInt(self, value: int, size: int) -> int:
-        bits = size * 8
-        if value >= (1 << (bits - 1)):
-            value -= (1 << bits)
-        return value
