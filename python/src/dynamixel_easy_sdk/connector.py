@@ -49,6 +49,8 @@ class Connector:
                 raise DxlRuntimeError(f'Port "{port_name}" does not exist') from e
             elif errno == 16:
                 raise DxlRuntimeError(DxlErrorCode.SDK_COMM_PORT_BUSY) from e
+            else:
+                raise DxlRuntimeError('Failed to open port') from e
         except Exception as e:
             raise DxlRuntimeError('Failed to open port') from e
 
