@@ -30,7 +30,7 @@ from .data_types import (
     StagedCommand,
     StatusRequest,
 )
-from .dynamixel_error import DxlErrorCode
+from .dynamixel_error import DxlError
 from .dynamixel_error import DxlRuntimeError
 from .dynamixel_error import getErrorMessage
 from .group_executor import GroupExecutor
@@ -46,7 +46,7 @@ __all__ = [
     'ProfileConfiguration',
     'StagedCommand',
     'StatusRequest',
-    'DxlErrorCode',
+    'DxlError',
     'DxlRuntimeError',
     'getErrorMessage',
     'GroupExecutor',

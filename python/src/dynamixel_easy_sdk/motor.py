@@ -30,7 +30,7 @@ from dynamixel_easy_sdk.data_types import (
     StatusRequest,
 )
 from dynamixel_easy_sdk.data_types import toSignedInt
-from dynamixel_easy_sdk.dynamixel_error import DxlErrorCode
+from dynamixel_easy_sdk.dynamixel_error import DxlError
 from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
 
 
@@ -61,7 +61,7 @@ class Motor:
             OperatingMode.POSITION,
             OperatingMode.EXTENDED_POSITION
         ):
-            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+            raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
         item = self._getControlTableItem('Goal Position')
         self._writeData(self.id, item.address, item.size, position)
 
@@ -327,7 +327,7 @@ class Motor:
     def _getControlTableItem(self, name) -> ControlTableItem:
         item = self.control_table.get(name)
         if item is None:
-            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_FUNCTION_NOT_SUPPORTED)
+            raise DxlRuntimeError(DxlError.EASY_SDK_FUNCTION_NOT_SUPPORTED)
         return item
 
     def _readData(self, dxl_id: int, address: int, length: int):
@@ -338,7 +338,7 @@ class Motor:
         elif length == 4:
             return self.connector.read4ByteData(dxl_id, address)
         else:
-            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_FUNCTION_NOT_SUPPORTED)
+            raise DxlRuntimeError(DxlError.EASY_SDK_FUNCTION_NOT_SUPPORTED)
 
     def _writeData(self, dxl_id: int, address: int, length: int, value: int):
         if length == 1:
@@ -348,15 +348,15 @@ class Motor:
         elif length == 4:
             return self.connector.write4ByteData(dxl_id, address, value)
         else:
-            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_FUNCTION_NOT_SUPPORTED)
+            raise DxlRuntimeError(DxlError.EASY_SDK_FUNCTION_NOT_SUPPORTED)
 
     def _checkTorqueStatus(self, status: int):
         if self.torque_status != status:
-            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH)
+            raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
 
     def _checkOperatingModeStatus(self, mode: OperatingMode):
         if self.operating_mode_status != mode:
-            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+            raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
 
     def _writeGain(self, name, value):
         self._checkTorqueStatus(0)

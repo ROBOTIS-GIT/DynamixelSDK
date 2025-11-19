@@ -27,7 +27,7 @@ from dynamixel_easy_sdk.data_types import StagedCommand
 from dynamixel_easy_sdk.data_types import StatusRequest
 from dynamixel_easy_sdk.data_types import OperatingMode
 from dynamixel_easy_sdk.data_types import toSignedInt
-from dynamixel_easy_sdk.dynamixel_error import DxlErrorCode
+from dynamixel_easy_sdk.dynamixel_error import DxlError
 from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
 from dynamixel_sdk import GroupBulkRead
 from dynamixel_sdk import GroupBulkWrite
@@ -60,12 +60,12 @@ class GroupExecutor:
 
     def executeWrite(self) -> None:
         if not self._staged_write_commands:
-            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_COMMAND_IS_EMPTY)
+            raise DxlRuntimeError(DxlError.EASY_SDK_COMMAND_IS_EMPTY)
 
         cmds = sorted(self._staged_write_commands, key=lambda c: c.id)
         ids = [cmd.id for cmd in cmds]
         if len(ids) != len(set(ids)):
-            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_DUPLICATE_ID)
+            raise DxlRuntimeError(DxlError.EASY_SDK_DUPLICATE_ID)
 
         ref = cmds[0]
         is_sync = all(
@@ -83,10 +83,10 @@ class GroupExecutor:
         for cmd in self._staged_write_commands:
             self._processStatusRequests(cmd)
             if not group.addParam(cmd.id, bytes(cmd.data)):
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_ADD_PARAM_FAIL)
+                raise DxlRuntimeError(DxlError.EASY_SDK_ADD_PARAM_FAIL)
 
         dxl_comm_result = group.txPacket()
-        if dxl_comm_result != DxlErrorCode.SDK_COMM_SUCCESS:
+        if dxl_comm_result != DxlError.SDK_COMM_SUCCESS:
             raise DxlRuntimeError(dxl_comm_result)
 
     def _executeBulkWrite(self) -> None:
@@ -99,20 +99,20 @@ class GroupExecutor:
                 cmd.length,
                 bytes(cmd.data)
             ):
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_ADD_PARAM_FAIL)
+                raise DxlRuntimeError(DxlError.EASY_SDK_ADD_PARAM_FAIL)
 
         dxl_comm_result = self.group_bulk_write.txPacket()
-        if dxl_comm_result != DxlErrorCode.SDK_COMM_SUCCESS:
+        if dxl_comm_result != DxlError.SDK_COMM_SUCCESS:
             raise DxlRuntimeError(dxl_comm_result)
 
     def executeRead(self) -> List[Optional[int]]:
         if not self._staged_read_commands:
-            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_COMMAND_IS_EMPTY)
+            raise DxlRuntimeError(DxlError.EASY_SDK_COMMAND_IS_EMPTY)
 
         cmds = sorted(self._staged_read_commands, key=lambda c: c.id)
         ids = [cmd.id for cmd in cmds]
         if len(ids) != len(set(ids)):
-            raise DxlRuntimeError(DxlErrorCode.EASY_SDK_DUPLICATE_ID)
+            raise DxlRuntimeError(DxlError.EASY_SDK_DUPLICATE_ID)
 
         ref = cmds[0]
         is_sync = all(
@@ -129,10 +129,10 @@ class GroupExecutor:
         group = GroupSyncRead(self.port_handler, self.packet_handler, address, length)
         for cmd in self._staged_read_commands:
             if not group.addParam(cmd.id):
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_ADD_PARAM_FAIL)
+                raise DxlRuntimeError(DxlError.EASY_SDK_ADD_PARAM_FAIL)
 
         dxl_comm_result = group.txRxPacket()
-        if dxl_comm_result != DxlErrorCode.SDK_COMM_SUCCESS:
+        if dxl_comm_result != DxlError.SDK_COMM_SUCCESS:
             raise DxlRuntimeError(dxl_comm_result)
 
         results = []
@@ -150,10 +150,10 @@ class GroupExecutor:
         self.group_bulk_read.clearParam()
         for cmd in self._staged_read_commands:
             if not self.group_bulk_read.addParam(cmd.id, cmd.address, cmd.length):
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_ADD_PARAM_FAIL)
+                raise DxlRuntimeError(DxlError.EASY_SDK_ADD_PARAM_FAIL)
 
         dxl_comm_result = self.group_bulk_read.txRxPacket()
-        if dxl_comm_result != DxlErrorCode.SDK_COMM_SUCCESS:
+        if dxl_comm_result != DxlError.SDK_COMM_SUCCESS:
             raise DxlRuntimeError(dxl_comm_result)
 
         results = []
@@ -173,30 +173,30 @@ class GroupExecutor:
 
         if cmd.status_request == StatusRequest.CHECK_TORQUE_ON:
             if cmd.motor.torque_status != 1:
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH)
+                raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
         elif cmd.status_request == StatusRequest.CHECK_CURRENT_MODE:
             if cmd.motor.operating_mode_status != OperatingMode.CURRENT:
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+                raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
             if cmd.motor.torque_status != 1:
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH)
+                raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
         elif cmd.status_request == StatusRequest.CHECK_VELOCITY_MODE:
             if cmd.motor.operating_mode_status != OperatingMode.VELOCITY:
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+                raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
             if cmd.motor.torque_status != 1:
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH)
+                raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
         elif cmd.status_request == StatusRequest.CHECK_POSITION_MODE:
             if cmd.motor.operating_mode_status not in (
                 OperatingMode.POSITION,
                 OperatingMode.EXTENDED_POSITION
             ):
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+                raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
             if cmd.motor.torque_status != 1:
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH)
+                raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
         elif cmd.status_request == StatusRequest.CHECK_PWM_MODE:
             if cmd.motor.operating_mode_status != OperatingMode.PWM:
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_OPERATING_MODE_MISMATCH)
+                raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
             if cmd.motor.torque_status != 1:
-                raise DxlRuntimeError(DxlErrorCode.EASY_SDK_TORQUE_STATUS_MISMATCH)
+                raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
         elif cmd.status_request == StatusRequest.UPDATE_TORQUE_STATUS:
             if data is not None:
                 cmd.motor.torque_status = data

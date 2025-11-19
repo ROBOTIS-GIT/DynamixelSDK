@@ -22,7 +22,7 @@
 from typing import List
 import serial
 
-from dynamixel_easy_sdk.dynamixel_error import DxlErrorCode
+from dynamixel_easy_sdk.dynamixel_error import DxlError
 from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
 from dynamixel_easy_sdk.group_executor import GroupExecutor
 from dynamixel_easy_sdk.motor import Motor
@@ -48,7 +48,7 @@ class Connector:
             if errno == 2:
                 raise DxlRuntimeError(f'Port "{port_name}" does not exist') from e
             elif errno == 16:
-                raise DxlRuntimeError(DxlErrorCode.SDK_COMM_PORT_BUSY) from e
+                raise DxlRuntimeError(DxlError.SDK_COMM_PORT_BUSY) from e
             else:
                 raise DxlRuntimeError('Failed to open port') from e
         except Exception as e:
@@ -73,10 +73,10 @@ class Connector:
         return GroupExecutor(self)
 
     def _checkError(self, dxl_comm_result, dxl_error):
-        if dxl_comm_result != DxlErrorCode.SDK_COMM_SUCCESS:
-            raise DxlRuntimeError(DxlErrorCode(dxl_comm_result))
-        if dxl_error != DxlErrorCode.SDK_COMM_SUCCESS:
-            raise DxlRuntimeError(DxlErrorCode(dxl_error))
+        if dxl_comm_result != DxlError.SDK_COMM_SUCCESS:
+            raise DxlRuntimeError(DxlError(dxl_comm_result))
+        if dxl_error != DxlError.SDK_COMM_SUCCESS:
+            raise DxlRuntimeError(DxlError(dxl_error))
 
     def read1ByteData(self, motor_id: int, address: int) -> int:
         value, dxl_comm_result, dxl_error = Connector._packet_handler.read1ByteTxRx(
@@ -139,7 +139,7 @@ class Connector:
 
     def broadcastPing(self) -> List[int]:
         ids, dxl_comm_result = Connector._packet_handler.broadcastPing(self._port_handler)
-        self._checkError(dxl_comm_result, DxlErrorCode.SDK_COMM_SUCCESS)
+        self._checkError(dxl_comm_result, DxlError.SDK_COMM_SUCCESS)
         return ids
 
     def factory_reset(self, motor_id: int, option: int):
