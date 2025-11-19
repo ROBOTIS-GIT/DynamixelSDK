@@ -50,17 +50,17 @@ class DxlError(IntEnum):
 
 class DxlRuntimeError(Exception):
 
-    def __init__(self, error_code: DxlError):
-        if isinstance(error_code, DxlError):
-            self.error_code = error_code
-            message = getErrorMessage(error_code)
+    def __init__(self, dxl_error: DxlError):
+        if isinstance(dxl_error, DxlError):
+            self.dxl_error = dxl_error
+            message = getErrorMessage(dxl_error)
         else:
-            self.error_code = None
-            message = str(error_code)
+            self.dxl_error = None
+            message = str(dxl_error)
         super().__init__(message)
 
 
-def getErrorMessage(error_code):
+def getErrorMessage(dxl_error):
     messages = {
         DxlError.SDK_COMM_SUCCESS:
             '[TxRxResult] Communication success!',
@@ -109,5 +109,5 @@ def getErrorMessage(error_code):
         DxlError.EASY_SDK_FAIL_TO_GET_DATA:
             '[EasySDKUsageError] Failed to get data from motor',
     }
-    message = messages.get(error_code, 'Unknown error code')
-    return f'{error_code.name} ({error_code.value}): {message}'
+    message = messages.get(dxl_error, 'Unknown error code')
+    return f'{dxl_error.name} ({dxl_error.value}): {message}'
