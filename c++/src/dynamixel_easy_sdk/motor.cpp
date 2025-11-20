@@ -65,7 +65,8 @@ Result<void, DxlError> Motor::setGoalPosition(uint32_t position)
     return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
   }
   if (operating_mode_status_ != OperatingMode::POSITION &&
-    operating_mode_status_ != OperatingMode::EXTENDED_POSITION)
+    operating_mode_status_ != OperatingMode::EXTENDED_POSITION &&
+    operating_mode_status_ != OperatingMode::CURRENT_BASED_POSITION)
   {
     return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
@@ -90,7 +91,8 @@ Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
   if (torque_status_ == 0) {
     return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
   }
-  if (operating_mode_status_ != OperatingMode::CURRENT) {
+  if (operating_mode_status_ != OperatingMode::CURRENT &&
+    operating_mode_status_ != OperatingMode::CURRENT_BASED_POSITION) {
     return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
   Result<void, DxlError> result = writeData(id_, "Goal Current", current);
@@ -101,9 +103,6 @@ Result<void, DxlError> Motor::setGoalPWM(int16_t pwm)
 {
   if (torque_status_ == 0) {
     return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
-  }
-  if (operating_mode_status_ != OperatingMode::PWM) {
-    return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
   Result<void, DxlError> result = writeData(id_, "Goal PWM", pwm);
   return result;
@@ -441,7 +440,7 @@ Result<StagedCommand, DxlError> Motor::stageEnableTorque()
     item_result.value().address,
     item_result.value().size,
     {1},
-    StatusRequest::UPDATE_TORQUE_STATUS,
+    {StatusRequest::UPDATE_TORQUE_STATUS},
     this
   );
   return cmd;
@@ -459,7 +458,7 @@ Result<StagedCommand, DxlError> Motor::stageDisableTorque()
     item_result.value().address,
     item_result.value().size,
     {0},
-    StatusRequest::UPDATE_TORQUE_STATUS,
+    {StatusRequest::UPDATE_TORQUE_STATUS},
     this
   );
   return cmd;
@@ -481,8 +480,9 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalPosition(uint32_t position)
     item_result.value().address,
     item_result.value().size,
     data,
-    StatusRequest::CHECK_POSITION_MODE,
-    this
+    {StatusRequest::UPDATE_TORQUE_STATUS, StatusRequest::CHECK_OPERATING_MODE},
+    this,
+    {OperatingMode::POSITION, OperatingMode::EXTENDED_POSITION, OperatingMode::CURRENT_BASED_POSITION}
   );
   return cmd;
 }
@@ -503,8 +503,9 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalVelocity(uint32_t velocity)
     item_result.value().address,
     item_result.value().size,
     data,
-    StatusRequest::CHECK_VELOCITY_MODE,
-    this
+    {StatusRequest::UPDATE_TORQUE_STATUS, StatusRequest::CHECK_OPERATING_MODE},
+    this,
+    {OperatingMode::VELOCITY}
   );
   return cmd;
 }
@@ -525,8 +526,9 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalCurrent(int16_t current)
     item_result.value().address,
     item_result.value().size,
     data,
-    StatusRequest::CHECK_CURRENT_MODE,
-    this
+    {StatusRequest::UPDATE_TORQUE_STATUS, StatusRequest::CHECK_OPERATING_MODE},
+    this,
+    {OperatingMode::CURRENT, OperatingMode::CURRENT_BASED_POSITION}
   );
   return cmd;
 }
@@ -547,7 +549,7 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalPWM(int16_t pwm)
     item_result.value().address,
     item_result.value().size,
     data,
-    StatusRequest::CHECK_PWM_MODE,
+    {StatusRequest::UPDATE_TORQUE_STATUS},
     this
   );
   return cmd;
@@ -597,7 +599,7 @@ Result<StagedCommand, DxlError> Motor::stageIsTorqueOn()
     item_result.value().address,
     item_result.value().size,
     {},
-    StatusRequest::UPDATE_TORQUE_STATUS,
+    {StatusRequest::UPDATE_TORQUE_STATUS},
     this
   );
   return cmd;

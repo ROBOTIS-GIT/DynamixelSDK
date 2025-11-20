@@ -162,7 +162,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeS
     }
 
     uint32_t value = group_sync_read.getData(command.id, address, length);
-    int32_t signed_value;
+    int32_t signed_value = -1;
     if (command.length == 1) {
       signed_value = static_cast<int32_t>(static_cast<int8_t>(value & 0xFF));
     } else if (command.length == 2) {
@@ -204,7 +204,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeB
     }
 
     uint32_t value = group_bulk_read_.getData(command.id, command.address, command.length);
-    int32_t signed_value;
+    int32_t signed_value = -1;
     if (command.length == 1) {
       signed_value = static_cast<int32_t>(static_cast<int8_t>(value & 0xFF));
     } else if (command.length == 2) {
@@ -265,45 +265,25 @@ bool GroupExecutor::checkSync(const std::vector<StagedCommand> & cmd_list)
 
 Result<void, DxlError> GroupExecutor::processStatusRequests(StagedCommand & cmd, int data)
 {
-  if (cmd.status_request == StatusRequest::NONE) {
+  if (cmd.status_request[0] == StatusRequest::NONE) {
     return {};
   }
 
-  if (cmd.status_request == StatusRequest::CHECK_TORQUE_ON) {
+  if (std::find(cmd.status_request.begin(), cmd.status_request.end(), StatusRequest::CHECK_TORQUE_ON) != cmd.status_request.end()) {
     if (cmd.motor_ptr->getTorqueStatus() != 1) {
       return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
     }
-  } else if (cmd.status_request == StatusRequest::CHECK_CURRENT_MODE) {
-    if (cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::CURRENT) {
+  }
+
+  if (std::find(cmd.status_request.begin(), cmd.status_request.end(), StatusRequest::CHECK_OPERATING_MODE) != cmd.status_request.end()) {
+    if (std::find(cmd.allowable_operating_modes.begin(),
+        cmd.allowable_operating_modes.end(),
+        cmd.motor_ptr->getOperatingModeStatus()) == cmd.allowable_operating_modes.end()){
       return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
     }
-    if (cmd.motor_ptr->getTorqueStatus() != 1) {
-      return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
-    }
-  } else if (cmd.status_request == StatusRequest::CHECK_VELOCITY_MODE) {
-    if (cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::VELOCITY) {
-      return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
-    }
-    if (cmd.motor_ptr->getTorqueStatus() != 1) {
-      return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
-    }
-  } else if (cmd.status_request == StatusRequest::CHECK_POSITION_MODE) {
-    if (cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::POSITION &&
-      cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::EXTENDED_POSITION)
-    {
-      return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
-    }
-    if (cmd.motor_ptr->getTorqueStatus() != 1) {
-      return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
-    }
-  } else if (cmd.status_request == StatusRequest::CHECK_PWM_MODE) {
-    if (cmd.motor_ptr->getOperatingModeStatus() != OperatingMode::PWM) {
-      return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
-    }
-    if (cmd.motor_ptr->getTorqueStatus() != 1) {
-      return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
-    }
-  } else if (cmd.status_request == StatusRequest::UPDATE_TORQUE_STATUS) {
+  }
+
+  if (std::find(cmd.status_request.begin(), cmd.status_request.end(), StatusRequest::UPDATE_TORQUE_STATUS) != cmd.status_request.end()) {
     if (data != -1) {
       cmd.motor_ptr->setTorqueStatus(data);
       return {};

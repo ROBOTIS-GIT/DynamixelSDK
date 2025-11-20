@@ -36,6 +36,7 @@ enum class OperatingMode
   VELOCITY = 1,
   POSITION = 3,
   EXTENDED_POSITION = 4,
+  CURRENT_BASED_POSITION = 5,
   PWM = 16
 };
 
@@ -61,11 +62,8 @@ enum class StatusRequest
 {
   NONE = 0,
   CHECK_TORQUE_ON = 1,
-  CHECK_CURRENT_MODE = 2,
-  CHECK_VELOCITY_MODE = 3,
-  CHECK_POSITION_MODE = 4,
-  CHECK_PWM_MODE = 5,
-  UPDATE_TORQUE_STATUS = 6
+  CHECK_OPERATING_MODE = 2,
+  UPDATE_TORQUE_STATUS = 3
 };
 
 struct StagedCommand
@@ -76,23 +74,26 @@ struct StagedCommand
     uint16_t _address,
     uint16_t _length,
     const std::vector<uint8_t> & _data,
-    StatusRequest _status_request = StatusRequest::NONE,
-    Motor * _motor_ptr = nullptr)
+    const std::vector<StatusRequest> & _status_request = {StatusRequest::NONE},
+    Motor * _motor_ptr = nullptr,
+    const std::vector<OperatingMode> & _allowable_operating_modes = {})
   : command_type(_command_type),
     id(_id),
     address(_address),
     length(_length),
     data(_data),
     status_request(_status_request),
-    motor_ptr(_motor_ptr) {}
+    motor_ptr(_motor_ptr),
+    allowable_operating_modes(_allowable_operating_modes) {}
 
   CommandType command_type;
   uint8_t id;
   uint16_t address;
   uint16_t length;
   std::vector<uint8_t> data;
-  StatusRequest status_request;
+  std::vector<StatusRequest> status_request;
   Motor * motor_ptr;
+  std::vector<OperatingMode> allowable_operating_modes;
 };
 
 }  // namespace dynamixel

@@ -57,29 +57,24 @@ class Motor:
 
     def setGoalPosition(self, position: int) -> None:
         self._checkTorqueStatus(1)
-        if self.operating_mode_status not in (
-            OperatingMode.POSITION,
-            OperatingMode.EXTENDED_POSITION
-        ):
-            raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
+        self._checkOperatingModeStatus([OperatingMode.POSITION, OperatingMode.EXTENDED_POSITION, OperatingMode.CURRENT_BASED_POSITION])
         item = self._getControlTableItem('Goal Position')
         self._writeData(self.id, item.address, item.size, position)
 
     def setGoalVelocity(self, velocity: int) -> None:
         self._checkTorqueStatus(1)
-        self._checkOperatingModeStatus(OperatingMode.VELOCITY)
+        self._checkOperatingModeStatus([OperatingMode.VELOCITY])
         item = self._getControlTableItem('Goal Velocity')
         self._writeData(self.id, item.address, item.size, velocity)
 
     def setGoalCurrent(self, current: int) -> None:
         self._checkTorqueStatus(1)
-        self._checkOperatingModeStatus(OperatingMode.CURRENT)
+        self._checkOperatingModeStatus([OperatingMode.CURRENT, OperatingMode.CURRENT_BASED_POSITION])
         item = self._getControlTableItem('Goal Current')
         self._writeData(self.id, item.address, item.size, current)
 
     def setGoalPWM(self, pwm: int) -> None:
         self._checkTorqueStatus(1)
-        self._checkOperatingModeStatus(OperatingMode.PWM)
         item = self._getControlTableItem('Goal PWM')
         self._writeData(self.id, item.address, item.size, pwm)
 
@@ -208,7 +203,7 @@ class Motor:
             item.address,
             item.size,
             [1],
-            StatusRequest.UPDATE_TORQUE_STATUS,
+            [StatusRequest.UPDATE_TORQUE_STATUS],
             self
         )
 
@@ -220,7 +215,7 @@ class Motor:
             item.address,
             item.size,
             [0],
-            StatusRequest.UPDATE_TORQUE_STATUS,
+            [StatusRequest.UPDATE_TORQUE_STATUS],
             self
         )
 
@@ -235,8 +230,9 @@ class Motor:
             item.address,
             item.size,
             data,
-            StatusRequest.CHECK_POSITION_MODE,
-            self
+            [StatusRequest.CHECK_TORQUE_ON, StatusRequest.CHECK_OPERATING_MODE],
+            self,
+            [OperatingMode.POSITION, OperatingMode.EXTENDED_POSITION, OperatingMode.CURRENT_BASED_POSITION]
         )
 
     def stageSetGoalVelocity(self, velocity: int) -> StagedCommand:
@@ -250,8 +246,9 @@ class Motor:
             item.address,
             item.size,
             data,
-            StatusRequest.CHECK_VELOCITY_MODE,
-            self
+            [StatusRequest.CHECK_TORQUE_ON, StatusRequest.CHECK_OPERATING_MODE],
+            self,
+            [OperatingMode.VELOCITY]
         )
 
     def stageSetGoalCurrent(self, current: int) -> StagedCommand:
@@ -265,8 +262,9 @@ class Motor:
             item.address,
             item.size,
             data,
-            StatusRequest.CHECK_CURRENT_MODE,
-            self
+            [StatusRequest.CHECK_TORQUE_ON, StatusRequest.CHECK_OPERATING_MODE],
+            self,
+            [OperatingMode.CURRENT, OperatingMode.CURRENT_BASED_POSITION]
         )
 
     def stageSetGoalPWM(self, pwm: int) -> StagedCommand:
@@ -280,7 +278,7 @@ class Motor:
             item.address,
             item.size,
             data,
-            StatusRequest.CHECK_PWM_MODE,
+            [StatusRequest.CHECK_TORQUE_ON],
             self
         )
 
@@ -300,7 +298,7 @@ class Motor:
             item.address,
             item.size,
             [],
-            StatusRequest.UPDATE_TORQUE_STATUS,
+            [StatusRequest.UPDATE_TORQUE_STATUS],
             self
         )
 
@@ -354,8 +352,8 @@ class Motor:
         if self.torque_status != status:
             raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
 
-    def _checkOperatingModeStatus(self, mode: OperatingMode):
-        if self.operating_mode_status != mode:
+    def _checkOperatingModeStatus(self, mode: list[OperatingMode]):
+        if self.operating_mode_status not in mode:
             raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
 
     def _writeGain(self, name, value):

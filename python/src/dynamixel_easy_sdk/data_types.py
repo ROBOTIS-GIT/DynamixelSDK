@@ -32,11 +32,12 @@ class ControlTableItem:
 
 
 class OperatingMode(IntEnum):
-    POSITION = 3
-    VELOCITY = 1
     CURRENT = 0
-    PWM = 16
+    VELOCITY = 1
+    POSITION = 3
     EXTENDED_POSITION = 4
+    CURRENT_BASED_POSITION = 5
+    PWM = 16
 
 
 class Direction(IntEnum):
@@ -56,11 +57,8 @@ class CommandType(IntEnum):
 
 class StatusRequest(IntEnum):
     CHECK_TORQUE_ON = 1
-    CHECK_CURRENT_MODE = 2
-    CHECK_VELOCITY_MODE = 3
-    CHECK_POSITION_MODE = 4
-    CHECK_PWM_MODE = 5
-    UPDATE_TORQUE_STATUS = 6
+    CHECK_OPERATING_MODE = 2
+    UPDATE_TORQUE_STATUS = 3
 
 
 @dataclass
@@ -70,8 +68,9 @@ class StagedCommand:
     address: int
     length: int
     data: List[int]
-    status_request: Optional[StatusRequest] = None
+    status_request: Optional[List[StatusRequest]] = None
     motor: Optional['Motor'] = None  # noqa: F821
+    allowable_operating_modes: Optional[List[OperatingMode]] = None
 
 
 def toSignedInt(value: int, size: int) -> int:

@@ -171,33 +171,15 @@ class GroupExecutor:
         if not cmd.status_request:
             return
 
-        if cmd.status_request == StatusRequest.CHECK_TORQUE_ON:
+        if StatusRequest.CHECK_TORQUE_ON in cmd.status_request:
             if cmd.motor.torque_status != 1:
                 raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
-        elif cmd.status_request == StatusRequest.CHECK_CURRENT_MODE:
-            if cmd.motor.operating_mode_status != OperatingMode.CURRENT:
+
+        if StatusRequest.CHECK_OPERATING_MODE in cmd.status_request:
+            if cmd.motor.operating_mode_status not in cmd.allowable_operating_modes:
                 raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
-            if cmd.motor.torque_status != 1:
-                raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
-        elif cmd.status_request == StatusRequest.CHECK_VELOCITY_MODE:
-            if cmd.motor.operating_mode_status != OperatingMode.VELOCITY:
-                raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
-            if cmd.motor.torque_status != 1:
-                raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
-        elif cmd.status_request == StatusRequest.CHECK_POSITION_MODE:
-            if cmd.motor.operating_mode_status not in (
-                OperatingMode.POSITION,
-                OperatingMode.EXTENDED_POSITION
-            ):
-                raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
-            if cmd.motor.torque_status != 1:
-                raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
-        elif cmd.status_request == StatusRequest.CHECK_PWM_MODE:
-            if cmd.motor.operating_mode_status != OperatingMode.PWM:
-                raise DxlRuntimeError(DxlError.EASY_SDK_OPERATING_MODE_MISMATCH)
-            if cmd.motor.torque_status != 1:
-                raise DxlRuntimeError(DxlError.EASY_SDK_TORQUE_STATUS_MISMATCH)
-        elif cmd.status_request == StatusRequest.UPDATE_TORQUE_STATUS:
+
+        if StatusRequest.UPDATE_TORQUE_STATUS in cmd.status_request:
             if data is not None:
                 cmd.motor.torque_status = data
                 return
