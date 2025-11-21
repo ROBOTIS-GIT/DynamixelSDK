@@ -53,13 +53,12 @@ std::vector<std::unique_ptr<Motor>> Connector::createAllMotors(int start_id, int
   if (start_id < 0 || start_id > 252 || end_id < 0 || end_id > 252 || start_id > end_id) {
     throw DxlRuntimeError("Invalid ID range. ID should be in the range of 0 to 252.");
   }
-  std::vector<uint8_t> ids;
   std::vector<std::unique_ptr<Motor>> motors;
-  int dxl_comm_result = packet_handler_->broadcastPing(port_handler_.get(), ids);
-  if (dxl_comm_result != COMM_SUCCESS) {
-    throw DxlRuntimeError(getErrorMessage(static_cast<DxlError>(dxl_comm_result)));
+  Result<std::vector<uint8_t>, DxlError> result = broadcastPing();
+  if (!result.isSuccess()) {
+    throw DxlRuntimeError(getErrorMessage(result.error()));
   }
-  for (auto & id : ids) {
+  for (auto & id : result.value()) {
     if (id >= start_id && id <= end_id) {
       motors.push_back(createMotor(id));
     }
@@ -201,6 +200,16 @@ Result<uint16_t, DxlError> Connector::ping(uint8_t id)
     return static_cast<DxlError>(dxl_error);
   }
   return data;
+}
+
+Result <std::vector<uint8_t>, DxlError> Connector::broadcastPing()
+{
+  std::vector<uint8_t> ids;
+  int dxl_comm_result = packet_handler_->broadcastPing(port_handler_.get(), ids);
+  if (dxl_comm_result != COMM_SUCCESS) {
+    return static_cast<DxlError>(dxl_comm_result);
+  }
+  return ids;
 }
 
 Result<void, DxlError> Connector::factoryReset(uint8_t id, uint8_t option)

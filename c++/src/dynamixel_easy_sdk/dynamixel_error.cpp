@@ -55,8 +55,8 @@ std::string getErrorMessage(DxlError error_code)
       return "[RxPacketError] Writing or Reading is not available to target address!";
     case DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED:
       return "[EasySDKError] Easy SDK function is not supported on this model!";
-    case DxlError::EASY_SDK_MOTOR_TORQUE_OFF:
-      return "[EasySDKError] Motor torque is off!";
+    case DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH:
+      return "[EasySDKError] Motor torque status mismatch!";
     case DxlError::EASY_SDK_OPERATING_MODE_MISMATCH:
       return "[EasySDKError] Operating mode is not appropriate for this function!";
     case DxlError::EASY_SDK_ADD_PARAM_FAIL:

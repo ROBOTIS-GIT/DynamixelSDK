@@ -25,9 +25,8 @@
 #include <vector>
 
 #include "dynamixel_sdk/dynamixel_sdk.h"
-#include "dynamixel_easy_sdk/control_table.hpp"
 #include "dynamixel_easy_sdk/dynamixel_error.hpp"
-#include "dynamixel_easy_sdk/staged_command.hpp"
+#include "dynamixel_easy_sdk/data_types.hpp"
 
 namespace dynamixel
 {
@@ -43,10 +42,10 @@ public:
   void addCmd(Result<StagedCommand, DxlError> result);
   Result<void, DxlError> executeWrite();
   Result<std::vector<Result<int32_t, DxlError>>, DxlError> executeRead();
-  std::vector<StagedCommand> getStagedWriteCommands() const { return staged_write_command_list_; }
-  std::vector<StagedCommand> getStagedReadCommands() const { return staged_read_command_list_; }
-  void clearStagedWriteCommands() { staged_write_command_list_.clear(); }
-  void clearStagedReadCommands() { staged_read_command_list_.clear(); }
+  std::vector<StagedCommand> getStagedWriteCommands() const {return staged_write_command_list_;}
+  std::vector<StagedCommand> getStagedReadCommands() const {return staged_read_command_list_;}
+  void clearStagedWriteCommands() {staged_write_command_list_.clear();}
+  void clearStagedReadCommands() {staged_read_command_list_.clear();}
 
 private:
   Result<void, DxlError> executeSyncWrite(uint16_t address, uint16_t length);
@@ -55,6 +54,9 @@ private:
     uint16_t address,
     uint16_t length);
   Result<std::vector<Result<int32_t, DxlError>>, DxlError> executeBulkRead();
+  bool checkDuplicateId(const std::vector<StagedCommand> & cmd_list);
+  bool checkSync(const std::vector<StagedCommand> & cmd_list);
+  Result<void, DxlError> processStatusRequests(StagedCommand & cmd, int data = -1);
 
   Connector * connector_;
   PortHandler * port_handler_;

@@ -22,5 +22,6 @@
 #include "dynamixel_easy_sdk/dynamixel_error.hpp"
 #include "dynamixel_easy_sdk/motor.hpp"
 #include "dynamixel_easy_sdk/group_executor.hpp"
+#include "dynamixel_easy_sdk/data_types.hpp"
 
 #endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_DYNAMIXEL_EASY_SDK_HPP_ */

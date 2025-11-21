@@ -24,16 +24,11 @@
 #include <sstream>
 #include <string>
 
+#include "dynamixel_easy_sdk/data_types.hpp"
 #include "dynamixel_easy_sdk/dynamixel_error.hpp"
 
 namespace dynamixel
 {
-struct ControlTableItem
-{
-  uint16_t address;
-  uint8_t size;
-};
-
 class ControlTable
 {
 public:

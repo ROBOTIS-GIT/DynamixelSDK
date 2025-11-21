@@ -42,14 +42,15 @@ public:
   Result<void, DxlError> write1ByteData(uint8_t id, uint16_t address, uint8_t value);
   Result<void, DxlError> write2ByteData(uint8_t id, uint16_t address, uint16_t value);
   Result<void, DxlError> write4ByteData(uint8_t id, uint16_t address, uint32_t value);
-
   Result<uint8_t, DxlError> read1ByteData(uint8_t id, uint16_t address);
   Result<uint16_t, DxlError> read2ByteData(uint8_t id, uint16_t address);
   Result<uint32_t, DxlError> read4ByteData(uint8_t id, uint16_t address);
 
   Result<void, DxlError> reboot(uint8_t id);
   Result<uint16_t, DxlError> ping(uint8_t id);
+  Result<std::vector<uint8_t>, DxlError> broadcastPing();
   Result<void, DxlError> factoryReset(uint8_t id, uint8_t option);
+  void closePort() {port_handler_->closePort();}
 
   PortHandler * getPortHandler() const {return port_handler_.get();}
   PacketHandler * getPacketHandler() const {return packet_handler_;}
