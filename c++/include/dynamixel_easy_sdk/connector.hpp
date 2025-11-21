@@ -48,7 +48,9 @@ public:
 
   Result<void, DxlError> reboot(uint8_t id);
   Result<uint16_t, DxlError> ping(uint8_t id);
+  Result<std::vector<uint8_t>, DxlError> broadcastPing();
   Result<void, DxlError> factoryReset(uint8_t id, uint8_t option);
+  void closePort() {port_handler_->closePort();}
 
   PortHandler * getPortHandler() const {return port_handler_.get();}
   PacketHandler * getPacketHandler() const {return packet_handler_;}
