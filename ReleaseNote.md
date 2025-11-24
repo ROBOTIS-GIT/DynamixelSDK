@@ -1,5 +1,12 @@
 # Dynamixel SDK Release Notes
 
+4.0.2 (2025-11-24)
+------------------
+* Easy SDK Python update
+* Added data types.hpp
+* Added error handling for cases where operation fails due to incorrect torque state or operating mode.
+* Contributors: Hyungyu Kim
+
 4.0.1 (2025-11-05)
 ------------------
 * Fix error that cache status is not updated
