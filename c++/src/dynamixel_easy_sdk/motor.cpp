@@ -59,7 +59,7 @@ Result<void, DxlError> Motor::disableTorque()
   return result;
 }
 
-Result<void, DxlError> Motor::setGoalPosition(uint32_t position)
+Result<void, DxlError> Motor::setGoalPosition(int32_t position)
 {
   if (torque_status_ == 0) {
     return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
@@ -70,11 +70,11 @@ Result<void, DxlError> Motor::setGoalPosition(uint32_t position)
   {
     return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
-  Result<void, DxlError> result = writeData(id_, "Goal Position", position);
+  Result<void, DxlError> result = writeData(id_, "Goal Position", static_cast<uint32_t>(position));
   return result;
 }
 
-Result<void, DxlError> Motor::setGoalVelocity(uint32_t velocity)
+Result<void, DxlError> Motor::setGoalVelocity(int32_t velocity)
 {
   if (torque_status_ == 0) {
     return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
@@ -82,7 +82,7 @@ Result<void, DxlError> Motor::setGoalVelocity(uint32_t velocity)
   if (operating_mode_status_ != OperatingMode::VELOCITY) {
     return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
-  Result<void, DxlError> result = writeData(id_, "Goal Velocity", velocity);
+  Result<void, DxlError> result = writeData(id_, "Goal Velocity", static_cast<uint32_t>(velocity));
   return result;
 }
 
@@ -95,7 +95,7 @@ Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
     operating_mode_status_ != OperatingMode::CURRENT_BASED_POSITION) {
     return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
   }
-  Result<void, DxlError> result = writeData(id_, "Goal Current", current);
+  Result<void, DxlError> result = writeData(id_, "Goal Current", static_cast<uint16_t>(current));
   return result;
 }
 
@@ -104,7 +104,7 @@ Result<void, DxlError> Motor::setGoalPWM(int16_t pwm)
   if (torque_status_ == 0) {
     return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
   }
-  Result<void, DxlError> result = writeData(id_, "Goal PWM", pwm);
+  Result<void, DxlError> result = writeData(id_, "Goal PWM", static_cast<uint16_t>(pwm));
   return result;
 }
 
@@ -464,7 +464,7 @@ Result<StagedCommand, DxlError> Motor::stageDisableTorque()
   return cmd;
 }
 
-Result<StagedCommand, DxlError> Motor::stageSetGoalPosition(uint32_t position)
+Result<StagedCommand, DxlError> Motor::stageSetGoalPosition(int32_t position)
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Position");
   if (!item_result.isSuccess()) {
@@ -487,7 +487,7 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalPosition(uint32_t position)
   return cmd;
 }
 
-Result<StagedCommand, DxlError> Motor::stageSetGoalVelocity(uint32_t velocity)
+Result<StagedCommand, DxlError> Motor::stageSetGoalVelocity(int32_t velocity)
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Velocity");
   if (!item_result.isSuccess()) {

@@ -40,8 +40,8 @@ public:
 
   Result<void, DxlError> enableTorque();
   Result<void, DxlError> disableTorque();
-  Result<void, DxlError> setGoalPosition(uint32_t position);
-  Result<void, DxlError> setGoalVelocity(uint32_t velocity);
+  Result<void, DxlError> setGoalPosition(int32_t position);
+  Result<void, DxlError> setGoalVelocity(int32_t velocity);
   Result<void, DxlError> setGoalCurrent(int16_t current);
   Result<void, DxlError> setGoalPWM(int16_t pwm);
   Result<void, DxlError> LEDOn();
@@ -84,8 +84,8 @@ public:
 
   Result<StagedCommand, DxlError> stageEnableTorque();
   Result<StagedCommand, DxlError> stageDisableTorque();
-  Result<StagedCommand, DxlError> stageSetGoalPosition(uint32_t position);
-  Result<StagedCommand, DxlError> stageSetGoalVelocity(uint32_t velocity);
+  Result<StagedCommand, DxlError> stageSetGoalPosition(int32_t position);
+  Result<StagedCommand, DxlError> stageSetGoalVelocity(int32_t velocity);
   Result<StagedCommand, DxlError> stageSetGoalCurrent(int16_t current);
   Result<StagedCommand, DxlError> stageSetGoalPWM(int16_t pwm);
   Result<StagedCommand, DxlError> stageLEDOn();
