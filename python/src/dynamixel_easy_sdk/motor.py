@@ -195,6 +195,48 @@ class Motor:
     def setVelocityPGain(self, value: int) -> None: self._writeGain('Velocity P Gain', value)
     def setVelocityIGain(self, value: int) -> None: self._writeGain('Velocity I Gain', value)
 
+    def setHomingOffset(self, offset: int) -> None:
+        self._checkTorqueStatus(0)
+        item = self._getControlTableItem('Homing Offset')
+        self._writeData(self.id, item.address, item.size, offset)
+
+    def setMaxPositionLimit(self, limit: int) -> None:
+        self._checkTorqueStatus(0)
+        item = self._getControlTableItem('Max Position Limit')
+        self._writeData(self.id, item.address, item.size, limit)
+
+    def setMinPositionLimit(self, limit: int) -> None:
+        self._checkTorqueStatus(0)
+        item = self._getControlTableItem('Min Position Limit')
+        self._writeData(self.id, item.address, item.size, limit)
+
+    def setVelocityLimit(self, limit: int) -> None:
+        self._checkTorqueStatus(0)
+        item = self._getControlTableItem('Velocity Limit')
+        self._writeData(self.id, item.address, item.size, limit)
+
+    def setCurrentLimit(self, limit: int) -> None:
+        self._checkTorqueStatus(0)
+        item = self._getControlTableItem('Current Limit')
+        self._writeData(self.id, item.address, item.size, limit)
+
+    def setPWMLimit(self, limit: int) -> None:
+        self._checkTorqueStatus(0)
+        item = self._getControlTableItem('PWM Limit')
+        self._writeData(self.id, item.address, item.size, limit)
+
+    def reboot(self) -> None:
+        self.connector.reboot(self.id)
+
+    def factoryResetAll(self) -> None:
+        self.connector.factoryReset(self.id, 0xFF)
+
+    def factoryResetExceptID(self) -> None:
+        self.connector.factoryReset(self.id, 0x01)
+
+    def factoryResetExceptIDAndBaudRate(self) -> None:
+        self.connector.factoryReset(self.id, 0x02)
+
     def stageEnableTorque(self) -> StagedCommand:
         item = self._getControlTableItem('Torque Enable')
         return StagedCommand(

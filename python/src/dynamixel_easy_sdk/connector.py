@@ -142,7 +142,7 @@ class Connector:
         self._checkError(dxl_comm_result, DxlError.SDK_COMM_SUCCESS)
         return ids
 
-    def factory_reset(self, motor_id: int, option: int):
+    def factoryReset(self, motor_id: int, option: int):
         dxl_comm_result, dxl_error = Connector._packet_handler.factoryReset(
             self._port_handler,
             motor_id,
