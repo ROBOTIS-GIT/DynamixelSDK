@@ -25,29 +25,29 @@ namespace dynamixel
 {
 enum class DxlError
 {
-  SDK_COMM_SUCCESS = 0,             // tx or rx packet communication success
-  SDK_COMM_PORT_BUSY = -1000,       // Port is busy (in use)
-  SDK_COMM_TX_FAIL = -1001,         // Failed transmit instruction packet
-  SDK_COMM_RX_FAIL = -1002,         // Failed get status packet
-  SDK_COMM_TX_ERROR = -2000,        // Incorrect instruction packet
-  SDK_COMM_RX_WAITING = -3000,      // Now receiving status packet
-  SDK_COMM_RX_TIMEOUT = -3001,      // There is no status packet
-  SDK_COMM_RX_CORRUPT = -3002,      // Incorrect status packet
+  SDK_COMM_SUCCESS = 0,                      // tx or rx packet communication success
+  SDK_COMM_PORT_BUSY = -1000,                // Port is busy (in use)
+  SDK_COMM_TX_FAIL = -1001,                  // Failed transmit instruction packet
+  SDK_COMM_RX_FAIL = -1002,                  // Failed get status packet
+  SDK_COMM_TX_ERROR = -2000,                 // Incorrect instruction packet
+  SDK_COMM_RX_WAITING = -3000,               // Now receiving status packet
+  SDK_COMM_RX_TIMEOUT = -3001,               // There is no status packet
+  SDK_COMM_RX_CORRUPT = -3002,               // Incorrect status packet
   SDK_COMM_NOT_AVAILABLE = -9000,
-  SDK_ERRNUM_RESULT_FAIL = 1,       // Failed to process the instruction packet.
-  SDK_ERRNUM_INSTRUCTION = 2,       // Instruction error
-  SDK_ERRNUM_CRC = 3,               // CRC check error
-  SDK_ERRNUM_DATA_RANGE = 4,        // Data range error
-  SDK_ERRNUM_DATA_LENGTH = 5,       // Data length error
-  SDK_ERRNUM_DATA_LIMIT = 6,        // Data limit error
-  SDK_ERRNUM_ACCESS = 7,            // Access error
-  EASY_SDK_FUNCTION_NOT_SUPPORTED = 11,  // API does not support this function
-  EASY_SDK_MOTOR_TORQUE_OFF = 12,        // Motor torque is off
-  EASY_SDK_OPERATING_MODE_MISMATCH = 13, // Operating mode is not appropriate for this function
-  EASY_SDK_ADD_PARAM_FAIL = 21,          // Failed to add parameter
-  EASY_SDK_COMMAND_IS_EMPTY = 22,        // No command to execute
-  EASY_SDK_DUPLICATE_ID = 23,            // Duplicate ID in staged commands
-  EASY_SDK_FAIL_TO_GET_DATA = 24         // Failed to get data from motor
+  SDK_ERRNUM_RESULT_FAIL = 1,                // Failed to process the instruction packet.
+  SDK_ERRNUM_INSTRUCTION = 2,                // Instruction error
+  SDK_ERRNUM_CRC = 3,                        // CRC check error
+  SDK_ERRNUM_DATA_RANGE = 4,                 // Data range error
+  SDK_ERRNUM_DATA_LENGTH = 5,                // Data length error
+  SDK_ERRNUM_DATA_LIMIT = 6,                 // Data limit error
+  SDK_ERRNUM_ACCESS = 7,                     // Access error
+  EASY_SDK_FUNCTION_NOT_SUPPORTED = 11,      // API does not support this function
+  EASY_SDK_TORQUE_STATUS_MISMATCH = 12,      // Motor torque is off
+  EASY_SDK_OPERATING_MODE_MISMATCH = 13,     // Operating mode is not appropriate for this function
+  EASY_SDK_ADD_PARAM_FAIL = 21,              // Failed to add parameter
+  EASY_SDK_COMMAND_IS_EMPTY = 22,            // No command to execute
+  EASY_SDK_DUPLICATE_ID = 23,                // Duplicate ID in staged commands
+  EASY_SDK_FAIL_TO_GET_DATA = 24             // Failed to get data from motor
 };
 
 template<typename T, typename E>

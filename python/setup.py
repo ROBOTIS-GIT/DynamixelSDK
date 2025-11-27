@@ -13,11 +13,11 @@ author_emails = ', '.join(email for _, email in authors_info)
 
 setup(
     name='dynamixel_sdk',
-    version='4.0.1',
+    version='4.0.2',
     packages=['dynamixel_sdk'],
     package_dir={'': 'src'},
     license='Apache 2.0',
-    description='Dynamixel SDK 3. python package',
+    description='Dynamixel SDK 4. python package',
     long_description=open('README.txt').read(),
     url='https://github.com/ROBOTIS-GIT/DynamixelSDK',
     author=authors,

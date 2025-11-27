@@ -25,7 +25,7 @@
 #include "dynamixel_sdk/dynamixel_sdk.h"
 #include "dynamixel_easy_sdk/control_table.hpp"
 #include "dynamixel_easy_sdk/dynamixel_error.hpp"
-#include "dynamixel_easy_sdk/staged_command.hpp"
+#include "dynamixel_easy_sdk/data_types.hpp"
 
 namespace dynamixel
 {
@@ -34,35 +34,14 @@ class Connector;
 class Motor
 {
 public:
-  enum class OperatingMode
-  {
-    CURRENT = 0,
-    VELOCITY = 1,
-    POSITION = 3,
-    EXTENDED_POSITION = 4,
-    PWM = 16
-  };
-
-  enum class ProfileConfiguration
-  {
-    VELOCITY_BASED = 0,
-    TIME_BASED = 1
-  };
-
-  enum class Direction
-  {
-    NORMAL = 0,
-    REVERSE = 1
-  };
-
   Motor(uint8_t id, uint16_t model_number, Connector * connector);
 
   virtual ~Motor();
 
   Result<void, DxlError> enableTorque();
   Result<void, DxlError> disableTorque();
-  Result<void, DxlError> setGoalPosition(uint32_t position);
-  Result<void, DxlError> setGoalVelocity(uint32_t velocity);
+  Result<void, DxlError> setGoalPosition(int32_t position);
+  Result<void, DxlError> setGoalVelocity(int32_t velocity);
   Result<void, DxlError> setGoalCurrent(int16_t current);
   Result<void, DxlError> setGoalPWM(int16_t pwm);
   Result<void, DxlError> LEDOn();
@@ -73,12 +52,14 @@ public:
   Result<uint8_t, DxlError> isLEDOn();
   Result<int32_t, DxlError> getPresentPosition();
   Result<int32_t, DxlError> getPresentVelocity();
+  Result<int16_t, DxlError> getPresentCurrent();
+  Result<int16_t, DxlError> getPresentPWM();
   Result<uint32_t, DxlError> getMaxPositionLimit();
   Result<uint32_t, DxlError> getMinPositionLimit();
   Result<uint32_t, DxlError> getVelocityLimit();
   Result<uint16_t, DxlError> getCurrentLimit();
   Result<uint16_t, DxlError> getPWMLimit();
-  Result<uint8_t, DxlError> getOperatingMode();
+  Result<OperatingMode, DxlError> getOperatingMode();
 
   Result<void, DxlError> changeID(uint8_t new_id);
   Result<void, DxlError> setOperatingMode(OperatingMode mode);
@@ -103,8 +84,10 @@ public:
 
   Result<StagedCommand, DxlError> stageEnableTorque();
   Result<StagedCommand, DxlError> stageDisableTorque();
-  Result<StagedCommand, DxlError> stageSetGoalPosition(uint32_t position);
-  Result<StagedCommand, DxlError> stageSetGoalVelocity(uint32_t velocity);
+  Result<StagedCommand, DxlError> stageSetGoalPosition(int32_t position);
+  Result<StagedCommand, DxlError> stageSetGoalVelocity(int32_t velocity);
+  Result<StagedCommand, DxlError> stageSetGoalCurrent(int16_t current);
+  Result<StagedCommand, DxlError> stageSetGoalPWM(int16_t pwm);
   Result<StagedCommand, DxlError> stageLEDOn();
   Result<StagedCommand, DxlError> stageLEDOff();
 
@@ -112,13 +95,22 @@ public:
   Result<StagedCommand, DxlError> stageIsLEDOn();
   Result<StagedCommand, DxlError> stageGetPresentPosition();
   Result<StagedCommand, DxlError> stageGetPresentVelocity();
+  Result<StagedCommand, DxlError> stageGetPresentCurrent();
+  Result<StagedCommand, DxlError> stageGetPresentPWM();
 
   uint8_t getID() const {return id_;}
   uint16_t getModelNumber() const {return model_number_;}
   std::string getModelName() const {return model_name_;}
+  uint8_t getTorqueStatus() const {return torque_status_;}
+  OperatingMode getOperatingModeStatus() const {return operating_mode_status_;}
+  void setTorqueStatus(uint8_t status) {torque_status_ = status;}
+  void setOperatingModeStatus(OperatingMode mode) {operating_mode_status_ = mode;}
 
 private:
   Result<ControlTableItem, DxlError> getControlTableItem(const std::string & item_name);
+  Result<void, DxlError> writeData(uint8_t id, const std::string & item_name, uint32_t value);
+  Result<uint32_t, DxlError> readData(uint8_t id, const std::string & item_name);
+
   uint8_t id_;
   uint16_t model_number_;
   std::string model_name_;
