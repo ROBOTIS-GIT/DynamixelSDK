@@ -40,6 +40,7 @@ CCFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) $(FORMAT) -fPIC
 CXFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) $(FORMAT) -fPIC -g $(CONTROL_TABLE_PATH_FLAG)
 FORMAT      = -m32
 INCLUDES    += -I$(DIR_DXL)/include/dynamixel_sdk
+INCLUDES    += -I$(DIR_DXL)/include
 
 #---------------------------------------------------------------------
 # Required external libraries
