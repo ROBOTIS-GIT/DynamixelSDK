@@ -10,7 +10,8 @@ readme = "README.txt"
 license = { text = "Apache 2.0" }
 authors = [
     { name = "Leon Jung", email = "rwjung@robotis.com" },
-    { name = "Wonho Yun", email = "ywh@robotis.com" }
+    { name = "Wonho Yun", email = "ywh@robotis.com" },
+    { name = "Hyungyu Kim", email = "kimgf@robotis.com" }
 ]
 dependencies = [
     "pyserial",

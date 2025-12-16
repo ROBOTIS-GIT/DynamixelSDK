@@ -6,6 +6,7 @@ import platform
 authors_info = [
     ('Leon Jung', 'rwjung@robotis.com'),
     ('Wonho Yun', 'ywh@robotis.com'),
+    ('Hyungyu Kim', 'kimhg@robotis.com'),
 ]
 
 authors = ', '.join(author for author, _ in authors_info)
