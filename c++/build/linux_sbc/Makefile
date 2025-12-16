@@ -36,8 +36,8 @@ MKDIR       = mkdir
 CC          = gcc
 CX          = g++
 CONTROL_TABLE_PATH_FLAG = -DCONTROL_TABLE_PATH=\"$(INSTALL_ROOT)/share/dynamixel_sdk/control_table\"
-CCFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) -fPIC -g
-CXFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) -fPIC -g
+CCFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) -fPIC -g $(CONTROL_TABLE_PATH_FLAG)
+CXFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) -fPIC -g $(CONTROL_TABLE_PATH_FLAG)
 INCLUDES    += -I$(DIR_DXL)/include/dynamixel_sdk
 INCLUDES    += -I$(DIR_DXL)/include
 
