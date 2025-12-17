@@ -1,0 +1,46 @@
+[type info]
+name	value
+value_of_zero_radian_position	2048
+value_of_max_radian_position	4095
+value_of_min_radian_position	0
+min_radian	-3.14159265
+max_radian	3.14159265
+
+[unit info]
+Data Name	value	unit	Sign Type
+Present Velocity	0.0116228475	rad/s	signed
+Goal Velocity	0.0116228475	rad/s	signed
+
+[control table]
+Address	Size	Data Name
+0	2	Model Number
+2	1	Firmware Version
+3	1	ID
+4	1	Baud Rate
+5	1	Return Delay Time
+6	2	CW Angle Limit
+8	2	CCW Angle Limit
+11	1	Control Mode
+12	1	Temperature Limit
+13	1	Min Voltage Limit
+14	1	Max Voltage Limit
+15	2	Max Torque
+17	1	Status Return Level
+18	1	Shutdown
+24	1	Torque Enable
+25	1	LED
+27	1	D Gain
+28	1	I Gain
+29	1	P Gain
+30	2	Goal Position
+32	2	Moving Speed
+35	2	Torque Limit
+37	2	Present Position
+39	2	Present Speed
+41	2	Present Load
+45	1	Present Voltage
+46	1	Present Temperature
+47	1	Registered Instruction
+49	1	Moving
+50	1	Hardware Error Status
+51	2	Punch

@@ -39,6 +39,14 @@ set(DYNAMIXEL_SDK_SOURCES
   src/dynamixel_sdk/port_handler.cpp
 )
 
+set(DYNAMIXEL_EASY_SDK_SOURCES
+  src/dynamixel_easy_sdk/connector.cpp
+  src/dynamixel_easy_sdk/control_table.cpp
+  src/dynamixel_easy_sdk/dynamixel_error.cpp
+  src/dynamixel_easy_sdk/group_executor.cpp
+  src/dynamixel_easy_sdk/motor.cpp
+)
+
 if(APPLE)
   add_library(dynamixel_sdk SHARED
     ${DYNAMIXEL_SDK_SOURCES}
@@ -52,6 +60,7 @@ elseif(WIN32)
 else()
   add_library(dynamixel_sdk SHARED
     ${DYNAMIXEL_SDK_SOURCES}
+    ${DYNAMIXEL_EASY_SDK_SOURCES}
     src/dynamixel_sdk/port_handler_linux.cpp
   )
 endif()
@@ -71,6 +80,16 @@ install(
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include
+)
+
+install(
+  DIRECTORY control_table/
+  DESTINATION share/${PROJECT_NAME}/control_table
+)
+
+target_compile_definitions(dynamixel_sdk
+  PUBLIC
+    CONTROL_TABLE_PATH="${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/control_table"
 )
 
 ################################################################################
