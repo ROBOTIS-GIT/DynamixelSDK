@@ -23,6 +23,7 @@ find_package(ament_cmake_python REQUIRED)
 ################################################################################
 include_directories(
   include/${PROJECT_NAME}
+  include
 )
 
 set(DYNAMIXEL_SDK_SOURCES
