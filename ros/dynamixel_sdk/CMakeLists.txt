@@ -97,6 +97,7 @@ target_compile_definitions(dynamixel_sdk
 # Install Python Package
 ################################################################################
 ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR "src/dynamixel_sdk")
+ament_python_install_package(dynamixel_easy_sdk PACKAGE_DIR "src/dynamixel_easy_sdk")
 
 ################################################################################
 # Macro for ament package
