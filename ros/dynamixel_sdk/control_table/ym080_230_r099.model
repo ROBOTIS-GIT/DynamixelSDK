@@ -1,0 +1,115 @@
+[type info]
+name	value
+value_of_zero_radian_position	0
+value_of_max_radian_position	262144
+value_of_min_radian_position	-262144
+min_radian	-3.14159265
+max_radian	3.14159265
+
+[unit info]
+Data Name	value	unit	Sign Type
+Present Velocity	0.0010471976	rad/s	signed
+Goal Velocity	0.0010471976	rad/s	signed
+Present Current	1.0	raw	signed
+Goal Current	1.0	raw	signed
+
+[control table]
+Address	Size	Data Name
+0	2	Model Number
+2	4	Model Information
+6	1	Firmware Version
+7	1	ID
+8	2	Bus Watchdog
+10	1	Secondary(Shadow) ID
+11	1	Protocol Type
+12	1	Baud Rate (Bus)
+13	1	Return Delay Time
+15	1	Status Return Level
+16	1	Registered Instruction
+32	1	Drive Mode
+33	1	Operating Mode
+34	1	Startup Configuration
+38	2	Position Limit Threshold
+40	4	In-Position Threshold
+44	4	Following Error Threshold
+48	4	Moving Threshold
+52	4	Homing Offset
+56	1	Inverter Temperature Limit
+57	1	Motor Temperature Limit
+60	2	Max Voltage Limit
+62	2	Min Voltage Limit
+64	2	PWM Limit
+66	2	Current Limit
+68	4	Acceleration Limit
+72	4	Velocity Limit
+76	4	Max Position Limit
+84	4	Min Position Limit
+96	4	Electronic GearRatio Numerator
+100	4	Electronic GearRatio Denominator
+104	2	Safe Stop Time
+106	2	Brake Delay
+108	2	Goal Update Delay
+110	1	Overexcitation Voltage
+111	1	Normal Excitation Voltage
+112	2	Overexcitation Time
+132	2	Present Velocity LPF Frequency
+134	2	Goal Current LPF Frequency
+136	2	Position FF LPF Time
+138	2	Velocity FF LPF Time
+152	1	Controller State
+153	1	Error Code
+154	1	Error Code History 1
+155	1	Error Code History 2
+156	1	Error Code History 3
+157	1	Error Code History 4
+158	1	Error Code History 5
+159	1	Error Code History 6
+160	1	Error Code History 7
+161	1	Error Code History 8
+162	1	Error Code History 9
+163	1	Error Code History 10
+164	1	Error Code History 11
+165	1	Error Code History 12
+166	1	Error Code History 13
+167	1	Error Code History 14
+168	1	Error Code History 15
+169	1	Error Code History 16
+170	1	Hybrid Save
+212	4	Velocity I Gain
+216	4	Velocity P Gain
+220	4	Velocity FF Gain
+224	4	Position D Gain
+228	4	Position I Gain
+232	4	Position P Gain
+236	4	Position FF Gain
+240	4	Profile Acceleration
+244	4	Profile Velocity
+248	4	Profile Acceleration Time
+252	4	Profile Time
+256	2	Indirect Address 1
+512	1	Torque Enable
+513	1	LED
+516	2	PWM Offset
+518	2	Current Offset
+520	4	Velocity Offset
+524	2	Goal PWM
+526	2	Goal Current
+528	4	Goal Velocity
+532	4	Goal Position
+541	1	Moving Status
+542	2	Realtime Tick
+544	2	Present PWM
+546	2	Present Current
+548	4	Present Velocity
+552	4	Present Position
+560	4	Position Trajectory
+564	4	Velocity Trajectory
+568	2	Present Input Voltage
+570	1	Present Inverter Temperature
+571	1	Present Motor Temperature
+634	1	Indirect Data 1
+919	1	Backup Ready
+256	2	Indirect Address Write
+634	1	Indirect Data Write
+384	2	Indirect Address Read
+698	1	Indirect Data Read
