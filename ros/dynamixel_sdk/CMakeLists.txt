@@ -23,6 +23,7 @@ find_package(ament_cmake_python REQUIRED)
 ################################################################################
 include_directories(
   include/${PROJECT_NAME}
+  include
 )
 
 set(DYNAMIXEL_SDK_SOURCES
@@ -39,6 +40,14 @@ set(DYNAMIXEL_SDK_SOURCES
   src/dynamixel_sdk/port_handler.cpp
 )
 
+set(DYNAMIXEL_EASY_SDK_SOURCES
+  src/dynamixel_easy_sdk/connector.cpp
+  src/dynamixel_easy_sdk/control_table.cpp
+  src/dynamixel_easy_sdk/dynamixel_error.cpp
+  src/dynamixel_easy_sdk/group_executor.cpp
+  src/dynamixel_easy_sdk/motor.cpp
+)
+
 if(APPLE)
   add_library(dynamixel_sdk SHARED
     ${DYNAMIXEL_SDK_SOURCES}
@@ -52,6 +61,7 @@ elseif(WIN32)
 else()
   add_library(dynamixel_sdk SHARED
     ${DYNAMIXEL_SDK_SOURCES}
+    ${DYNAMIXEL_EASY_SDK_SOURCES}
     src/dynamixel_sdk/port_handler_linux.cpp
   )
 endif()
@@ -73,10 +83,21 @@ install(
   INCLUDES DESTINATION include
 )
 
+install(
+  DIRECTORY control_table/
+  DESTINATION share/${PROJECT_NAME}/control_table
+)
+
+target_compile_definitions(dynamixel_sdk
+  PUBLIC
+    CONTROL_TABLE_PATH="${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/control_table"
+)
+
 ################################################################################
 # Install Python Package
 ################################################################################
 ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR "src/dynamixel_sdk")
+ament_python_install_package(dynamixel_easy_sdk PACKAGE_DIR "src/dynamixel_easy_sdk")
 
 ################################################################################
 # Macro for ament package
