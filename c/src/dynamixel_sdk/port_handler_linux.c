@@ -88,46 +88,29 @@ typedef struct
   double  tx_time_per_byte;
 }PortData;
 
-static PortData *portData;
+static PortData portData[DXL_MAX_PORTS];
+static uint8_t g_is_allocated[DXL_MAX_PORTS] = { False, };
 
 int portHandlerLinux(const char *port_name)
 {
   int port_num;
 
-  if (portData == NULL)
+  for (port_num = 0; port_num < DXL_MAX_PORTS; port_num++)
   {
-    port_num = 0;
-    g_used_port_num = 1;
-    portData = (PortData *)calloc(1, sizeof(PortData));
-    g_is_using = (uint8_t*)calloc(1, sizeof(uint8_t));
+    if (g_is_allocated[port_num] == True && !strcmp(portData[port_num].port_name, port_name))
+      return port_num;
   }
-  else
+
+  if (port_num == DXL_MAX_PORTS)
   {
-    for (port_num = 0; port_num < g_used_port_num; port_num++)
+    for (port_num = 0; port_num < DXL_MAX_PORTS; port_num++)
     {
-      if (!strcmp(portData[port_num].port_name, port_name))
+      if (portData[port_num].socket_fd == -1)
         break;
     }
 
-    if (port_num == g_used_port_num)
-    {
-      for (port_num = 0; port_num < g_used_port_num; port_num++)
-      {
-        if (portData[port_num].socket_fd != -1)
-          break;
-      }
-
-      if (port_num == g_used_port_num)
-      {
-        g_used_port_num++;
-        portData = (PortData*)realloc(portData, g_used_port_num * sizeof(PortData));
-        g_is_using = (uint8_t*)realloc(g_is_using, g_used_port_num * sizeof(uint8_t));
-      }
-    }
-    else
-    {
-      printf("[PortHandler setup] The port number %d has same device name... reinitialize port number %d!!\n", port_num, port_num);
-    }
+    if (port_num == DXL_MAX_PORTS)
+      return -1;
   }
 
   portData[port_num].socket_fd = -1;
@@ -136,7 +119,7 @@ int portHandlerLinux(const char *port_name)
   portData[port_num].packet_timeout = 0.0;
   portData[port_num].tx_time_per_byte = 0.0;
 
-  g_is_using[port_num] = False;
+  g_is_allocated[port_num] = True;
 
   setPortNameLinux(port_num, port_name);
 
@@ -145,11 +128,17 @@ int portHandlerLinux(const char *port_name)
 
 uint8_t openPortLinux(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return False;
+
   return setBaudRateLinux(port_num, portData[port_num].baudrate);
 }
 
 void closePortLinux(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return;
+
   if (portData[port_num].socket_fd != -1)
   {
     close(portData[port_num].socket_fd);
@@ -159,22 +148,36 @@ void closePortLinux(int port_num)
 
 void clearPortLinux(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return;
+
   tcflush(portData[port_num].socket_fd, TCIFLUSH);
 }
 
 void setPortNameLinux(int port_num, const char *port_name)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return;
+
   strcpy(portData[port_num].port_name, port_name);
 }
 
 char *getPortNameLinux(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return NULL;
+
   return portData[port_num].port_name;
 }
 
 uint8_t setBaudRateLinux(int port_num, const int baudrate)
 {
-  int baud = getCFlagBaud(baudrate);
+  int baud;
+
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return False;
+
+  baud = getCFlagBaud(baudrate);
 
   closePortLinux(port_num);
 
@@ -193,40 +196,62 @@ uint8_t setBaudRateLinux(int port_num, const int baudrate)
 
 int getBaudRateLinux(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return -1;
+
   return portData[port_num].baudrate;
 }
 
 int getBytesAvailableLinux(int port_num)
 {
   int bytes_available;
+
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return 0;
+
   ioctl(portData[port_num].socket_fd, FIONREAD, &bytes_available);
   return bytes_available;
 }
 
 int readPortLinux(int port_num, uint8_t *packet, int length)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return -1;
+
   return read(portData[port_num].socket_fd, packet, length);
 }
 
 int writePortLinux(int port_num, uint8_t *packet, int length)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return -1;
+
   return write(portData[port_num].socket_fd, packet, length);
 }
 
 void setPacketTimeoutLinux(int port_num, uint16_t packet_length)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return;
+
   portData[port_num].packet_start_time = getCurrentTimeLinux();
   portData[port_num].packet_timeout = (portData[port_num].tx_time_per_byte * (double)packet_length) + (LATENCY_TIMER * 2.0) + 2.0;
 }
 
 void setPacketTimeoutMSecLinux(int port_num, double msec)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return;
+
   portData[port_num].packet_start_time = getCurrentTimeLinux();
   portData[port_num].packet_timeout = msec;
 }
 
 uint8_t isPacketTimeoutLinux(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return False;
+
   if (getTimeSinceStartLinux(port_num) > portData[port_num].packet_timeout)
   {
     portData[port_num].packet_timeout = 0;
@@ -246,6 +271,9 @@ double getTimeSinceStartLinux(int port_num)
 {
   double time_since_start;
 
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return 0.0;
+
   time_since_start = getCurrentTimeLinux() - portData[port_num].packet_start_time;
   if (time_since_start < 0.0)
     portData[port_num].packet_start_time = getCurrentTimeLinux();
@@ -257,12 +285,22 @@ uint8_t setupPortLinux(int port_num, int cflag_baud)
 {
   struct termios newtio;
 
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return False;
+
   portData[port_num].socket_fd = open(portData[port_num].port_name, O_RDWR | O_NOCTTY | O_NONBLOCK);
 
   if (portData[port_num].socket_fd < 0)
   {
     printf("[PortHandlerLinux::SetupPort] Error opening serial port!\n");
     return False;
+  }
+
+  struct serial_struct serial;
+  if (ioctl(portData[port_num].socket_fd, TIOCGSERIAL, &serial) == 0)
+  {
+    serial.flags |= ASYNC_LOW_LATENCY;
+    ioctl(portData[port_num].socket_fd, TIOCSSERIAL, &serial);
   }
 
   bzero(&newtio, sizeof(newtio)); // clear struct for new port settings
@@ -285,6 +323,9 @@ uint8_t setupPortLinux(int port_num, int cflag_baud)
 uint8_t setCustomBaudrateLinux(int port_num, int speed)
 {
   struct termios2 options;
+
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return False;
 
   if (ioctl(portData[port_num].socket_fd, TCGETS2, &options) != 01)
   {

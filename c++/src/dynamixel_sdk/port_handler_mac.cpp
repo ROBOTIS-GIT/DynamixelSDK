@@ -129,8 +129,8 @@ int PortHandlerMac::writePort(uint8_t *packet, int length)
   while (unsent > 0) {
     ioctl(socket_fd_, TIOCOUTQ, &unsent);
   }
-  unsigned int tx_time = ((float)(length * 10) / baudrate_) * 1000000000;
-  struct timespec delay = {0, tx_time};
+  unsigned int tx_time = (static_cast<float>(length * 10) / baudrate_) * 1000000000;
+  struct timespec delay = {0, static_cast<long>(tx_time)};
   nanosleep(&delay, NULL);
 
   return result;
@@ -139,7 +139,7 @@ int PortHandlerMac::writePort(uint8_t *packet, int length)
 void PortHandlerMac::setPacketTimeout(uint16_t packet_length)
 {
   packet_start_time_  = getCurrentTime();
-  packet_timeout_     = (tx_time_per_byte * (double)packet_length) + (LATENCY_TIMER * 2.0) + 2.0;
+  packet_timeout_     = (tx_time_per_byte * static_cast<double>(packet_length)) + (LATENCY_TIMER * 2.0) + 2.0;
 }
 
 void PortHandlerMac::setPacketTimeout(double msec)
@@ -172,7 +172,7 @@ double PortHandlerMac::getCurrentTime()
 #else
   clock_gettime(CLOCK_REALTIME, &tv);
 #endif
-  return ((double)tv.tv_sec * 1000.0 + (double)tv.tv_nsec * 0.001 * 0.001);
+  return (static_cast<double>(tv.tv_sec) * 1000.0 + static_cast<double>(tv.tv_nsec) * 0.001 * 0.001);
 }
 
 double PortHandlerMac::getTimeSinceStart()
@@ -212,7 +212,7 @@ bool PortHandlerMac::setupPort(int cflag_baud)
   tcflush(socket_fd_, TCIFLUSH);
   tcsetattr(socket_fd_, TCSANOW, &newtio);
 
-  tx_time_per_byte = (1000.0 / (double)baudrate_) * 10.0;
+  tx_time_per_byte = (1000.0 / static_cast<double>(baudrate_)) * 10.0;
   return true;
 }
 

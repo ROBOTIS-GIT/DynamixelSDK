@@ -42,18 +42,15 @@ GroupSyncRead::GroupSyncRead(PortHandler *port, PacketHandler *ph, uint16_t star
 
 void GroupSyncRead::makeParam()
 {
-  if (ph_->getProtocolVersion() == 1.0 || id_list_.size() == 0)
+  if (ph_->getProtocolVersion() == 1.0 || id_list_.empty())
     return;
 
-  if (param_ != 0)
-    delete[] param_;
-  param_ = 0;
+  param_.clear();
 
-  param_ = new uint8_t[id_list_.size() * 1];  // ID(1)
+  param_.reserve(id_list_.size());  // ID(1)
 
-  int idx = 0;
   for (unsigned int i = 0; i < id_list_.size(); i++)
-    param_[idx++] = id_list_[i];
+    param_.push_back(id_list_[i]);
 }
 
 bool GroupSyncRead::addParam(uint8_t id)
@@ -65,8 +62,8 @@ bool GroupSyncRead::addParam(uint8_t id)
     return false;
 
   id_list_.push_back(id);
-  data_list_[id] = new uint8_t[data_length_];
-  error_list_[id] = new uint8_t[1];
+  data_list_[id] = std::vector<uint8_t>(data_length_);
+  error_list_[id] = std::vector<uint8_t>(1);
 
   is_param_changed_   = true;
   return true;
@@ -81,8 +78,6 @@ void GroupSyncRead::removeParam(uint8_t id)
     return;
 
   id_list_.erase(it);
-  delete[] data_list_[id];
-  delete[] error_list_[id];
   data_list_.erase(id);
   error_list_.erase(id);
 
@@ -93,18 +88,10 @@ void GroupSyncRead::clearParam()
   if (ph_->getProtocolVersion() == 1.0 || id_list_.size() == 0)
     return;
 
-  for (unsigned int i = 0; i < id_list_.size(); i++)
-  {
-    delete[] data_list_[id_list_[i]];
-    delete[] error_list_[id_list_[i]];
-  }
-
   id_list_.clear();
   data_list_.clear();
   error_list_.clear();
-  if (param_ != 0)
-    delete[] param_;
-  param_ = 0;
+  param_.clear();
 }
 
 int GroupSyncRead::txPacket()
@@ -112,10 +99,10 @@ int GroupSyncRead::txPacket()
   if (ph_->getProtocolVersion() == 1.0 || id_list_.size() == 0)
     return COMM_NOT_AVAILABLE;
 
-  if (is_param_changed_ == true || param_ == 0)
+  if (is_param_changed_ == true || param_.empty())
     makeParam();
 
-  return ph_->syncReadTx(port_, start_address_, data_length_, param_, (uint16_t)id_list_.size() * 1);
+  return ph_->syncReadTx(port_, start_address_, data_length_, param_.data(), static_cast<uint16_t>(id_list_.size() * 1));
 }
 
 int GroupSyncRead::rxPacket()
@@ -135,7 +122,7 @@ int GroupSyncRead::rxPacket()
   {
     uint8_t id = id_list_[i];
 
-    result = ph_->readRx(port_, id, data_length_, data_list_[id], error_list_[id]);
+    result = ph_->readRx(port_, id, data_length_, data_list_[id].data(), error_list_[id].data());
     if (result != COMM_SUCCESS)
       return result;
   }

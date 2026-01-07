@@ -90,7 +90,7 @@ class GroupBulkRead:
             return self.ph.bulkReadTx(self.port, self.param, len(self.data_dict.keys()) * 5, False)
 
     def fastBulkReadTxPacket(self):
-        if len(self.data_dict.keys()) == 0:
+        if self.ph.getProtocolVersion() == 1.0 or len(self.data_dict.keys()) == 0:
             return COMM_NOT_AVAILABLE
 
         if self.is_param_changed is True or not self.param:

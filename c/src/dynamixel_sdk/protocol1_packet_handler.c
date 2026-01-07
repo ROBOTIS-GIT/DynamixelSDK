@@ -122,7 +122,8 @@ uint8_t getLastRxPacketError1(int port_num)
 
 void setDataWrite1(int port_num, uint16_t data_length, uint16_t data_pos, uint32_t data)
 {
-  packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, (data_pos + data_length) * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, (data_pos + data_length) * sizeof(uint8_t));
 
   switch (data_length)
   {
@@ -365,11 +366,12 @@ void ping1(int port_num, uint8_t id)
 
 uint16_t pingGetModelNum1(int port_num, uint8_t id)
 {
-  packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 2 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 2 * sizeof(uint8_t));
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 6);
-  packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, 6);
+  // packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 6);
+  // packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, 6);
 
   if (id >= BROADCAST_ID)
   {
@@ -404,7 +406,8 @@ uint8_t getBroadcastPingResult1(int port_num, int id)
 
 void action1(int port_num, uint8_t id)
 {
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 6);
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 6);
 
   packetData[port_num].tx_packet[PKT_ID] = id;
   packetData[port_num].tx_packet[PKT_LENGTH] = 2;
@@ -425,8 +428,9 @@ void clearMultiTurn1(int port_num, uint8_t id)
 
 void factoryReset1(int port_num, uint8_t id, uint8_t option)
 {
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 6);
-  packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, 6);
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 6);
+  // packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, 6);
 
   packetData[port_num].tx_packet[PKT_ID] = id;
   packetData[port_num].tx_packet[PKT_LENGTH] = 2;
@@ -439,7 +443,8 @@ void readTx1(int port_num, uint8_t id, uint16_t address, uint16_t length)
 {
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 8);
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 8);
 
   if (id >= BROADCAST_ID)
   {
@@ -466,7 +471,8 @@ void readRx1(int port_num, uint16_t length)
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, RXPACKET_MAX_LEN);
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, RXPACKET_MAX_LEN);
 
   rxPacket1(port_num);
   if (packetData[port_num].communication_result == COMM_SUCCESS)
@@ -485,8 +491,9 @@ void readTxRx1(int port_num, uint8_t id, uint16_t address, uint16_t length)
   uint16_t s;
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 8);
-  packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, RXPACKET_MAX_LEN);
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 8);
+  // packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, RXPACKET_MAX_LEN);
 
   if (id >= BROADCAST_ID)
   {
@@ -518,7 +525,8 @@ void read1ByteTx1(int port_num, uint8_t id, uint16_t address)
 }
 uint8_t read1ByteRx1(int port_num)
 {
-	packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 1 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+	// packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 1 * sizeof(uint8_t));
   packetData[port_num].data_read[0] = 0;
   readRx1(port_num, 1);
   if (packetData[port_num].communication_result == COMM_SUCCESS)
@@ -527,7 +535,8 @@ uint8_t read1ByteRx1(int port_num)
 }
 uint8_t read1ByteTxRx1(int port_num, uint8_t id, uint16_t address)
 {
-	packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 1 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+	// packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 1 * sizeof(uint8_t));
   packetData[port_num].data_read[0] = 0;
   readTxRx1(port_num, id, address, 1);
   if (packetData[port_num].communication_result == COMM_SUCCESS)
@@ -541,7 +550,8 @@ void read2ByteTx1(int port_num, uint8_t id, uint16_t address)
 }
 uint16_t read2ByteRx1(int port_num)
 {
-	packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 2 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+	// packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 2 * sizeof(uint8_t));
   packetData[port_num].data_read[0] = 0;
   packetData[port_num].data_read[1] = 0;
   readRx1(port_num, 2);
@@ -551,7 +561,8 @@ uint16_t read2ByteRx1(int port_num)
 }
 uint16_t read2ByteTxRx1(int port_num, uint8_t id, uint16_t address)
 {
-  packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 2 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 2 * sizeof(uint8_t));
 	packetData[port_num].data_read[0] = 0;
   packetData[port_num].data_read[1] = 0;
   readTxRx1(port_num, id, address, 2);
@@ -568,7 +579,8 @@ void read4ByteTx1(int port_num, uint8_t id, uint16_t address)
 }
 uint32_t read4ByteRx1(int port_num)
 {
-  packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 4 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 4 * sizeof(uint8_t));
   packetData[port_num].data_read[0] = 0;
   packetData[port_num].data_read[1] = 0;
   packetData[port_num].data_read[2] = 0;
@@ -580,7 +592,8 @@ uint32_t read4ByteRx1(int port_num)
 }
 uint32_t read4ByteTxRx1(int port_num, uint8_t id, uint16_t address)
 {
-  packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 4 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, 4 * sizeof(uint8_t));
   packetData[port_num].data_read[0] = 0;
   packetData[port_num].data_read[1] = 0;
   packetData[port_num].data_read[2] = 0;
@@ -597,7 +610,13 @@ void writeTxOnly1(int port_num, uint8_t id, uint16_t address, uint16_t length)
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 7);
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 7);
+  if (length + 7 > DXL_MAX_BUFFER_LEN)
+  {
+    packetData[port_num].communication_result = COMM_TX_FAIL;
+    return;
+  }
 
   packetData[port_num].tx_packet[PKT_ID] = id;
   packetData[port_num].tx_packet[PKT_LENGTH] = length + 3;
@@ -619,8 +638,14 @@ void writeTxRx1(int port_num, uint8_t id, uint16_t address, uint16_t length)
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 7);
-  packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, 6);
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 7);
+  // packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, 6);
+  if (length + 7 > DXL_MAX_BUFFER_LEN)
+  {
+    packetData[port_num].communication_result = COMM_TX_FAIL;
+    return;
+  }
 
   packetData[port_num].tx_packet[PKT_ID] = id;
   packetData[port_num].tx_packet[PKT_LENGTH] = length + 3;
@@ -637,27 +662,31 @@ void writeTxRx1(int port_num, uint8_t id, uint16_t address, uint16_t length)
 
 void write1ByteTxOnly1(int port_num, uint8_t id, uint16_t address, uint8_t data)
 {
-  packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 1 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 1 * sizeof(uint8_t));
   packetData[port_num].data_write[0] = data;
   writeTxOnly1(port_num, id, address, 1);
 }
 void write1ByteTxRx1(int port_num, uint8_t id, uint16_t address, uint8_t data)
 {
-  packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 1 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 1 * sizeof(uint8_t));
   packetData[port_num].data_write[0] = data;
   writeTxRx1(port_num, id, address, 1);
 }
 
 void write2ByteTxOnly1(int port_num, uint8_t id, uint16_t address, uint16_t data)
 {
-  packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 2 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 2 * sizeof(uint8_t));
   packetData[port_num].data_write[0] = DXL_LOBYTE(data);
   packetData[port_num].data_write[1] = DXL_HIBYTE(data);
   writeTxOnly1(port_num, id, address, 2);
 }
 void write2ByteTxRx1(int port_num, uint8_t id, uint16_t address, uint16_t data)
 {
-  packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 2 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 2 * sizeof(uint8_t));
   packetData[port_num].data_write[0] = DXL_LOBYTE(data);
   packetData[port_num].data_write[1] = DXL_HIBYTE(data);
   writeTxRx1(port_num, id, address, 2);
@@ -665,7 +694,8 @@ void write2ByteTxRx1(int port_num, uint8_t id, uint16_t address, uint16_t data)
 
 void write4ByteTxOnly1(int port_num, uint8_t id, uint16_t address, uint32_t data)
 {
-  packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 4 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 4 * sizeof(uint8_t));
   packetData[port_num].data_write[0] = DXL_LOBYTE(DXL_LOWORD(data));
   packetData[port_num].data_write[1] = DXL_HIBYTE(DXL_LOWORD(data));
   packetData[port_num].data_write[2] = DXL_LOBYTE(DXL_HIWORD(data));
@@ -674,7 +704,8 @@ void write4ByteTxOnly1(int port_num, uint8_t id, uint16_t address, uint32_t data
 }
 void write4ByteTxRx1(int port_num, uint8_t id, uint16_t address, uint32_t data)
 {
-  packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 4 * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, 4 * sizeof(uint8_t));
   packetData[port_num].data_write[0] = DXL_LOBYTE(DXL_LOWORD(data));
   packetData[port_num].data_write[1] = DXL_HIBYTE(DXL_LOWORD(data));
   packetData[port_num].data_write[2] = DXL_LOBYTE(DXL_HIWORD(data));
@@ -688,7 +719,13 @@ void regWriteTxOnly1(int port_num, uint8_t id, uint16_t address, uint16_t length
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 6);
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 6);
+  if (length + 6 > DXL_MAX_BUFFER_LEN)
+  {
+    packetData[port_num].communication_result = COMM_TX_FAIL;
+    return;
+  }
 
   packetData[port_num].tx_packet[PKT_ID] = id;
   packetData[port_num].tx_packet[PKT_LENGTH] = length + 3;
@@ -711,15 +748,22 @@ void regWriteTxRx1(int port_num, uint8_t id, uint16_t address, uint16_t length)
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 6);
-  packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, 6);
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 6);
+  // packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, 6);
+  if (length + 6 > DXL_MAX_BUFFER_LEN)
+  {
+    packetData[port_num].communication_result = COMM_TX_FAIL;
+    return;
+  }
 
   packetData[port_num].tx_packet[PKT_ID] = id;
   packetData[port_num].tx_packet[PKT_LENGTH] = length + 3;
   packetData[port_num].tx_packet[PKT_INSTRUCTION] = INST_REG_WRITE;
   packetData[port_num].tx_packet[PKT_PARAMETER0] = (uint8_t)address;
 
-  packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, length * sizeof(uint8_t));
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_write = (uint8_t *)realloc(packetData[port_num].data_write, length * sizeof(uint8_t));
 
   for (s = 0; s < length; s++)
   {
@@ -740,7 +784,13 @@ void syncWriteTxOnly1(int port_num, uint16_t start_address, uint16_t data_length
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 8); // 8: HEADER0 HEADER1 ID LEN INST START_ADDR DATA_LEN ... CHKSUM
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 8); // 8: HEADER0 HEADER1 ID LEN INST START_ADDR DATA_LEN ... CHKSUM
+  if (param_length + 8 > DXL_MAX_BUFFER_LEN)
+  {
+    packetData[port_num].communication_result = COMM_TX_FAIL;
+    return;
+  }
 
   packetData[port_num].tx_packet[PKT_ID] = BROADCAST_ID;
   packetData[port_num].tx_packet[PKT_LENGTH] = param_length + 4; // 4: INST START_ADDR DATA_LEN ... CHKSUM
@@ -763,7 +813,13 @@ void bulkReadTx1(int port_num, uint16_t param_length)
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 7);  // 7: HEADER0 HEADER1 ID LEN INST 0x00 ... CHKSUM
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 7);  // 7: HEADER0 HEADER1 ID LEN INST 0x00 ... CHKSUM
+  if (param_length + 7 > DXL_MAX_BUFFER_LEN)
+  {
+    packetData[port_num].communication_result = COMM_TX_FAIL;
+    return;
+  }
 
   packetData[port_num].tx_packet[PKT_ID] = BROADCAST_ID;
   packetData[port_num].tx_packet[PKT_LENGTH] = param_length + 3; // 3: INST 0x00 ... CHKSUM

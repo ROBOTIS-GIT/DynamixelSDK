@@ -21,7 +21,7 @@
 #include "port_handler_linux.h"
 
 int     g_used_port_num = 0;
-uint8_t *g_is_using = NULL;
+uint8_t g_is_using[DXL_MAX_PORTS] = { False, };
 
 int     portHandler         (const char *port_name) { return portHandlerLinux(port_name); }
 

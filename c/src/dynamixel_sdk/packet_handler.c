@@ -17,6 +17,7 @@
 /* Author: Ryu Woon Jung (Leon) */
 
 #include <stdlib.h>
+#include "robotis_def.h"
 
 #if defined(__linux__)
 #include "packet_handler.h"
@@ -33,26 +34,37 @@
 #include "protocol2_packet_handler.h"
 #endif
 
-PacketData *packetData = NULL;
+static PacketData g_packetDataArray[DXL_MAX_PORTS];
+
+static uint8_t g_data_write[DXL_MAX_PORTS][DXL_MAX_BUFFER_LEN];
+static uint8_t g_data_read[DXL_MAX_PORTS][DXL_MAX_BUFFER_LEN];
+static uint8_t g_tx_packet[DXL_MAX_PORTS][DXL_MAX_BUFFER_LEN];
+static uint8_t g_rx_packet[DXL_MAX_PORTS][DXL_MAX_BUFFER_LEN];
+static uint8_t g_broadcast_ping_id_list[DXL_MAX_PORTS][255];
+
+PacketData *packetData = g_packetDataArray;
 
 void packetHandler()
 {
+  static uint8_t is_initialized = False;
   int port_num;
 
-  if (packetData == NULL)
-    packetData = (PacketData*)malloc(1 * sizeof(PacketData));
+  if (is_initialized == True)
+    return;
 
-  packetData = (PacketData*)realloc(packetData, g_used_port_num * sizeof(PacketData));
-
-  for (port_num = 0; port_num < g_used_port_num; port_num++)
+  for (port_num = 0; port_num < DXL_MAX_PORTS; port_num++)
   {
-    packetData[port_num].data_write = (uint8_t *)calloc(1, sizeof(uint8_t));
-    packetData[port_num].data_read = (uint8_t *)calloc(1, sizeof(uint8_t));
-    packetData[port_num].tx_packet = (uint8_t *)calloc(1, sizeof(uint8_t));
-    packetData[port_num].rx_packet = (uint8_t *)calloc(1, sizeof(uint8_t));
-    packetData[port_num].error = 0;
-    packetData[port_num].communication_result = 0;
+    g_packetDataArray[port_num].data_write = g_data_write[port_num];
+    g_packetDataArray[port_num].data_read = g_data_read[port_num];
+    g_packetDataArray[port_num].tx_packet = g_tx_packet[port_num];
+    g_packetDataArray[port_num].rx_packet = g_rx_packet[port_num];
+    g_packetDataArray[port_num].broadcast_ping_id_list = g_broadcast_ping_id_list[port_num];
+    
+    g_packetDataArray[port_num].error = 0;
+    g_packetDataArray[port_num].communication_result = 0;
   }
+
+  is_initialized = True;
 }
 
 const char *getTxRxResult(int protocol_version, int result)

@@ -41,24 +41,20 @@ GroupSyncWrite::GroupSyncWrite(PortHandler *port, PacketHandler *ph, uint16_t st
 
 void GroupSyncWrite::makeParam()
 {
-  if (id_list_.size() == 0) return;
+  if (id_list_.empty()) return;
 
-  if (param_ != 0)
-    delete[] param_;
-  param_ = 0;
+  param_.clear();
+  param_.reserve(id_list_.size() * (1 + data_length_)); // ID(1) + DATA(data_length)
 
-  param_ = new uint8_t[id_list_.size() * (1 + data_length_)]; // ID(1) + DATA(data_length)
-
-  int idx = 0;
   for (unsigned int i = 0; i < id_list_.size(); i++)
   {
     uint8_t id = id_list_[i];
-    if (data_list_[id] == 0)
+    if (data_list_[id].empty())
       return;
 
-    param_[idx++] = id;
+    param_.push_back(id);
     for (int c = 0; c < data_length_; c++)
-      param_[idx++] = (data_list_[id])[c];
+      param_.push_back((data_list_[id])[c]);
   }
 }
 
@@ -68,9 +64,7 @@ bool GroupSyncWrite::addParam(uint8_t id, uint8_t *data)
     return false;
 
   id_list_.push_back(id);
-  data_list_[id]    = new uint8_t[data_length_];
-  for (int c = 0; c < data_length_; c++)
-    data_list_[id][c] = data[c];
+  data_list_[id].assign(data, data + data_length_);
 
   is_param_changed_   = true;
   return true;
@@ -83,7 +77,6 @@ void GroupSyncWrite::removeParam(uint8_t id)
     return;
 
   id_list_.erase(it);
-  delete[] data_list_[id];
   data_list_.erase(id);
 
   is_param_changed_   = true;
@@ -95,10 +88,7 @@ bool GroupSyncWrite::changeParam(uint8_t id, uint8_t *data)
   if (it == id_list_.end())    // NOT exist
     return false;
 
-  delete[] data_list_[id];
-  data_list_[id]    = new uint8_t[data_length_];
-  for (int c = 0; c < data_length_; c++)
-    data_list_[id][c] = data[c];
+  data_list_[id].assign(data, data + data_length_);
 
   is_param_changed_   = true;
   return true;
@@ -106,26 +96,21 @@ bool GroupSyncWrite::changeParam(uint8_t id, uint8_t *data)
 
 void GroupSyncWrite::clearParam()
 {
-  if (id_list_.size() == 0)
+  if (id_list_.empty())
     return;
-
-  for (unsigned int i = 0; i < id_list_.size(); i++)
-    delete[] data_list_[id_list_[i]];
 
   id_list_.clear();
   data_list_.clear();
-  if (param_ != 0)
-    delete[] param_;
-  param_ = 0;
+  param_.clear();
 }
 
 int GroupSyncWrite::txPacket()
 {
-  if (id_list_.size() == 0)
+  if (id_list_.empty())
     return COMM_NOT_AVAILABLE;
 
-  if (is_param_changed_ == true || param_ == 0)
+  if (is_param_changed_ == true || param_.empty())
     makeParam();
 
-  return ph_->syncWriteTxOnly(port_, start_address_, data_length_, param_, id_list_.size() * (1 + data_length_));
+  return ph_->syncWriteTxOnly(port_, start_address_, data_length_, param_.data(), id_list_.size() * (1 + data_length_));
 }

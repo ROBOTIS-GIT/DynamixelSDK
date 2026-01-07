@@ -46,20 +46,16 @@ void GroupFastBulkRead::makeParam()
     if ((1.0 == ph_->getProtocolVersion()) || (id_list_.empty()))
         return;
 
-    if (0 != param_)
-        delete[] param_;
-    param_ = 0;
+    param_.clear();
+    param_.reserve(id_list_.size() * 5);
 
-    param_ = new uint8_t[id_list_.size() * 5];  // ID(1) + ADDR(2) + LENGTH(2)
-
-    int idx = 0;
     for (unsigned int i = 0; i < id_list_.size(); i++) {
         uint8_t id = id_list_[i];
-        param_[idx++] = id;                               // ID
-        param_[idx++] = DXL_LOBYTE(address_list_[id]);    // ADDR_L
-        param_[idx++] = DXL_HIBYTE(address_list_[id]);    // ADDR_H
-        param_[idx++] = DXL_LOBYTE(length_list_[id]);     // LEN_L
-        param_[idx++] = DXL_HIBYTE(length_list_[id]);     // LEN_H
+        param_.push_back(id);                               // ID
+        param_.push_back(DXL_LOBYTE(address_list_[id]));    // ADDR_L
+        param_.push_back(DXL_HIBYTE(address_list_[id]));    // ADDR_H
+        param_.push_back(DXL_LOBYTE(length_list_[id]));     // LEN_L
+        param_.push_back(DXL_HIBYTE(length_list_[id]));     // LEN_H
     }
 }
 
@@ -68,10 +64,10 @@ int GroupFastBulkRead::txPacket()
     if ((1.0 == ph_->getProtocolVersion()) || (id_list_.empty()))
         return COMM_NOT_AVAILABLE;
 
-    if ((true == is_param_changed_) || (0 == param_))
+    if ((true == is_param_changed_) || (param_.empty()))
         makeParam();
 
-    return ph_->fastBulkReadTx(port_, param_, id_list_.size() * 5);
+    return ph_->fastBulkReadTx(port_, param_.data(), id_list_.size() * 5);
 }
 
 int GroupFastBulkRead::rxPacket()
@@ -83,9 +79,7 @@ int GroupFastBulkRead::rxPacket()
 
     int count = id_list_.size();
     int result = COMM_RX_FAIL;
-    uint8_t *rxpacket = (uint8_t *)malloc(RXPACKET_MAX_LEN);
-    if (NULL == rxpacket)
-        return result;
+    uint8_t rxpacket[RXPACKET_MAX_LEN];
 
     do {
         result = ph_->rxPacket(port_, rxpacket, true);
@@ -96,7 +90,7 @@ int GroupFastBulkRead::rxPacket()
         for (int i = 0; i < count; ++i) {
             uint8_t id = id_list_[i];
             uint16_t length = length_list_[id];
-            *error_list_[id] = (uint8_t)rxpacket[index];
+            error_list_[id][0] = static_cast<uint8_t>(rxpacket[index]);
             for (uint16_t s = 0; s < length; s++) {
                 data_list_[id][s] = rxpacket[index + 2 + s];
             }
@@ -105,7 +99,6 @@ int GroupFastBulkRead::rxPacket()
         last_result_ = true;
     }
 
-    free(rxpacket);
     return result;
 }
 

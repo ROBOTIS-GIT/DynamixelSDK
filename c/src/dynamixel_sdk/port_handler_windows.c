@@ -23,6 +23,7 @@
 #include <string.h>
 #include <time.h>
 #include "port_handler_windows.h"
+#include "robotis_def.h"
 
 #define LATENCY_TIMER  16 // msec (USB latency timer)
                           // You should adjust the latency timer value. In Windows, the default latency timer of the usb serial is '16 msec'.
@@ -47,7 +48,7 @@ typedef struct
   double  tx_time_per_byte;
 }PortData;
 
-static PortData *portData;
+static PortData portData[DXL_MAX_PORTS];
 
 int portHandlerWindows(const char *port_name)
 {
@@ -56,40 +57,22 @@ int portHandlerWindows(const char *port_name)
 
   sprintf_s(buffer, sizeof(buffer), "\\\\.\\%s", port_name);
 
-  if (portData == NULL)
+  for (port_num = 0; port_num < DXL_MAX_PORTS; port_num++)
   {
-    port_num = 0;
-    g_used_port_num = 1;
-    portData = (PortData*)calloc(1, sizeof(PortData));
-    g_is_using = (uint8_t*)calloc(1, sizeof(uint8_t));
+    if (!strcmp(portData[port_num].port_name, buffer))
+      break;
   }
-  else
+
+  if (port_num == DXL_MAX_PORTS)
   {
-    for (port_num = 0; port_num < g_used_port_num; port_num++)
+    for (port_num = 0; port_num < DXL_MAX_PORTS; port_num++)
     {
-      if (!strcmp(portData[port_num].port_name, buffer))
+      if (portData[port_num].serial_handle == INVALID_HANDLE_VALUE || portData[port_num].serial_handle == NULL)
         break;
     }
 
-    if (port_num == g_used_port_num)
-    {
-      for (port_num = 0; port_num < g_used_port_num; port_num++)
-      {
-        if (portData[port_num].serial_handle != INVALID_HANDLE_VALUE)
-          break;
-      }
-
-      if (port_num == g_used_port_num)
-      {
-        g_used_port_num++;
-        portData = (PortData*)realloc(portData, g_used_port_num * sizeof(PortData));
-        g_is_using = (uint8_t*)realloc(g_is_using, g_used_port_num * sizeof(uint8_t));
-      }
-    }
-    else
-    {
-      printf("[PortHandler setup] The port number %d has same device name... reinitialize port number %d!!\n", port_num, port_num);
-    }
+    if (port_num == DXL_MAX_PORTS)
+      return -1;
   }
 
   portData[port_num].serial_handle = INVALID_HANDLE_VALUE;
@@ -98,8 +81,6 @@ int portHandlerWindows(const char *port_name)
   portData[port_num].packet_timeout = 0.0;
   portData[port_num].tx_time_per_byte = 0.0;
 
-  g_is_using[port_num] = False;
-
   setPortNameWindows(port_num, buffer);
 
   return port_num;
@@ -107,11 +88,17 @@ int portHandlerWindows(const char *port_name)
 
 uint8_t openPortWindows(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return False;
+
   return setBaudRateWindows(port_num, portData[port_num].baudrate);
 }
 
 void closePortWindows(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return;
+
   if (portData[port_num].serial_handle != INVALID_HANDLE_VALUE)
   {
     CloseHandle(portData[port_num].serial_handle);
@@ -121,21 +108,33 @@ void closePortWindows(int port_num)
 
 void clearPortWindows(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return;
+
   PurgeComm(portData[port_num].serial_handle, PURGE_RXABORT | PURGE_RXCLEAR);
 }
 
 void setPortNameWindows(int port_num, const char *port_name)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return;
+
   strcpy_s(portData[port_num].port_name, sizeof(portData[port_num].port_name), port_name);
 }
 
 char *getPortNameWindows(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return NULL;
+
   return portData[port_num].port_name;
 }
 
 uint8_t setBaudRateWindows(int port_num, const int baudrate)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return False;
+
   closePortWindows(port_num);
 
   portData[port_num].baudrate = baudrate;
@@ -144,12 +143,18 @@ uint8_t setBaudRateWindows(int port_num, const int baudrate)
 
 int getBaudRateWindows(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return -1;
+
   return portData[port_num].baudrate;
 }
 
 int readPortWindows(int port_num, uint8_t *packet, int length)
 {
   DWORD dwRead = 0;
+
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return -1;
 
   if (ReadFile(portData[port_num].serial_handle, packet, (DWORD)length, &dwRead, NULL) == FALSE)
     return -1;
@@ -161,6 +166,9 @@ int writePortWindows(int port_num, uint8_t *packet, int length)
 {
   DWORD dwWrite = 0;
 
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return -1;
+
   if (WriteFile(portData[port_num].serial_handle, packet, (DWORD)length, &dwWrite, NULL) == FALSE)
     return -1;
 
@@ -169,18 +177,27 @@ int writePortWindows(int port_num, uint8_t *packet, int length)
 
 void setPacketTimeoutWindows(int port_num, uint16_t packet_length)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return;
+
   portData[port_num].packet_start_time = getCurrentTimeWindows(port_num);
   portData[port_num].packet_timeout = (portData[port_num].tx_time_per_byte * (double)packet_length) + (LATENCY_TIMER * 2.0) + 2.0;
 }
 
 void setPacketTimeoutMSecWindows(int port_num, double msec)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return;
+
   portData[port_num].packet_start_time = getCurrentTimeWindows(port_num);
   portData[port_num].packet_timeout = msec;
 }
 
 uint8_t isPacketTimeoutWindows(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return False;
+
   if (getTimeSinceStartWindows(port_num) > portData[port_num].packet_timeout)
   {
     portData[port_num].packet_timeout = 0;
@@ -191,6 +208,9 @@ uint8_t isPacketTimeoutWindows(int port_num)
 
 double getCurrentTimeWindows(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return 0.0;
+
   QueryPerformanceCounter(&portData[port_num].counter);
   QueryPerformanceFrequency(&portData[port_num].freq);
   return (double)portData[port_num].counter.QuadPart / (double)portData[port_num].freq.QuadPart * 1000.0;
@@ -199,6 +219,9 @@ double getCurrentTimeWindows(int port_num)
 double getTimeSinceStartWindows(int port_num)
 {
   double time_since_start;
+
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return 0.0;
 
   time_since_start = getCurrentTimeWindows(port_num) - portData[port_num].packet_start_time;
   if (time_since_start < 0.0)
@@ -213,12 +236,15 @@ uint8_t setupPortWindows(int port_num, const int baudrate)
   COMMTIMEOUTS timeouts;
   DWORD dwError;
 
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS)
+    return False;
+
   closePortWindows(port_num);
 
   portData[port_num].serial_handle = CreateFileA(portData[port_num].port_name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
   if (portData[port_num].serial_handle == INVALID_HANDLE_VALUE)
   {
-    printf("[PortHandlerWindows::SetupPort] Error opening serial port!\n");
+    // printf("[PortHandlerWindows::SetupPort] Error opening serial port!\n");
     return False;
   }
 
