@@ -52,7 +52,39 @@ make -j4
 sudo make install
 ```
 
+### Selective Build (C vs C++)
+By default, both C and C++ libraries are built. You can optimize the build by disabling unused languages using `BUILD_C_LIB` or `BUILD_CXX_LIB` options.
+
+**ROS 2 Example (Build only C++):**
+```bash
+colcon build --symlink-install --packages-select dynamixel_sdk --cmake-args -DBUILD_C_LIB=OFF
+```
+
+**Standalone Example (Build only C):**
+```bash
+cmake .. -DBUILD_CXX_LIB=OFF
+make
+sudo make install
+```
+
+### Uninstall & Reinstall (Standalone Only)
+If you installed the SDK system-wide using `sudo make install`, you can cleanly remove or reinstall it:
+
+```bash
+# Remove installed files
+sudo make uninstall
+
+# Remove and install again (useful for development)
+sudo make reinstall
+```
+
 ## 4. Windows Environment (Visual Studio)
+
+**Prerequisites:**
+* Install [Visual Studio](https://visualstudio.microsoft.com/) (ensure "Desktop development with C++" workload is selected).
+* Install [CMake](https://cmake.org/download/). **Note:** During installation, make sure to select **"Add CMake to the system PATH"**.
+
+### Steps
 
 1. Create a `build` directory.
 2. Run CMake to generate solution files.
@@ -63,4 +95,4 @@ cd build
 cmake ..
 ```
 
-3. Open `dynamixel_sdk.sln`, build, and install.
+3. Open the generated `dynamixel_sdk.sln` file in Visual Studio, build, and install.
