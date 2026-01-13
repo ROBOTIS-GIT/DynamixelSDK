@@ -1,5 +1,27 @@
 # Dynamixel SDK Release Notes
 
+4.0.3 (2025-12-17)
+------------------
+* Dynamixel Easy SDK supports Linux SBC environments, Linux 32-bit platforms, and ROS 2 based build and deployment workflows
+* Contributors: Hyungyu Kim
+
+4.0.2 (2025-11-24)
+------------------
+* Easy SDK Python update
+* Added data types.hpp
+* Added error handling for cases where operation fails due to incorrect torque state or operating mode.
+* Contributors: Hyungyu Kim
+
+4.0.1 (2025-11-05)
+------------------
+* Fix error that cache status is not updated
+* Contributors: Hyungyu Kim
+
+4.0.0 (2025-10-14)
+------------------
+* Update Dynamixel Easy SDK in C++ Linux 64bit
+* Contributors: Hyungyu Kim
+
 3.8.4 (2025-05-28)
 ------------------
 * Deprecate ament_include_dependency usage in CMakeLists.txt

@@ -1,0 +1,84 @@
+[type info]
+name	value
+value_of_zero_radian_position	0
+value_of_max_radian_position	263187
+value_of_min_radian_position	-263187
+min_radian	-3.14159265
+max_radian	3.14159265
+
+[unit info]
+Data Name	value	unit	Sign Type
+Present Velocity	0.0010471976	rad/s	signed
+Goal Velocity	0.0010471976	rad/s	signed
+Present Current	1.0	raw	signed
+Goal Current	1.0	raw	signed
+
+[control table]
+Address	Size	Data Name
+0	2	Model Number
+2	4	Model Information
+6	1	Firmware Version
+7	1	ID
+8	1	Baud Rate
+9	1	Return Delay Time
+10	1	Drive Mode
+11	1	Operating Mode
+12	1	Secondary ID
+20	4	Homing Offset
+24	4	Moving Threshold
+31	1	Temperature Limit
+32	2	Max Voltage Limit
+34	2	Min Voltage Limit
+36	2	PWM Limit
+38	2	Current Limit
+40	4	Acceleration Limit
+44	4	Velocity Limit
+48	4	Max Position Limit
+52	4	Min Position Limit
+56	1	External Port Mode 1
+57	1	External Port Mode 2
+58	1	External Port Mode 3
+59	1	External Port Mode 4
+63	1	Shutdown
+512	1	Torque Enable
+513	1	LED Red
+514	1	LED Green
+515	1	LED Blue
+516	1	Status Return Level
+517	1	Registered Instruction
+518	1	Hardware Error Status
+524	2	Velocity I Gain
+526	2	Velocity P Gain
+528	2	Position D Gain
+530	2	Position I Gain
+532	2	Position P Gain
+536	2	Feedforward 2nd Gain
+538	2	Feedforward 1st Gain
+546	1	Bus Watchdog
+548	2	Goal PWM
+550	2	Goal Current
+552	4	Goal Velocity
+556	4	Profile Acceleration
+560	4	Profile Velocity
+564	4	Goal Position
+568	2	Realtime Tick
+570	1	Moving
+571	1	Moving Status
+572	2	Present PWM
+574	2	Present Current
+576	4	Present Velocity
+580	4	Present Position
+584	4	Velocity Trajectory
+588	4	Position Trajectory
+592	2	Present Input Voltage
+594	1	Present Temperature
+600	2	External Port Data 1
+602	2	External Port Data 2
+604	2	External Port Data 3
+606	2	External Port Data 4
+168	2	Indirect Address 1
+634	1	Indirect Data 1
+168	2	Indirect Address Write
+634	1	Indirect Data Write
+296	2	Indirect Address Read
+698	1	Indirect Data Read
