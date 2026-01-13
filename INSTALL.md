@@ -31,6 +31,22 @@ cd DynamixelSDK/python
 pip install .
 ```
 
+> **Note for Ubuntu 23.04+ / Debian 12+ users:**
+> If you encounter an `externally-managed-environment` error, creating a virtual environment is recommended to avoid conflicts with system packages.
+>
+> **Option 1: Virtual Environment (Recommended)**
+> ```bash
+> python3 -m venv env_dxl_sdk
+> source env_dxl_sdk/bin/activate
+> pip install .
+> ```
+>
+> **Option 2: Force System-wide Installation**
+> If you consciously want to install it globally:
+> ```bash
+> pip install . --break-system-packages
+> ```
+
 ## 3. Standalone C/C++ Environment (CMake)
 
 If you want to install C/C++ libraries system-wide (`/usr/local/lib`):
@@ -102,4 +118,34 @@ cmake ..
    - Right-click on the **INSTALL** project and select **Build**.
      - This will automatically build the libraries (`ALL_BUILD`) and install them to the system path (e.g., `C:\Program Files (x86)\dynamixel_sdk`).
    - *Note: You may need to run Visual Studio as Administrator to install to system folders.*
+
+## 5. Other Languages (Java, LabVIEW, MATLAB)
+
+These languages use pre-built dynamic libraries (`.so`, `.dll`, `.dylib`) generated from the C library build. Before proceeding, ensure you have built the C library (`libdxl_c` or `dxl_c`) using the steps above (Section 3 or 4).
+
+### Java
+1. **Build the C Library**: Follow the "Standalone C/C++ Environment" instructions to build `libdxl_c`.
+2. **Setup Eclipse**:
+   - Open Eclipse and import the project from `java/protocol_combined` (or specific protocol folder).
+   - Right-click project > **Properties** > **Java Build Path** > **Libraries**.
+   - Select **Native library location** and point it to your generated `libdxl_c` location (e.g., `DynamixelSDK/build` or installed path).
+   - Run the project.
+
+### LabVIEW
+1. **Build the C Library**: Ensure `dxl_c.dll` (Windows) or `libdxl_c.so` (Linux) is built.
+2. **Library Path**:
+   - Open your LabVIEW project from `labview/`.
+   - The VIs call the shared library functions. If LabVIEW cannot find the library, a file dialog will prompt you to locate the `dxl_c` library file. Point it to your build output folder.
+
+### MATLAB
+1. **Build the C Library**: Ensure the shared library is built.
+2. **Setup Paths**:
+   - Open MATLAB.
+   - Run `matlab/m_basic_function/protocol_combined/read_write/read_write.m` (example).
+   - If you encounter load errors, you may need to add the library path:
+     ```matlab
+     addpath('path/to/DynamixelSDK/c/include/dynamixel_sdk'); % For Header definitions
+     loadlibrary('libdxl_c.so', 'dynamixel_sdk.h');
+     ```
+   - *Note: MATLAB support relies on loading the C library directly. Refer to `loadlibrary` documentation for OS-specific details.*
 
