@@ -15,6 +15,21 @@ set(CMAKE_C_STANDARD 99)
 # Position Independent Code (fPIC) Settings
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# [Legacy Support] Determine Library Name Aliases based on Architecture
+set(LEGACY_CXX_NAME "")
+set(LEGACY_C_NAME "")
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64)$")
+  set(LEGACY_CXX_NAME "dxl_x64_cpp")
+  set(LEGACY_C_NAME   "dxl_x64_c")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(i.86|x86)$")
+  set(LEGACY_CXX_NAME "dxl_x86_cpp")
+  set(LEGACY_C_NAME   "dxl_x86_c")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm|aarch64)$")
+  set(LEGACY_CXX_NAME "dxl_sbc_cpp")
+  set(LEGACY_C_NAME   "dxl_sbc_c")
+endif()
+
 # Detect ROS 2 Environment
 find_package(ament_cmake QUIET)
 
@@ -210,6 +225,20 @@ else()
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
+
+  # [Legacy Support] Create Symlinks for Backward Compatibility
+  if(UNIX AND NOT APPLE)
+      install(CODE "
+        if(\"${LEGACY_CXX_NAME}\" AND \"${BUILD_CXX_LIB}\")
+          message(STATUS \"Creating legacy symlink: lib${LEGACY_CXX_NAME}.so -> libdxl_cpp.so\")
+          execute_process(COMMAND ln -sf libdxl_cpp.so \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/lib${LEGACY_CXX_NAME}.so\")
+        endif()
+        if(\"${LEGACY_C_NAME}\" AND \"${BUILD_C_LIB}\")
+          message(STATUS \"Creating legacy symlink: lib${LEGACY_C_NAME}.so -> libdxl_c.so\")
+          execute_process(COMMAND ln -sf libdxl_c.so \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/lib${LEGACY_C_NAME}.so\")
+        endif()
+      ")
+  endif()
 
   # --------------------------------------------------------
   # Feature: Uninstall and Reinstall Targets
