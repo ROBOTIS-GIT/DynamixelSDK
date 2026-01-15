@@ -150,7 +150,59 @@ endif()
 
 if(BUILD_CXX_LIB)
   install(DIRECTORY c++/include/dynamixel_sdk/ DESTINATION include/dynamixel_sdk)
+  install(DIRECTORY c++/include/dynamixel_easy_sdk/ DESTINATION include/dynamixel_easy_sdk)
 endif()
+
+  # --------------------------------------------------------
+  # Feature: Uninstall and Reinstall Targets
+  # Usage: sudo make uninstall / sudo make reinstall
+  # --------------------------------------------------------
+  
+  # Generate uninstall script dynamically in the BUILD directory (No extra source files needed)
+  set(UNINSTALL_SCRIPT "
+if(NOT EXISTS \"\${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt\")
+  message(STATUS \"Cannot find install manifest: \\\"\${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt\\\" (Skipping Uninstall)\")
+  return()
+endif()
+
+file(READ \"\${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt\" files)
+string(REGEX REPLACE \"\\n\" \";\" files \"\${files}\")
+
+foreach(file \${files})
+  message(STATUS \"Uninstalling \$ENV{DESTDIR}\${file}\")
+  if(IS_SYMLINK \"\$ENV{DESTDIR}\${file}\" OR EXISTS \"\$ENV{DESTDIR}\${file}\")
+    execute_process(
+      COMMAND \${CMAKE_COMMAND} -E remove \"\$ENV{DESTDIR}\${file}\"
+      OUTPUT_VARIABLE rm_out
+      RESULT_VARIABLE rm_retval
+    )
+    if(NOT \${rm_retval} EQUAL 0)
+      message(FATAL_ERROR \"Problem when removing \$ENV{DESTDIR}\${file}\")
+    endif()
+  else()
+    message(STATUS \"File \$ENV{DESTDIR}\${file} does not exist.\")
+  endif()
+endforeach()
+")
+
+  # Write the script content to the build directory
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" "${UNINSTALL_SCRIPT}")
+
+  # Add custom targets
+  if(NOT TARGET uninstall)
+    add_custom_target(uninstall
+      COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+      COMMENT "Uninstalling DynamixelSDK components..."
+    )
+  endif()
+
+  if(NOT TARGET reinstall)
+    add_custom_target(reinstall
+      COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+      COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR} --target install
+      COMMENT "Reinstalling DynamixelSDK components..."
+    )
+  endif()
 
 # A. Installation for ROS 2 Environment
 if(IS_ROS_BUILD)
@@ -180,6 +232,9 @@ if(IS_ROS_BUILD)
   find_package(ament_cmake_python REQUIRED)
   ament_python_install_package(${PROJECT_NAME}
     PACKAGE_DIR python/src/dynamixel_sdk
+  )
+  ament_python_install_package(dynamixel_easy_sdk
+    PACKAGE_DIR python/src/dynamixel_easy_sdk
   )
 
   # Export Include Directories
@@ -228,66 +283,21 @@ else()
 
   # [Legacy Support] Create Symlinks for Backward Compatibility
   if(UNIX AND NOT APPLE)
+    if(LEGACY_CXX_NAME AND BUILD_CXX_LIB)
       install(CODE "
-        if(\"${LEGACY_CXX_NAME}\" AND \"${BUILD_CXX_LIB}\")
-          message(STATUS \"Creating legacy symlink: lib${LEGACY_CXX_NAME}.so -> libdxl_cpp.so\")
-          execute_process(COMMAND ln -sf libdxl_cpp.so \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/lib${LEGACY_CXX_NAME}.so\")
-        endif()
-        if(\"${LEGACY_C_NAME}\" AND \"${BUILD_C_LIB}\")
-          message(STATUS \"Creating legacy symlink: lib${LEGACY_C_NAME}.so -> libdxl_c.so\")
-          execute_process(COMMAND ln -sf libdxl_c.so \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/lib${LEGACY_C_NAME}.so\")
-        endif()
+        message(STATUS \"Creating legacy symlink: lib${LEGACY_CXX_NAME}.so -> libdxl_cpp.so\")
+        execute_process(COMMAND ln -sf libdxl_cpp.so \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/lib${LEGACY_CXX_NAME}.so\")
       ")
-  endif()
-
-  # --------------------------------------------------------
-  # Feature: Uninstall and Reinstall Targets
-  # Usage: sudo make uninstall / sudo make reinstall
-  # --------------------------------------------------------
-  
-  # Generate uninstall script dynamically in the BUILD directory (No extra source files needed)
-  set(UNINSTALL_SCRIPT "
-if(NOT EXISTS \"\${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt\")
-  message(FATAL_ERROR \"Cannot find install manifest: \\\"\${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt\\\"\")
-endif()
-
-file(READ \"\${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt\" files)
-string(REGEX REPLACE \"\\n\" \";\" files \"\${files}\")
-
-foreach(file \${files})
-  message(STATUS \"Uninstalling \$ENV{DESTDIR}\${file}\")
-  if(IS_SYMLINK \"\$ENV{DESTDIR}\${file}\" OR EXISTS \"\$ENV{DESTDIR}\${file}\")
-    execute_process(
-      COMMAND \${CMAKE_COMMAND} -E remove \"\$ENV{DESTDIR}\${file}\"
-      OUTPUT_VARIABLE rm_out
-      RESULT_VARIABLE rm_retval
-    )
-    if(NOT \${rm_retval} EQUAL 0)
-      message(FATAL_ERROR \"Problem when removing \$ENV{DESTDIR}\${file}\")
     endif()
-  else()
-    message(STATUS \"File \$ENV{DESTDIR}\${file} does not exist.\")
-  endif()
-endforeach()
-")
 
-  # Write the script content to the build directory
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" "${UNINSTALL_SCRIPT}")
-
-  # Add custom targets
-  if(NOT TARGET uninstall)
-    add_custom_target(uninstall
-      COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
-      COMMENT "Uninstalling DynamixelSDK components..."
-    )
+    if(LEGACY_C_NAME AND BUILD_C_LIB)
+      install(CODE "
+        message(STATUS \"Creating legacy symlink: lib${LEGACY_C_NAME}.so -> libdxl_c.so\")
+        execute_process(COMMAND ln -sf libdxl_c.so \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/lib${LEGACY_C_NAME}.so\")
+      ")
+    endif()
   endif()
 
-  if(NOT TARGET reinstall)
-    add_custom_target(reinstall
-      COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR} --target uninstall
-      COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR} --target install
-      COMMENT "Reinstalling DynamixelSDK components..."
-    )
-  endif()
+
 
 endif()

@@ -2,6 +2,14 @@
 Changelog for package dynamixel_sdk
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.3 (2026-01-09)
+------------------
+* Unified build system for C/C++/Python libraries with automatic ROS 2 detection
+* Unify C/C++ example build system via CMake and remove legacy platform-specific files
+* Refactored core libraries: Removed dynamic memory allocation for packet buffers, applied RAII patterns, and enhanced type safety
+* Streamlined project structure: Centralized package.xml to root and removed legacy platform-specific build directories
+* Added INSTALL.md and support for forced standalone builds via -DIS_ROS_BUILD=OFF
+
 4.0.2 (2025-11-24)
 ------------------
 * None
