@@ -281,6 +281,9 @@ else()
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
 
+  # Install Control Table Models (Essential for Easy SDK)
+  install(DIRECTORY control_table DESTINATION share/dynamixel_sdk)
+
   # [Legacy Support] Create Symlinks for Backward Compatibility
   if(UNIX AND NOT APPLE)
     if(LEGACY_CXX_NAME AND BUILD_CXX_LIB)
