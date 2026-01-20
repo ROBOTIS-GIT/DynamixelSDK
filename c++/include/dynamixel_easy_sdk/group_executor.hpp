@@ -23,6 +23,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
+#include <optional>
 
 #include "dynamixel_sdk/dynamixel_sdk.h"
 #include "dynamixel_easy_sdk/dynamixel_error.hpp"
@@ -42,12 +44,25 @@ public:
   void addCmd(Result<StagedCommand, DxlError> result);
   Result<void, DxlError> executeWrite();
   Result<std::vector<Result<int32_t, DxlError>>, DxlError> executeRead();
-  std::vector<StagedCommand> getStagedWriteCommands() const {return staged_write_command_list_;}
-  std::vector<StagedCommand> getStagedReadCommands() const {return staged_read_command_list_;}
-  void clearStagedWriteCommands() {staged_write_command_list_.clear();}
-  void clearStagedReadCommands() {staged_read_command_list_.clear();}
+  std::vector<StagedCommand> getStagedWriteCommands() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return staged_write_command_list_;
+  }
+  std::vector<StagedCommand> getStagedReadCommands() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return staged_read_command_list_;
+  }
+  void clearStagedWriteCommands() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    staged_write_command_list_.clear();
+  }
+  void clearStagedReadCommands() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    staged_read_command_list_.clear();
+  }
 
 private:
+  mutable std::mutex mutex_;
   Result<void, DxlError> executeSyncWrite(uint16_t address, uint16_t length);
   Result<void, DxlError> executeBulkWrite();
   Result<std::vector<Result<int32_t, DxlError>>, DxlError> executeSyncRead(

@@ -38,9 +38,10 @@ class ControlTable:
     @staticmethod
     def parsingModelList():
         tmp_model_list = {}
-        file_name = os.path.join(CONTROL_TABLE_PATH, 'dynamixel.model')
+        file_path = CONTROL_TABLE_PATH / 'dynamixel.model'
+        file_name = str(file_path)
         try:
-            with open(file_name, encoding='utf-8') as infile:
+            with file_path.open(encoding='utf-8') as infile:
                 lines = infile.readlines()
         except Exception as e:
             raise RuntimeError(f'Error: Could not open file {file_name}') from e
@@ -75,11 +76,12 @@ class ControlTable:
             return cls._control_tables_cache[model_number]
 
         model_filename = cls.getModelName(model_number)
-        full_path = os.path.join(CONTROL_TABLE_PATH, model_filename)
+        file_path = CONTROL_TABLE_PATH / model_filename
+        full_path = str(file_path)
         control_table = {}
 
         try:
-            with open(full_path, encoding='utf-8') as infile:
+            with file_path.open(encoding='utf-8') as infile:
                 lines = infile.readlines()
                 line_iterator = iter(lines)
         except Exception as e:
@@ -101,7 +103,14 @@ class ControlTable:
                         address = int(parts[0])
                         size = int(parts[1])
                         name = parts[2]
-                        control_table[name] = ControlTableItem(address, size)
+                        item = ControlTableItem(address, size)
+                        control_table[name] = item
+                        
+                        # Support underscore, and case-insensitivity
+                        name_underscore = name.replace(' ', '_')
+                        control_table[name_underscore] = item
+                        control_table[name.lower()] = item
+                        control_table[name_underscore.lower()] = item
                     except Exception as e:
                         raise RuntimeError(f'Error parsing control table item: {line} - {e}')
         cls._control_tables_cache[model_number] = control_table

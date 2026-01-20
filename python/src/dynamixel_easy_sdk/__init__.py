@@ -35,6 +35,8 @@ from .dynamixel_error import DxlRuntimeError
 from .dynamixel_error import getErrorMessage
 from .group_executor import GroupExecutor
 from .motor import Motor
+from .smart_group import SmartGroupReader
+from .smart_group import SmartGroupWriter
 
 __all__ = [
     'Connector',
@@ -51,4 +53,6 @@ __all__ = [
     'getErrorMessage',
     'GroupExecutor',
     'Motor',
+    'SmartGroupReader',
+    'SmartGroupWriter',
 ]
