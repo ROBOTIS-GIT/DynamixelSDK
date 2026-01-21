@@ -16,10 +16,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ros_distribution:
-          - humble
-          - jazzy
-          - rolling
         include:
           # ROS 2 Humble Hawksbill
           - docker_image: ubuntu:jammy
@@ -49,16 +45,36 @@ jobs:
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
 
-      - name: Build and Test
-        uses: ros-tooling/action-ros-ci@v0.3
-        with:
-          target-ros2-distro: ${{ matrix.ros_distribution }}
-          vcs-repo-file-url: ""
-          package-name: |
-            dynamixel_sdk
-            dynamixel_sdk_custom_interfaces
-            dynamixel_sdk_examples
-          colcon-extra-args: >
-            --base-paths
-            ros_ws/src/DynamixelSDK
-            ros_ws/src/DynamixelSDK/ros
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -e
+          source /opt/ros/${{ matrix.ros_distribution }}/setup.bash
+          rosdep init || true
+          rosdep update
+          rosdep install --from-paths ros_ws/src/DynamixelSDK/ros \
+            --ignore-src -r -y \
+            --rosdistro ${{ matrix.ros_distribution }}
+
+      - name: Build
+        shell: bash
+        run: |
+          set -e
+          source /opt/ros/${{ matrix.ros_distribution }}/setup.bash
+          colcon build \
+            --base-paths ros_ws/src/DynamixelSDK/ros \
+            --build-base ros_ws/build \
+            --install-base ros_ws/install \
+            --event-handlers console_direct+
+
+      - name: Test
+        shell: bash
+        run: |
+          set -e
+          source /opt/ros/${{ matrix.ros_distribution }}/setup.bash
+          source ros_ws/install/setup.bash
+          colcon test \
+            --base-paths ros_ws/src/DynamixelSDK/ros \
+            --build-base ros_ws/build \
+            --install-base ros_ws/install
+          colcon test-result --verbose
