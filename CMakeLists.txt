@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Define project and supported languages (C, C++)
-project(dynamixel_sdk VERSION 4.0.3 LANGUAGES C CXX)
+project(dynamixel_sdk VERSION 4.0.4 LANGUAGES C CXX)
 
 # --------------------------------------------------------
 # 1. Build Environment Configuration
