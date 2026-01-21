@@ -58,11 +58,11 @@ jobs:
           rosdep update
           echo "--- Installing system dependencies for ROS 2 ${{ matrix.ros_distribution }} ---"
           rosdep install --from-paths \
-            ros_ws/src/DynamixelSDK \
-            ros_ws/src/DynamixelSDK/ros \
+            ros_ws/src \
+            ros_ws/src/ros \
             --ignore-src -y -r --rosdistro ${{ matrix.ros_distribution }}
           echo "--- Performing rosdep check for ROS 2 ${{ matrix.ros_distribution }} ---"
-          if rosdep check --from-paths ros_ws/src --ignore-src --rosdistro ${{ matrix.ros_distribution }}; then
+          if rosdep check --from-paths ros_ws/src ros_ws/src/ros --ignore-src --rosdistro ${{ matrix.ros_distribution }}; then
             echo "--- rosdep check passed ---"
           else
             echo "--- rosdep check failed: Missing system dependencies or unresolvable keys. ---"
