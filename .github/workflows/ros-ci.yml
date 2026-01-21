@@ -62,7 +62,9 @@ jobs:
           set -e
           source /opt/ros/${{ matrix.ros_distribution }}/setup.bash
           colcon build \
-            --base-paths ros_ws/src/DynamixelSDK/ros \
+            --base-paths \
+              ros_ws/src/DynamixelSDK \
+              ros_ws/src/DynamixelSDK/ros \
             --build-base ros_ws/build \
             --install-base ros_ws/install \
             --event-handlers console_direct+
@@ -73,8 +75,14 @@ jobs:
           set -e
           source /opt/ros/${{ matrix.ros_distribution }}/setup.bash
           source ros_ws/install/setup.bash
+          
           colcon test \
-            --base-paths ros_ws/src/DynamixelSDK/ros \
+            --base-paths \
+              ros_ws/src/DynamixelSDK \
+              ros_ws/src/DynamixelSDK/ros \
             --build-base ros_ws/build \
             --install-base ros_ws/install
-          colcon test-result --verbose
+            
+          colcon test-result \
+            --test-result-base ros_ws/build \
+            --verbose
