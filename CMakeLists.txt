@@ -136,6 +136,28 @@ if(BUILD_CXX_LIB)
 endif()
 
 # --------------------------------------------------------
+# Umbrella target for ROS consumers
+# --------------------------------------------------------
+if(IS_ROS_BUILD AND BUILD_CXX_LIB)
+  add_library(dynamixel_sdk INTERFACE)
+
+  target_include_directories(dynamixel_sdk INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/c++/include>
+    $<INSTALL_INTERFACE:include>
+  )
+
+  target_link_libraries(dynamixel_sdk INTERFACE
+    dynamixel_cpp
+  )
+
+  if(BUILD_C_LIB)
+    target_link_libraries(dynamixel_sdk INTERFACE
+      dynamixel_c
+    )
+  endif()
+endif()
+
+# --------------------------------------------------------
 # 4. Installation & Export
 # --------------------------------------------------------
 include(GNUInstallDirs)
@@ -212,6 +234,9 @@ if(IS_ROS_BUILD)
   endif()
   if(BUILD_CXX_LIB)
     list(APPEND EXPORT_TARGETS dynamixel_cpp)
+  endif()
+  if(BUILD_CXX_LIB)
+    list(APPEND EXPORT_TARGETS dynamixel_sdk)
   endif()
 
   install(TARGETS ${EXPORT_TARGETS}
@@ -300,7 +325,5 @@ else()
       ")
     endif()
   endif()
-
-
 
 endif()
