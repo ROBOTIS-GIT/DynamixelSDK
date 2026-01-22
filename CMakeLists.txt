@@ -19,13 +19,16 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(LEGACY_CXX_NAME "")
 set(LEGACY_C_NAME "")
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64)$")
+if(APPLE)
+  set(LEGACY_C_NAME   dxl_mac_c)
+  set(LEGACY_CXX_NAME dxl_mac_cpp)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64)$")
   set(LEGACY_CXX_NAME "dxl_x64_cpp")
   set(LEGACY_C_NAME   "dxl_x64_c")
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(i.86|x86)$")
   set(LEGACY_CXX_NAME "dxl_x86_cpp")
   set(LEGACY_C_NAME   "dxl_x86_c")
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm|aarch64)$")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm|arm64|aarch64)$")
   set(LEGACY_CXX_NAME "dxl_sbc_cpp")
   set(LEGACY_C_NAME   "dxl_sbc_c")
 endif()
@@ -56,18 +59,31 @@ endif()
 # 2. Build C Library (libdxl_c)
 # --------------------------------------------------------
 if(BUILD_C_LIB)
-  file(GLOB_RECURSE C_SOURCES "c/src/dynamixel_sdk/*.c")
+  # Common source files (platform-independent)
+  set(DXL_C_COMMON_SOURCES
+    c/src/dynamixel_sdk/group_bulk_read.c
+    c/src/dynamixel_sdk/group_bulk_write.c
+    c/src/dynamixel_sdk/group_sync_read.c
+    c/src/dynamixel_sdk/group_sync_write.c
+    c/src/dynamixel_sdk/packet_handler.c
+    c/src/dynamixel_sdk/protocol1_packet_handler.c
+    c/src/dynamixel_sdk/protocol2_packet_handler.c
+    c/src/dynamixel_sdk/port_handler.c
+  )
 
-  # Filter source files based on the platform to avoid compiling unsupported OS code
+  # Platform-specific port handler
   if(WIN32)
-    list(FILTER C_SOURCES EXCLUDE REGEX "port_handler_(linux|mac)\\.c$")
+    set(DXL_C_PLATFORM_SOURCES c/src/dynamixel_sdk/port_handler_windows.c)
   elseif(APPLE)
-    list(FILTER C_SOURCES EXCLUDE REGEX "port_handler_(linux|windows)\\.c$")
+    set(DXL_C_PLATFORM_SOURCES c/src/dynamixel_sdk/port_handler_mac.c)
   else() # Linux / UNIX
-    list(FILTER C_SOURCES EXCLUDE REGEX "port_handler_(windows|mac)\\.c$")
+    set(DXL_C_PLATFORM_SOURCES c/src/dynamixel_sdk/port_handler_linux.c)
   endif()
 
-  add_library(dynamixel_c SHARED ${C_SOURCES})
+  add_library(dynamixel_c SHARED
+    ${DXL_C_COMMON_SOURCES}
+    ${DXL_C_PLATFORM_SOURCES}
+  )
 
   # C users must include the special directory to avoid conflict with C++ headers
   # Usage: #include "dynamixel_sdk/dynamixel_sdk.h" (Finds file in include/dynamixel_sdk_c/dynamixel_sdk/)
@@ -95,19 +111,44 @@ endif()
 # 3. Build C++ Library (libdxl_cpp)
 # --------------------------------------------------------
 if(BUILD_CXX_LIB)
-  file(GLOB_RECURSE CXX_SOURCES "c++/src/dynamixel_sdk/*.cpp")
-  file(GLOB CXX_EASY_SOURCES "c++/src/dynamixel_easy_sdk/*.cpp")
+  # Common SDK sources (platform-independent)
+  set(DXL_CPP_COMMON_SOURCES
+    c++/src/dynamixel_sdk/group_bulk_read.cpp
+    c++/src/dynamixel_sdk/group_bulk_write.cpp
+    c++/src/dynamixel_sdk/group_fast_bulk_read.cpp
+    c++/src/dynamixel_sdk/group_fast_sync_read.cpp
+    c++/src/dynamixel_sdk/group_handler.cpp
+    c++/src/dynamixel_sdk/group_sync_read.cpp
+    c++/src/dynamixel_sdk/group_sync_write.cpp
+    c++/src/dynamixel_sdk/packet_handler.cpp
+    c++/src/dynamixel_sdk/protocol1_packet_handler.cpp
+    c++/src/dynamixel_sdk/protocol2_packet_handler.cpp
+    c++/src/dynamixel_sdk/port_handler.cpp
+  )
 
-  # Filter source files based on the platform
+  # Platform-specific port handler
   if(WIN32)
-    list(FILTER CXX_SOURCES EXCLUDE REGEX "port_handler_(linux|mac)\\.cpp$")
+    set(DXL_CPP_PLATFORM_SOURCES c++/src/dynamixel_sdk/port_handler_windows.cpp)
   elseif(APPLE)
-    list(FILTER CXX_SOURCES EXCLUDE REGEX "port_handler_(linux|windows)\\.cpp$")
+    set(DXL_CPP_PLATFORM_SOURCES c++/src/dynamixel_sdk/port_handler_mac.cpp)
   else() # Linux / UNIX
-    list(FILTER CXX_SOURCES EXCLUDE REGEX "port_handler_(windows|mac)\\.cpp$")
+    set(DXL_CPP_PLATFORM_SOURCES c++/src/dynamixel_sdk/port_handler_linux.cpp)
   endif()
 
-  add_library(dynamixel_cpp SHARED ${CXX_SOURCES} ${CXX_EASY_SOURCES})
+  # Easy SDK sources
+  set(DXL_CPP_EASY_SOURCES
+    c++/src/dynamixel_easy_sdk/connector.cpp
+    c++/src/dynamixel_easy_sdk/control_table.cpp
+    c++/src/dynamixel_easy_sdk/dynamixel_error.cpp
+    c++/src/dynamixel_easy_sdk/group_executor.cpp
+    c++/src/dynamixel_easy_sdk/motor.cpp
+  )
+
+  add_library(dynamixel_cpp SHARED
+    ${DXL_CPP_COMMON_SOURCES}
+    ${DXL_CPP_PLATFORM_SOURCES}
+    ${DXL_CPP_EASY_SOURCES}
+  )
 
   target_include_directories(dynamixel_cpp PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/c++/include>
@@ -310,18 +351,28 @@ else()
   install(DIRECTORY control_table DESTINATION share/dynamixel_sdk)
 
   # [Legacy Support] Create Symlinks for Backward Compatibility
-  if(UNIX AND NOT APPLE)
+  if(UNIX)
     if(LEGACY_CXX_NAME AND BUILD_CXX_LIB)
       install(CODE "
         message(STATUS \"Creating legacy symlink: lib${LEGACY_CXX_NAME}.so -> libdxl_cpp.so\")
-        execute_process(COMMAND ln -sf libdxl_cpp.so \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/lib${LEGACY_CXX_NAME}.so\")
+        execute_process(
+          COMMAND \${CMAKE_COMMAND} -E create_symlink
+                  libdxl_cpp.so
+                  \${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/lib${LEGACY_CXX_NAME}.so
+          WORKING_DIRECTORY \"\$ENV{DESTDIR}\"
+        )
       ")
     endif()
 
     if(LEGACY_C_NAME AND BUILD_C_LIB)
       install(CODE "
         message(STATUS \"Creating legacy symlink: lib${LEGACY_C_NAME}.so -> libdxl_c.so\")
-        execute_process(COMMAND ln -sf libdxl_c.so \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/lib${LEGACY_C_NAME}.so\")
+        execute_process(
+          COMMAND \${CMAKE_COMMAND} -E create_symlink
+                  libdxl_c.so
+                  \${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/lib${LEGACY_C_NAME}.so
+          WORKING_DIRECTORY \"\$ENV{DESTDIR}\"
+        )
       ")
     endif()
   endif()
