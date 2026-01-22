@@ -353,11 +353,8 @@ int main(int argc, char *argv[])
   // Initialize PortHandler Structs
   // Set the port path
   // Get methods and members of PortHandlerLinux or PortHandlerWindows
-  int port_num = portHandler("/dev/ttyUSB0");
+  int port_num = portHandler(dev_name);
   
-  // 디버깅용 출력 추가
-  printf("DEBUG: port_num = %d\n", port_num);
-
   // Initialize PacketHandler Structs
   packetHandler();
 
