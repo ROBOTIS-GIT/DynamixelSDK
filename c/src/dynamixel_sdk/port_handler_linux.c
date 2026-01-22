@@ -105,7 +105,7 @@ int portHandlerLinux(const char *port_name)
   {
     for (port_num = 0; port_num < DXL_MAX_PORTS; port_num++)
     {
-      if (portData[port_num].socket_fd == -1)
+      if (g_is_allocated[port_num] == False)
         break;
     }
 

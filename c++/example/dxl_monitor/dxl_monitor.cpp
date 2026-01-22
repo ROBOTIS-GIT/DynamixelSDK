@@ -302,6 +302,15 @@ void dump(dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetH
   }
 }
 
+// [Add] Helper function to clear input buffer portably
+void clean_stdin(void)
+{
+  int c;
+  do {
+    c = getchar();
+  } while (c != '\n' && c != EOF);
+}
+
 int main(int argc, char *argv[])
 {
   // Initialize Packethandler1 instance
@@ -401,9 +410,10 @@ int main(int argc, char *argv[])
   {
     printf("[CMD] ");
     if (fgets(input, sizeof(input), stdin) == NULL) break;
-    char *p;
-    if ((p = strchr(input, '\n'))!= NULL) *p = '\0';
-    fflush(stdin);
+
+    char *p = strchr(input, '\n');
+    if (p != NULL) *p = '\0';
+    else clean_stdin();
 
     if (strlen(input) == 0) continue;
 

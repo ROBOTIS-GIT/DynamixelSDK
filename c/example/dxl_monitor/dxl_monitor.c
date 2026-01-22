@@ -275,6 +275,15 @@ void readNByteTxRx(int port_num, int protocol_version, uint8_t id, uint16_t addr
   }
 }
 
+// [Add] Helper function to clear input buffer portably
+void clean_stdin(void)
+{
+    int c;
+    do {
+        c = getchar();
+    } while (c != '\n' && c != EOF);
+}
+
 int main(int argc, char *argv[])
 {
   fprintf(stderr, "\n***********************************************************************\n");
@@ -344,7 +353,10 @@ int main(int argc, char *argv[])
   // Initialize PortHandler Structs
   // Set the port path
   // Get methods and members of PortHandlerLinux or PortHandlerWindows
-  int port_num = portHandler(dev_name);
+  int port_num = portHandler("/dev/ttyUSB0");
+  
+  // 디버깅용 출력 추가
+  printf("DEBUG: port_num = %d\n", port_num);
 
   // Initialize PacketHandler Structs
   packetHandler();
@@ -374,10 +386,12 @@ int main(int argc, char *argv[])
   while(1)
   {
     printf("[CMD] ");
-    fgets(input, sizeof(input), stdin);
-    char *p;
-    if ((p = strchr(input, '\n'))!= NULL) *p = '\0';
-    fflush(stdin);
+
+    if (fgets(input, sizeof(input), stdin) == NULL) break;
+    
+    char *p = strchr(input, '\n');
+    if (p != NULL) *p = '\0';
+    else clean_stdin();
 
     if (strlen(input) == 0)
       continue;
