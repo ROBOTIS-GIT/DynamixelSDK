@@ -114,7 +114,7 @@ cmake ..
 
 3. **Build & Install:**
    - Open the generated `dynamixel_sdk.sln` (or `dynamixel_sdk.slnx`) file in Visual Studio.
-   - In the **Solution Explorer**, looking for the **CMakePredefinedTargets** folder.
+   - In the **Solution Explorer**, look for the **CMakePredefinedTargets** folder.
    - Right-click on the **INSTALL** project and select **Build**.
      - This will automatically build the libraries (`ALL_BUILD`) and install them to the system path (e.g., `C:\Program Files (x86)\dynamixel_sdk`).
    - *Note: You may need to run Visual Studio as Administrator to install to system folders.*
