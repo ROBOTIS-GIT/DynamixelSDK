@@ -36,12 +36,12 @@ using namespace dynamixel;
 PortHandler *PortHandler::getPortHandler(const char *port_name)
 {
 #if defined(__linux__)
-  return (PortHandler *)(new PortHandlerLinux(port_name));
+  return static_cast<PortHandler*>(new PortHandlerLinux(port_name));
 #elif defined(__APPLE__)
-  return (PortHandler *)(new PortHandlerMac(port_name));
+  return static_cast<PortHandler*>(new PortHandlerMac(port_name));
 #elif defined(_WIN32) || defined(_WIN64)
-  return (PortHandler *)(new PortHandlerWindows(port_name));
+  return static_cast<PortHandler*>(new PortHandlerWindows(port_name));
 #elif defined(ARDUINO) || defined(__OPENCR__) || defined(__OPENCM904__) || defined(ARDUINO_OpenRB)
-  return (PortHandler *)(new PortHandlerArduino(port_name));
+  return static_cast<PortHandler*>(new PortHandlerArduino(port_name));
 #endif
 }

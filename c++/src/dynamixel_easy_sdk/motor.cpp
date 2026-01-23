@@ -27,14 +27,14 @@ Motor::Motor(uint8_t id, uint16_t model_number, Connector * connector)
   control_table_(ControlTable::getControlTable(model_number))
 {
   Result<uint8_t, DxlError> torque_result = this->isTorqueOn();
-  if (!torque_result.isSuccess()) {
-    throw DxlRuntimeError("Failed to get torque status: " + getErrorMessage(torque_result.error()));
+  if (!torque_result.is_ok()) {
+    throw DxlRuntimeError("Failed to get torque status: " + torque_result.error().msg);
   }
   torque_status_ = torque_result.value();
 
   Result<OperatingMode, DxlError> mode_result = this->getOperatingMode();
-  if (!mode_result.isSuccess()) {
-    throw DxlRuntimeError("Failed to get operating mode: " + getErrorMessage(mode_result.error()));
+  if (!mode_result.is_ok()) {
+    throw DxlRuntimeError("Failed to get operating mode: " + mode_result.error().msg);
   }
   operating_mode_status_ = mode_result.value();
 }
@@ -44,7 +44,7 @@ Motor::~Motor() {}
 Result<void, DxlError> Motor::enableTorque()
 {
   Result<void, DxlError> result = writeData(id_, "Torque Enable", 1);
-  if (result.isSuccess()) {
+  if (result.is_ok()) {
     torque_status_ = 1;
   }
   return result;
@@ -53,7 +53,7 @@ Result<void, DxlError> Motor::enableTorque()
 Result<void, DxlError> Motor::disableTorque()
 {
   Result<void, DxlError> result = writeData(id_, "Torque Enable", 0);
-  if (result.isSuccess()) {
+  if (result.is_ok()) {
     torque_status_ = 0;
   }
   return result;
@@ -62,13 +62,13 @@ Result<void, DxlError> Motor::disableTorque()
 Result<void, DxlError> Motor::setGoalPosition(int32_t position)
 {
   if (torque_status_ == 0) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
   if (operating_mode_status_ != OperatingMode::POSITION &&
     operating_mode_status_ != OperatingMode::EXTENDED_POSITION &&
     operating_mode_status_ != OperatingMode::CURRENT_BASED_POSITION)
   {
-    return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_OPERATING_MODE_MISMATCH);
   }
   Result<void, DxlError> result = writeData(id_, "Goal Position", static_cast<uint32_t>(position));
   return result;
@@ -77,10 +77,10 @@ Result<void, DxlError> Motor::setGoalPosition(int32_t position)
 Result<void, DxlError> Motor::setGoalVelocity(int32_t velocity)
 {
   if (torque_status_ == 0) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
   if (operating_mode_status_ != OperatingMode::VELOCITY) {
-    return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_OPERATING_MODE_MISMATCH);
   }
   Result<void, DxlError> result = writeData(id_, "Goal Velocity", static_cast<uint32_t>(velocity));
   return result;
@@ -89,11 +89,11 @@ Result<void, DxlError> Motor::setGoalVelocity(int32_t velocity)
 Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
 {
   if (torque_status_ == 0) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
   if (operating_mode_status_ != OperatingMode::CURRENT &&
     operating_mode_status_ != OperatingMode::CURRENT_BASED_POSITION) {
-    return DxlError::EASY_SDK_OPERATING_MODE_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_OPERATING_MODE_MISMATCH);
   }
   Result<void, DxlError> result = writeData(id_, "Goal Current", static_cast<uint16_t>(current));
   return result;
@@ -102,7 +102,7 @@ Result<void, DxlError> Motor::setGoalCurrent(int16_t current)
 Result<void, DxlError> Motor::setGoalPWM(int16_t pwm)
 {
   if (torque_status_ == 0) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
   Result<void, DxlError> result = writeData(id_, "Goal PWM", static_cast<uint16_t>(pwm));
   return result;
@@ -129,7 +129,7 @@ Result<uint16_t, DxlError> Motor::ping()
 Result<uint8_t, DxlError> Motor::isTorqueOn()
 {
   Result<uint32_t, DxlError> result = readData(id_, "Torque Enable");
-  if (!result.isSuccess()) {
+  if (!result.is_ok()) {
     return result.error();
   }
   torque_status_ = static_cast<uint8_t>(result.value());
@@ -139,7 +139,7 @@ Result<uint8_t, DxlError> Motor::isTorqueOn()
 Result<uint8_t, DxlError> Motor::isLEDOn()
 {
   Result<uint32_t, DxlError> result = readData(id_, "LED");
-  if (!result.isSuccess()) {
+  if (!result.is_ok()) {
     return result.error();
   }
   return static_cast<uint8_t>(result.value());
@@ -148,7 +148,7 @@ Result<uint8_t, DxlError> Motor::isLEDOn()
 Result<int32_t, DxlError> Motor::getPresentPosition()
 {
   Result<uint32_t, DxlError> result = readData(id_, "Present Position");
-  if (!result.isSuccess()) {
+  if (!result.is_ok()) {
     return result.error();
   }
   return static_cast<int32_t>(result.value());
@@ -157,7 +157,7 @@ Result<int32_t, DxlError> Motor::getPresentPosition()
 Result<int32_t, DxlError> Motor::getPresentVelocity()
 {
   Result<uint32_t, DxlError> result = readData(id_, "Present Velocity");
-  if (!result.isSuccess()) {
+  if (!result.is_ok()) {
     return result.error();
   }
   return static_cast<int32_t>(result.value());
@@ -166,7 +166,7 @@ Result<int32_t, DxlError> Motor::getPresentVelocity()
 Result<int16_t, DxlError> Motor::getPresentCurrent()
 {
   Result<uint32_t, DxlError> result = readData(id_, "Present Current");
-  if (!result.isSuccess()) {
+  if (!result.is_ok()) {
     return result.error();
   }
   return static_cast<int16_t>(result.value());
@@ -175,7 +175,7 @@ Result<int16_t, DxlError> Motor::getPresentCurrent()
 Result<int16_t, DxlError> Motor::getPresentPWM()
 {
   Result<uint32_t, DxlError> result = readData(id_, "Present PWM");
-  if (!result.isSuccess()) {
+  if (!result.is_ok()) {
     return result.error();
   }
   return static_cast<int16_t>(result.value());
@@ -202,7 +202,7 @@ Result<uint32_t, DxlError> Motor::getVelocityLimit()
 Result<uint16_t, DxlError> Motor::getCurrentLimit()
 {
   Result<uint32_t, DxlError> result = readData(id_, "Current Limit");
-  if (!result.isSuccess()) {
+  if (!result.is_ok()) {
     return result.error();
   }
   return static_cast<uint16_t>(result.value());
@@ -211,7 +211,7 @@ Result<uint16_t, DxlError> Motor::getCurrentLimit()
 Result<uint16_t, DxlError> Motor::getPWMLimit()
 {
   Result<uint32_t, DxlError> result = readData(id_, "PWM Limit");
-  if (!result.isSuccess()) {
+  if (!result.is_ok()) {
     return result.error();
   }
   return static_cast<uint16_t>(result.value());
@@ -220,7 +220,7 @@ Result<uint16_t, DxlError> Motor::getPWMLimit()
 Result<OperatingMode, DxlError> Motor::getOperatingMode()
 {
   Result<uint32_t, DxlError> result = readData(id_, "Operating Mode");
-  if (!result.isSuccess()) {
+  if (!result.is_ok()) {
     return result.error();
   }
   return static_cast<OperatingMode>(result.value());
@@ -229,7 +229,7 @@ Result<OperatingMode, DxlError> Motor::getOperatingMode()
 Result<void, DxlError> Motor::changeID(uint8_t new_id)
 {
   Result<void, DxlError> result = writeData(id_, "ID", new_id);
-  if (result.isSuccess()) {
+  if (result.is_ok()) {
     id_ = new_id;
   }
   return result;
@@ -238,11 +238,11 @@ Result<void, DxlError> Motor::changeID(uint8_t new_id)
 Result<void, DxlError> Motor::setOperatingMode(OperatingMode mode)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
   uint8_t mode_value = static_cast<uint8_t>(mode);
   Result<void, DxlError> result = writeData(id_, "Operating Mode", mode_value);
-  if (result.isSuccess()) {
+  if (result.is_ok()) {
     operating_mode_status_ = mode;
   }
   return result;
@@ -251,11 +251,11 @@ Result<void, DxlError> Motor::setOperatingMode(OperatingMode mode)
 Result<void, DxlError> Motor::setProfileConfiguration(ProfileConfiguration config)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<uint32_t, DxlError> read_result = readData(id_, "Drive Mode");
-  if (!read_result.isSuccess()) {
+  if (!read_result.is_ok()) {
     return read_result.error();
   }
 
@@ -274,11 +274,11 @@ Result<void, DxlError> Motor::setProfileConfiguration(ProfileConfiguration confi
 Result<void, DxlError> Motor::setDirection(Direction direction)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<uint32_t, DxlError> read_result = readData(id_, "Drive Mode");
-  if (!read_result.isSuccess()) {
+  if (!read_result.is_ok()) {
     return read_result.error();
   }
   uint8_t drive_mode = static_cast<uint8_t>(read_result.value());
@@ -295,7 +295,7 @@ Result<void, DxlError> Motor::setDirection(Direction direction)
 Result<void, DxlError> Motor::setPositionPGain(uint16_t p_gain)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<void, DxlError> result = writeData(id_, "Position P Gain", p_gain);
@@ -305,7 +305,7 @@ Result<void, DxlError> Motor::setPositionPGain(uint16_t p_gain)
 Result<void, DxlError> Motor::setPositionIGain(uint16_t i_gain)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<void, DxlError> result = writeData(id_, "Position I Gain", i_gain);
@@ -315,7 +315,7 @@ Result<void, DxlError> Motor::setPositionIGain(uint16_t i_gain)
 Result<void, DxlError> Motor::setPositionDGain(uint16_t d_gain)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<void, DxlError> result = writeData(id_, "Position D Gain", d_gain);
@@ -325,7 +325,7 @@ Result<void, DxlError> Motor::setPositionDGain(uint16_t d_gain)
 Result<void, DxlError> Motor::setVelocityPGain(uint16_t p_gain)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<void, DxlError> result = writeData(id_, "Velocity P Gain", p_gain);
@@ -335,7 +335,7 @@ Result<void, DxlError> Motor::setVelocityPGain(uint16_t p_gain)
 Result<void, DxlError> Motor::setVelocityIGain(uint16_t i_gain)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<void, DxlError> result = writeData(id_, "Velocity I Gain", i_gain);
@@ -345,7 +345,7 @@ Result<void, DxlError> Motor::setVelocityIGain(uint16_t i_gain)
 Result<void, DxlError> Motor::setHomingOffset(int32_t offset)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
   Result<void, DxlError> result = writeData(
     id_,
@@ -357,7 +357,7 @@ Result<void, DxlError> Motor::setHomingOffset(int32_t offset)
 Result<void, DxlError> Motor::setMaxPositionLimit(uint32_t limit)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<void, DxlError> result = writeData(id_, "Max Position Limit", limit);
@@ -367,7 +367,7 @@ Result<void, DxlError> Motor::setMaxPositionLimit(uint32_t limit)
 Result<void, DxlError> Motor::setMinPositionLimit(uint32_t limit)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<void, DxlError> result = writeData(id_, "Min Position Limit", limit);
@@ -377,7 +377,7 @@ Result<void, DxlError> Motor::setMinPositionLimit(uint32_t limit)
 Result<void, DxlError> Motor::setVelocityLimit(uint32_t limit)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<void, DxlError> result = writeData(id_, "Velocity Limit", limit);
@@ -387,7 +387,7 @@ Result<void, DxlError> Motor::setVelocityLimit(uint32_t limit)
 Result<void, DxlError> Motor::setCurrentLimit(uint16_t limit)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<void, DxlError> result = writeData(id_, "Current Limit", limit);
@@ -397,7 +397,7 @@ Result<void, DxlError> Motor::setCurrentLimit(uint16_t limit)
 Result<void, DxlError> Motor::setPWMLimit(uint16_t limit)
 {
   if (torque_status_ == 1) {
-    return DxlError::EASY_SDK_TORQUE_STATUS_MISMATCH;
+    return DxlError(ErrorCode::EASY_SDK_TORQUE_STATUS_MISMATCH);
   }
 
   Result<void, DxlError> result = writeData(id_, "PWM Limit", limit);
@@ -431,7 +431,7 @@ Result<void, DxlError> Motor::factoryResetExceptIDAndBaudRate()
 Result<StagedCommand, DxlError> Motor::stageEnableTorque()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Torque Enable");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   StagedCommand cmd(
@@ -449,7 +449,7 @@ Result<StagedCommand, DxlError> Motor::stageEnableTorque()
 Result<StagedCommand, DxlError> Motor::stageDisableTorque()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Torque Enable");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   StagedCommand cmd(
@@ -467,7 +467,7 @@ Result<StagedCommand, DxlError> Motor::stageDisableTorque()
 Result<StagedCommand, DxlError> Motor::stageSetGoalPosition(int32_t position)
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Position");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   std::vector<uint8_t> data;
@@ -490,7 +490,7 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalPosition(int32_t position)
 Result<StagedCommand, DxlError> Motor::stageSetGoalVelocity(int32_t velocity)
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Velocity");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   std::vector<uint8_t> data;
@@ -513,7 +513,7 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalVelocity(int32_t velocity)
 Result<StagedCommand, DxlError> Motor::stageSetGoalCurrent(int16_t current)
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal Current");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   std::vector<uint8_t> data;
@@ -536,7 +536,7 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalCurrent(int16_t current)
 Result<StagedCommand, DxlError> Motor::stageSetGoalPWM(int16_t pwm)
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Goal PWM");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   std::vector<uint8_t> data;
@@ -558,7 +558,7 @@ Result<StagedCommand, DxlError> Motor::stageSetGoalPWM(int16_t pwm)
 Result<StagedCommand, DxlError> Motor::stageLEDOn()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("LED");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   StagedCommand cmd(
@@ -574,7 +574,7 @@ Result<StagedCommand, DxlError> Motor::stageLEDOn()
 Result<StagedCommand, DxlError> Motor::stageLEDOff()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("LED");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   StagedCommand cmd(
@@ -590,7 +590,7 @@ Result<StagedCommand, DxlError> Motor::stageLEDOff()
 Result<StagedCommand, DxlError> Motor::stageIsTorqueOn()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Torque Enable");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   StagedCommand cmd(
@@ -608,7 +608,7 @@ Result<StagedCommand, DxlError> Motor::stageIsTorqueOn()
 Result<StagedCommand, DxlError> Motor::stageIsLEDOn()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("LED");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   StagedCommand cmd(
@@ -624,7 +624,7 @@ Result<StagedCommand, DxlError> Motor::stageIsLEDOn()
 Result<StagedCommand, DxlError> Motor::stageGetPresentPosition()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Present Position");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   StagedCommand cmd(
@@ -640,7 +640,7 @@ Result<StagedCommand, DxlError> Motor::stageGetPresentPosition()
 Result<StagedCommand, DxlError> Motor::stageGetPresentVelocity()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Present Velocity");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   StagedCommand cmd(
@@ -656,7 +656,7 @@ Result<StagedCommand, DxlError> Motor::stageGetPresentVelocity()
 Result<StagedCommand, DxlError> Motor::stageGetPresentCurrent()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Present Current");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   StagedCommand cmd(
@@ -672,7 +672,7 @@ Result<StagedCommand, DxlError> Motor::stageGetPresentCurrent()
 Result<StagedCommand, DxlError> Motor::stageGetPresentPWM()
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem("Present PWM");
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
   StagedCommand cmd(
@@ -689,7 +689,7 @@ Result<ControlTableItem, DxlError> Motor::getControlTableItem(const std::string 
 {
   auto it = control_table_.find(item_name);
   if (it == control_table_.end()) {
-    return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
+    return DxlError(ErrorCode::EASY_SDK_FUNCTION_NOT_SUPPORTED);
   }
   return it->second;
 }
@@ -697,7 +697,7 @@ Result<ControlTableItem, DxlError> Motor::getControlTableItem(const std::string 
 Result<void, DxlError> Motor::writeData(uint8_t id, const std::string & item_name, uint32_t value)
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem(item_name);
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
 
@@ -713,13 +713,13 @@ Result<void, DxlError> Motor::writeData(uint8_t id, const std::string & item_nam
     case 4:
       return connector_->write4ByteData(id, address, value);
   }
-  return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
+  return DxlError(ErrorCode::EASY_SDK_FUNCTION_NOT_SUPPORTED);
 }
 
 Result<uint32_t, DxlError> Motor::readData(uint8_t id, const std::string & item_name)
 {
   Result<ControlTableItem, DxlError> item_result = getControlTableItem(item_name);
-  if (!item_result.isSuccess()) {
+  if (!item_result.is_ok()) {
     return item_result.error();
   }
 
@@ -730,27 +730,27 @@ Result<uint32_t, DxlError> Motor::readData(uint8_t id, const std::string & item_
   switch (size) {
     case 1: {
         Result<uint8_t, DxlError> result = connector_->read1ByteData(id, address);
-        if (!result.isSuccess()) {
+        if (!result.is_ok()) {
           return result.error();
         }
         return static_cast<uint32_t>(result.value());
       }
     case 2: {
         Result<uint16_t, DxlError> result = connector_->read2ByteData(id, address);
-        if (!result.isSuccess()) {
+        if (!result.is_ok()) {
           return result.error();
         }
         return static_cast<uint32_t>(result.value());
       }
     case 4: {
         Result<uint32_t, DxlError> result = connector_->read4ByteData(id, address);
-        if (!result.isSuccess()) {
+        if (!result.is_ok()) {
           return result.error();
         }
         return result.value();
       }
   }
-  return DxlError::EASY_SDK_FUNCTION_NOT_SUPPORTED;
+  return DxlError(ErrorCode::EASY_SDK_FUNCTION_NOT_SUPPORTED);
 }
 
 }  // namespace dynamixel

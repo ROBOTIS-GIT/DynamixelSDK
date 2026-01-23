@@ -33,7 +33,7 @@ typedef struct
   uint16_t    data_end;
   uint16_t    start_address;
   uint16_t    data_length;
-  uint8_t     *data;
+  uint8_t     data[DXL_MAX_NODE_BUFFER_SIZE];
 }DataList;
 
 typedef struct
@@ -47,23 +47,15 @@ typedef struct
 
   uint16_t    param_length;
 
-  DataList   *data_list;
+  DataList    data_list[DXL_MAX_NODES];
 }GroupData;
 
-static GroupData *groupData;
+static GroupData groupData[DXL_MAX_GROUPS];
 static int g_used_group_num = 0;
 
 static int size(int group_num)
 {
-  int data_num;
-  int real_size = 0;
-
-  for (data_num = 0; data_num < groupData[group_num].data_list_length; data_num++)
-  {
-    if (groupData[group_num].data_list[data_num].id != NOT_USED_ID)
-      real_size++;
-  }
-  return real_size;
+  return groupData[group_num].data_list_length;
 }
 
 static int find(int group_num, int id)
@@ -96,8 +88,14 @@ int groupBulkWrite(int port_num, int protocol_version)
 
   if (group_num == g_used_group_num)
   {
-    g_used_group_num++;
-    groupData = (GroupData *)realloc(groupData, g_used_group_num * sizeof(GroupData));
+    if (g_used_group_num < DXL_MAX_GROUPS)
+    {
+      g_used_group_num++;
+    }
+    else
+    {
+      return -1;
+    }
   }
 
   groupData[group_num].port_num = port_num;
@@ -105,7 +103,7 @@ int groupBulkWrite(int port_num, int protocol_version)
   groupData[group_num].data_list_length = 0;
   groupData[group_num].is_param_changed = False;
   groupData[group_num].param_length = 0;
-  groupData[group_num].data_list = 0;
+  // groupData[group_num].data_list = 0; // Removed
 
   groupBulkWriteClearParam(group_num);
 
@@ -133,7 +131,9 @@ void groupBulkWriteMakeParam(int group_num)
 
     groupData[group_num].param_length += 1 + 2 + 2 + groupData[group_num].data_list[data_num].data_length;
 
-    packetData[port_num].data_write = (uint8_t*)realloc(packetData[port_num].data_write, groupData[group_num].param_length * sizeof(uint8_t));
+    // [Optimization] Removed realloc. Use pre-allocated buffer.
+    // packetData[port_num].data_write = (uint8_t*)realloc(packetData[port_num].data_write, groupData[group_num].param_length * sizeof(uint8_t));
+    if (idx + 5 + groupData[group_num].data_list[data_num].data_length > DXL_MAX_BUFFER_LEN) break;
 
     packetData[port_num].data_write[idx++] = groupData[group_num].data_list[data_num].id;
     packetData[port_num].data_write[idx++] = DXL_LOBYTE(groupData[group_num].data_list[data_num].start_address);
@@ -143,7 +143,8 @@ void groupBulkWriteMakeParam(int group_num)
 
     for (c = 0; c < groupData[group_num].data_list[data_num].data_length; c++)
     {
-      packetData[port_num].data_write[idx++] = groupData[group_num].data_list[data_num].data[c];
+      if (c < DXL_MAX_NODE_BUFFER_SIZE)
+        packetData[port_num].data_write[idx++] = groupData[group_num].data_list[data_num].data[c];
     }
   }
 }
@@ -158,18 +159,18 @@ uint8_t groupBulkWriteAddParam(int group_num, uint8_t id, uint16_t start_address
   if (id == NOT_USED_ID)
     return False;
 
-  if (groupData[group_num].data_list_length != 0)
-    data_num = find(group_num, id);
+  data_num = find(group_num, id);
 
-  if (groupData[group_num].data_list_length == data_num)
+  if (data_num == groupData[group_num].data_list_length)
   {
-    groupData[group_num].data_list_length++;
-    groupData[group_num].data_list = (DataList *)realloc(groupData[group_num].data_list, groupData[group_num].data_list_length * sizeof(DataList));
+    if (groupData[group_num].data_list_length < DXL_MAX_NODES)
+      groupData[group_num].data_list_length++;
+    else
+      return False;
 
     groupData[group_num].data_list[data_num].id = id;
     groupData[group_num].data_list[data_num].data_length = data_length;
     groupData[group_num].data_list[data_num].start_address = start_address;
-    groupData[group_num].data_list[data_num].data = (uint8_t *)calloc(groupData[group_num].data_list[data_num].data_length, sizeof(uint8_t));
     groupData[group_num].data_list[data_num].data_end = 0;
   }
   else
@@ -177,6 +178,9 @@ uint8_t groupBulkWriteAddParam(int group_num, uint8_t id, uint16_t start_address
     if (groupData[group_num].data_list[data_num].data_end + input_length > groupData[group_num].data_list[data_num].data_length)
       return False;
   }
+
+  if (groupData[group_num].data_list[data_num].data_end + input_length > DXL_MAX_NODE_BUFFER_SIZE)
+      return False;
 
   switch (input_length)
   {
@@ -199,7 +203,7 @@ uint8_t groupBulkWriteAddParam(int group_num, uint8_t id, uint16_t start_address
     default:
       return False;
   }
-  groupData[group_num].data_list[data_num].data_end = input_length;
+  groupData[group_num].data_list[data_num].data_end += input_length;
 
   groupData[group_num].is_param_changed = True;
   return True;
@@ -219,64 +223,25 @@ void groupBulkWriteRemoveParam(int group_num, uint8_t id)
 
   groupData[group_num].data_list[data_num].data_end = 0;
 
-  free(groupData[group_num].data_list[data_num].data);
-  groupData[group_num].data_list[data_num].data = 0;
-
   groupData[group_num].data_list[data_num].data_length = 0;
   groupData[group_num].data_list[data_num].start_address = 0;
   groupData[group_num].data_list[data_num].id = NOT_USED_ID;
 
-  groupData[group_num].is_param_changed = True;
-}
-
-uint8_t groupBulkWriteChangeParam(int group_num, uint8_t id, uint16_t start_address, uint16_t data_length, uint32_t data, uint16_t input_length, uint16_t data_pos)
-{
-  int data_num = find(group_num, id);
-
-  if (groupData[group_num].protocol_version == 1)
-    return False;
-
-  if (id == NOT_USED_ID)
-    return False;
-
-  if (data_num == groupData[group_num].data_list_length)
-    return False;
-
-  if (data_pos + input_length > groupData[group_num].data_list[data_num].data_length)
-    return False;
-
-  groupData[group_num].data_list[data_num].data_length = data_length;
-  groupData[group_num].data_list[data_num].start_address = start_address;
-
-  switch (input_length)
+  // Shift
+  for (; data_num < groupData[group_num].data_list_length - 1; data_num++)
   {
-    case 1:
-      groupData[group_num].data_list[data_num].data[data_pos + 0] = DXL_LOBYTE(DXL_LOWORD(data));
-      break;
-
-    case 2:
-      groupData[group_num].data_list[data_num].data[data_pos + 0] = DXL_LOBYTE(DXL_LOWORD(data));
-      groupData[group_num].data_list[data_num].data[data_pos + 1] = DXL_HIBYTE(DXL_LOWORD(data));
-      break;
-
-    case 4:
-      groupData[group_num].data_list[data_num].data[data_pos + 0] = DXL_LOBYTE(DXL_LOWORD(data));
-      groupData[group_num].data_list[data_num].data[data_pos + 1] = DXL_HIBYTE(DXL_LOWORD(data));
-      groupData[group_num].data_list[data_num].data[data_pos + 2] = DXL_LOBYTE(DXL_HIWORD(data));
-      groupData[group_num].data_list[data_num].data[data_pos + 3] = DXL_HIBYTE(DXL_HIWORD(data));
-      break;
-
-    default:
-      return False;
+    groupData[group_num].data_list[data_num] = groupData[group_num].data_list[data_num + 1];
   }
 
+  if (groupData[group_num].data_list_length > 0)
+    groupData[group_num].data_list_length--;
+
   groupData[group_num].is_param_changed = True;
-  return True;
 }
+
 void groupBulkWriteClearParam(int group_num)
 {
   int data_num = 0;
-  int port_num = groupData[group_num].port_num;
 
   if (groupData[group_num].protocol_version == 1)
     return;
@@ -286,15 +251,11 @@ void groupBulkWriteClearParam(int group_num)
 
   for (data_num = 0; data_num < groupData[group_num].data_list_length; data_num++)
   {
-    free(groupData[group_num].data_list[data_num].data);
-    groupData[group_num].data_list[data_num].data = 0;
+    groupData[group_num].data_list[data_num].id = NOT_USED_ID;
+    groupData[group_num].data_list[data_num].data_length = 0;
+    groupData[group_num].data_list[data_num].start_address = 0;
+    groupData[group_num].data_list[data_num].data_end = 0;
   }
-
-  free(groupData[group_num].data_list);
-  groupData[group_num].data_list = 0;
-
-  free(packetData[port_num].data_write);
-  packetData[port_num].data_write = 0;
 
   groupData[group_num].data_list_length = 0;
 

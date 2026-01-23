@@ -161,7 +161,7 @@ int PortHandlerLinux::writePort(uint8_t *packet, int length)
 void PortHandlerLinux::setPacketTimeout(uint16_t packet_length)
 {
   packet_start_time_  = getCurrentTime();
-  packet_timeout_     = (tx_time_per_byte * (double)packet_length) + (LATENCY_TIMER * 2.0) + 2.0;
+  packet_timeout_     = (tx_time_per_byte * static_cast<double>(packet_length)) + (LATENCY_TIMER * 2.0) + 2.0;
 }
 
 void PortHandlerLinux::setPacketTimeout(double msec)
@@ -184,7 +184,7 @@ double PortHandlerLinux::getCurrentTime()
 {
 	struct timespec tv;
 	clock_gettime(CLOCK_REALTIME, &tv);
-	return ((double)tv.tv_sec * 1000.0 + (double)tv.tv_nsec * 0.001 * 0.001);
+	return (static_cast<double>(tv.tv_sec) * 1000.0 + static_cast<double>(tv.tv_nsec) * 0.001 * 0.001);
 }
 
 double PortHandlerLinux::getTimeSinceStart()
@@ -209,7 +209,7 @@ bool PortHandlerLinux::setupPort(int cflag_baud)
     return false;
   }
 
-  bzero(&newtio, sizeof(newtio)); // clear struct for new port settings
+  memset(&newtio, 0, sizeof(newtio)); // clear struct for new port settings
 
   newtio.c_cflag = cflag_baud | CS8 | CLOCAL | CREAD;
   newtio.c_iflag = IGNPAR;
@@ -222,7 +222,7 @@ bool PortHandlerLinux::setupPort(int cflag_baud)
   tcflush(socket_fd_, TCIFLUSH);
   tcsetattr(socket_fd_, TCSANOW, &newtio);
 
-  tx_time_per_byte = (1000.0 / (double)baudrate_) * 10.0;
+  tx_time_per_byte = (1000.0 / static_cast<double>(baudrate_)) * 10.0;
   return true;
 }
 
@@ -265,7 +265,7 @@ bool PortHandlerLinux::setCustomBaudrate(int speed)
     return false;
   }
 
-  tx_time_per_byte = (1000.0 / (double)speed) * 10.0;
+  tx_time_per_byte = (1000.0 / static_cast<double>(speed)) * 10.0;
   return true;
 }
 

@@ -98,8 +98,8 @@ int PortHandlerWindows::getBytesAvailable()
   DWORD retbyte = 2;
   BOOL res = DeviceIoControl(serial_handle_, GENERIC_READ | GENERIC_WRITE, NULL, 0, 0, 0, &retbyte, (LPOVERLAPPED)NULL);
 
-  printf("%d", (int)res);
-  return (int)retbyte;
+  printf("%d", static_cast<int>(res));
+  return static_cast<int>(retbyte);
 }
 
 int PortHandlerWindows::readPort(uint8_t *packet, int length)
@@ -109,7 +109,7 @@ int PortHandlerWindows::readPort(uint8_t *packet, int length)
   if (ReadFile(serial_handle_, packet, (DWORD)length, &dwRead, NULL) == FALSE)
     return -1;
 
-  return (int)dwRead;
+  return static_cast<int>(dwRead);
 }
 
 int PortHandlerWindows::writePort(uint8_t *packet, int length)
@@ -119,13 +119,13 @@ int PortHandlerWindows::writePort(uint8_t *packet, int length)
   if (WriteFile(serial_handle_, packet, (DWORD)length, &dwWrite, NULL) == FALSE)
     return -1;
 
-  return (int)dwWrite;
+  return static_cast<int>(dwWrite);
 }
 
 void PortHandlerWindows::setPacketTimeout(uint16_t packet_length)
 {
   packet_start_time_ = getCurrentTime();
-  packet_timeout_ = (tx_time_per_byte_ * (double)packet_length) + (LATENCY_TIMER * 2.0) + 2.0;
+  packet_timeout_ = (tx_time_per_byte_ * static_cast<double>(packet_length)) + (LATENCY_TIMER * 2.0) + 2.0;
 }
 
 void PortHandlerWindows::setPacketTimeout(double msec)
@@ -148,7 +148,7 @@ double PortHandlerWindows::getCurrentTime()
 {
   QueryPerformanceCounter(&counter_);
   QueryPerformanceFrequency(&freq_);
-  return (double)counter_.QuadPart / (double)freq_.QuadPart * 1000.0;
+  return static_cast<double>(counter_.QuadPart) / static_cast<double>(freq_.QuadPart) * 1000.0;
 }
 
 double PortHandlerWindows::getTimeSinceStart()
@@ -224,7 +224,7 @@ bool PortHandlerWindows::setupPort(int baudrate)
   if (SetCommTimeouts(serial_handle_, &timeouts) == FALSE)
     goto DXL_HAL_OPEN_ERROR;
 
-  tx_time_per_byte_ = (1000.0 / (double)baudrate_) * 10.0;
+  tx_time_per_byte_ = (1000.0 / static_cast<double>(baudrate_)) * 10.0;
   return true;
 
 DXL_HAL_OPEN_ERROR:

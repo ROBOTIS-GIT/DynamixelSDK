@@ -34,6 +34,7 @@
 #endif
 
 #include "port_handler_mac.h"
+#include "robotis_def.h"
 
 #define LATENCY_TIMER   16  // msec (USB latency timer)
                             // You should adjust the latency timer value.
@@ -55,46 +56,29 @@ typedef struct
   double  tx_time_per_byte;
 }PortData;
 
-static PortData *portData;
+static PortData portData[DXL_MAX_PORTS];
+static uint8_t g_is_allocated[DXL_MAX_PORTS] = { False, };
 
 int portHandlerMac(const char *port_name)
 {
   int port_num;
 
-  if (portData == NULL)
+  for (port_num = 0; port_num < DXL_MAX_PORTS; port_num++)
   {
-    port_num = 0;
-    g_used_port_num = 1;
-    portData = (PortData *)calloc(1, sizeof(PortData));
-    g_is_using = (uint8_t*)calloc(1, sizeof(uint8_t));
+    if (g_is_allocated[port_num] == True && !strcmp(portData[port_num].port_name, port_name))
+      return port_num;
   }
-  else
+
+  if (port_num == DXL_MAX_PORTS)
   {
-    for (port_num = 0; port_num < g_used_port_num; port_num++)
+    for (port_num = 0; port_num < DXL_MAX_PORTS; port_num++)
     {
-      if (!strcmp(portData[port_num].port_name, port_name))
+      if (portData[port_num].socket_fd == -1)
         break;
     }
 
-    if (port_num == g_used_port_num)
-    {
-      for (port_num = 0; port_num < g_used_port_num; port_num++)
-      {
-        if (portData[port_num].socket_fd != -1)
-          break;
-      }
-
-      if (port_num == g_used_port_num)
-      {
-        g_used_port_num++;
-        portData = (PortData*)realloc(portData, g_used_port_num * sizeof(PortData));
-        g_is_using = (uint8_t*)realloc(g_is_using, g_used_port_num * sizeof(uint8_t));
-      }
-    }
-    else
-    {
-      printf("[PortHandler setup] The port number %d has same device name... reinitialize port number %d!!\n", port_num, port_num);
-    }
+    if (port_num == DXL_MAX_PORTS)
+      return -1;
   }
 
   portData[port_num].socket_fd = -1;
@@ -103,7 +87,7 @@ int portHandlerMac(const char *port_name)
   portData[port_num].packet_timeout = 0.0;
   portData[port_num].tx_time_per_byte = 0.0;
 
-  g_is_using[port_num] = False;
+  g_is_allocated[port_num] = True;
 
   setPortNameMac(port_num, port_name);
 
@@ -112,11 +96,17 @@ int portHandlerMac(const char *port_name)
 
 uint8_t openPortMac(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return False;
+
   return setBaudRateMac(port_num, portData[port_num].baudrate);
 }
 
 void closePortMac(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return;
+
   if (portData[port_num].socket_fd != -1)
   {
     close(portData[port_num].socket_fd);
@@ -126,21 +116,33 @@ void closePortMac(int port_num)
 
 void clearPortMac(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return;
+
   tcflush(portData[port_num].socket_fd, TCIFLUSH);
 }
 
 void setPortNameMac(int port_num, const char *port_name)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return;
+
   strcpy(portData[port_num].port_name, port_name);
 }
 
 char *getPortNameMac(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return NULL;
+
   return portData[port_num].port_name;
 }
 
 uint8_t setBaudRateMac(int port_num, const int baudrate)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return False;
+
   int baud = getCFlagBaud(baudrate);
 
   closePortMac(port_num);
@@ -160,11 +162,17 @@ uint8_t setBaudRateMac(int port_num, const int baudrate)
 
 int getBaudRateMac(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return 0;
+
   return portData[port_num].baudrate;
 }
 
 int getBytesAvailableMac(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return 0;
+
   int bytes_available;
   ioctl(portData[port_num].socket_fd, FIONREAD, &bytes_available);
   return bytes_available;
@@ -172,28 +180,43 @@ int getBytesAvailableMac(int port_num)
 
 int readPortMac(int port_num, uint8_t *packet, int length)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return 0;
+
   return read(portData[port_num].socket_fd, packet, length);
 }
 
 int writePortMac(int port_num, uint8_t *packet, int length)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return 0;
+
   return write(portData[port_num].socket_fd, packet, length);
 }
 
 void setPacketTimeoutMac(int port_num, uint16_t packet_length)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return;
+
   portData[port_num].packet_start_time = getCurrentTimeMac();
   portData[port_num].packet_timeout = (portData[port_num].tx_time_per_byte * (double)packet_length) + (LATENCY_TIMER * 2.0) + 2.0;
 }
 
 void setPacketTimeoutMSecMac(int port_num, double msec)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return;
+
   portData[port_num].packet_start_time = getCurrentTimeMac();
   portData[port_num].packet_timeout = msec;
 }
 
 uint8_t isPacketTimeoutMac(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return False;
+
   if (getTimeSinceStartMac(port_num) > portData[port_num].packet_timeout)
   {
     portData[port_num].packet_timeout = 0;
@@ -221,6 +244,9 @@ double getCurrentTimeMac()
 
 double getTimeSinceStartMac(int port_num)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return 0.0;
+
   double time_since_start;
 
   time_since_start = getCurrentTimeMac() - portData[port_num].packet_start_time;
@@ -232,6 +258,9 @@ double getTimeSinceStartMac(int port_num)
 
 uint8_t setupPortMac(int port_num, int cflag_baud)
 {
+  if (port_num < 0 || port_num >= DXL_MAX_PORTS || !g_is_using[port_num])
+    return False;
+
   struct termios newtio;
 
   portData[port_num].socket_fd = open(portData[port_num].port_name, O_RDWR | O_NOCTTY | O_NONBLOCK);

@@ -17,24 +17,60 @@
 #ifndef DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_CONTROL_TABLE_HPP_
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_CONTROL_TABLE_HPP_
 
-#include <cstdint>
-#include <fstream>
-#include <iostream>
 #include <map>
-#include <sstream>
 #include <string>
+#include <string_view>
+#include <mutex>
+#include <optional>
+#include <filesystem>
+#include <vector>
 
 #include "dynamixel_easy_sdk/data_types.hpp"
-#include "dynamixel_easy_sdk/dynamixel_error.hpp"
 
 namespace dynamixel
 {
+
 class ControlTable
 {
 public:
-  static const std::map<uint16_t, std::string> ParsingModelList();
-  static const std::string getModelName(uint16_t model_number);
-  static const std::map<std::string, ControlTableItem> & getControlTable(uint16_t model_number);
+  // Thread-safe initialization of model path
+  static void setModelDirectory(const std::string& path);
+  
+  // Get item info (Thread-safe, Cached)
+  static std::optional<ControlTableItem> getItemInfo(int model_number, std::string_view item_name);
+
+  // Get full table Pointer (Legacy/internal use)
+  static const std::map<std::string, ControlTableItem>* getModelTable(int model_number);
+
+  /**
+   * @brief Get the Model Name object
+   * 
+   * @param model_number 
+   * @return std::string (e.g., "XM430-W210")
+   */
+  static std::string getModelName(int model_number);
+
+  /**
+   * @brief Get the Control Table object (Reference)
+   * 
+   * @param model_number 
+   * @return const std::map<std::string, ControlTableItem>& 
+   * @throws std::runtime_error if model not found
+   */
+  static const std::map<std::string, ControlTableItem>& getControlTable(int model_number);
+
+private:
+  static std::string model_dir_;
+  
+  static std::map<int, std::map<std::string, ControlTableItem>> model_cache_;
+  static std::map<int, std::string> model_name_cache_;
+  
+  static std::mutex cache_mutex_;
+
+  static bool loadModel(int model_number);
+  static std::string findModelFile(int model_number);
 };
-}  // namespace dynamixel
-#endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_CONTROL_TABLE_HPP_ */
+
+} // namespace dynamixel
+
+#endif // DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_CONTROL_TABLE_HPP_

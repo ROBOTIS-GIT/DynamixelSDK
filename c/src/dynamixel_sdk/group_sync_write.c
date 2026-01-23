@@ -31,7 +31,7 @@ typedef struct
 {
   uint8_t     id;
   uint16_t    data_end;
-  uint8_t     *data;
+  uint8_t     data[DXL_MAX_NODE_BUFFER_SIZE];
 }DataList;
 
 typedef struct
@@ -46,23 +46,15 @@ typedef struct
   uint16_t    start_address;
   uint16_t    data_length;
 
-  DataList   *data_list;
+  DataList    data_list[DXL_MAX_NODES];
 }GroupData;
 
-static GroupData *groupData;
+static GroupData groupData[DXL_MAX_GROUPS];
 static int g_used_group_num = 0;
 
 int size(int group_num)
 {
-  int data_num;
-  int real_size = 0;
-
-  for (data_num = 0; data_num < groupData[group_num].data_list_length; data_num++)
-  {
-    if (groupData[group_num].data_list[data_num].id != NOT_USED_ID)
-      real_size++;
-  }
-  return real_size;
+  return groupData[group_num].data_list_length;
 }
 
 int find(int group_num, int id)
@@ -97,8 +89,14 @@ int groupSyncWrite(int port_num, int protocol_version, uint16_t start_address, u
 
   if (group_num == g_used_group_num)
   {
-    g_used_group_num++;
-    groupData = (GroupData *)realloc(groupData, g_used_group_num * sizeof(GroupData));
+    if (g_used_group_num < DXL_MAX_GROUPS)
+    {
+      g_used_group_num++;
+    }
+    else
+    {
+      return -1;
+    }
   }
 
   groupData[group_num].port_num = port_num;
@@ -107,7 +105,7 @@ int groupSyncWrite(int port_num, int protocol_version, uint16_t start_address, u
   groupData[group_num].is_param_changed = False;
   groupData[group_num].start_address = start_address;
   groupData[group_num].data_length = data_length;
-  groupData[group_num].data_list = 0;
+  // groupData[group_num].data_list = 0; // Removed
 
   groupSyncWriteClearParam(group_num);
 
@@ -122,7 +120,8 @@ void groupSyncWriteMakeParam(int group_num)
   if (size(group_num) == 0)
     return;
 
-  packetData[port_num].data_write = (uint8_t*)realloc(packetData[port_num].data_write, size(group_num) * (1 + groupData[group_num].data_length) * sizeof(uint8_t)); // ID(1) + DATA(data_length)
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_write = (uint8_t*)realloc(packetData[port_num].data_write, size(group_num) * (1 + groupData[group_num].data_length) * sizeof(uint8_t)); // ID(1) + DATA(data_length)
 
   idx = 0;
   for (data_num = 0; data_num < groupData[group_num].data_list_length; data_num++)
@@ -130,10 +129,13 @@ void groupSyncWriteMakeParam(int group_num)
     if (groupData[group_num].data_list[data_num].id == NOT_USED_ID)
       continue;
 
+    if (idx + 1 + groupData[group_num].data_length > DXL_MAX_BUFFER_LEN) break;
+
     packetData[port_num].data_write[idx++] = groupData[group_num].data_list[data_num].id;
     for (c = 0; c < groupData[group_num].data_length; c++)
     {
-      packetData[port_num].data_write[idx++] = groupData[group_num].data_list[data_num].data[c];
+      if (c < DXL_MAX_NODE_BUFFER_SIZE)
+        packetData[port_num].data_write[idx++] = groupData[group_num].data_list[data_num].data[c];
     }
   }
 }
@@ -145,16 +147,17 @@ uint8_t groupSyncWriteAddParam(int group_num, uint8_t id, uint32_t data, uint16_
   if (id == NOT_USED_ID)
     return False;
 
-  if (groupData[group_num].data_list_length != 0)
-    data_num = find(group_num, id);
+  data_num = find(group_num, id);
 
-  if (groupData[group_num].data_list_length == data_num)
+  if (data_num == groupData[group_num].data_list_length)
   {
-    groupData[group_num].data_list_length++;
-    groupData[group_num].data_list = (DataList *)realloc(groupData[group_num].data_list, groupData[group_num].data_list_length * sizeof(DataList));
+    if (groupData[group_num].data_list_length < DXL_MAX_NODES)
+      groupData[group_num].data_list_length++;
+    else
+      return False;
 
     groupData[group_num].data_list[data_num].id = id;
-    groupData[group_num].data_list[data_num].data = (uint8_t *)calloc(groupData[group_num].data_length, sizeof(uint8_t));
+    // groupData[group_num].data_list[data_num].data = (uint8_t *)calloc(groupData[group_num].data_length, sizeof(uint8_t)); // Removed
     groupData[group_num].data_list[data_num].data_end = 0;
   }
   else
@@ -162,6 +165,9 @@ uint8_t groupSyncWriteAddParam(int group_num, uint8_t id, uint32_t data, uint16_
     if (groupData[group_num].data_list[data_num].data_end + input_length > groupData[group_num].data_length)
       return False;
   }
+
+  if (groupData[group_num].data_list[data_num].data_end + input_length > DXL_MAX_NODE_BUFFER_SIZE)
+      return False;
 
   switch (input_length)
   {
@@ -184,7 +190,7 @@ uint8_t groupSyncWriteAddParam(int group_num, uint8_t id, uint32_t data, uint16_
     default:
       return False;
   }
-  groupData[group_num].data_list[data_num].data_end = input_length;
+  groupData[group_num].data_list[data_num].data_end += input_length;
 
   groupData[group_num].is_param_changed = True;
   return True;
@@ -202,10 +208,16 @@ void groupSyncWriteRemoveParam(int group_num, uint8_t id)
 
   groupData[group_num].data_list[data_num].data_end = 0;
 
-  free(groupData[group_num].data_list[data_num].data);
-  groupData[group_num].data_list[data_num].data = 0;
-
   groupData[group_num].data_list[data_num].id = NOT_USED_ID;
+
+  // Shift
+  for (; data_num < groupData[group_num].data_list_length - 1; data_num++)
+  {
+    groupData[group_num].data_list[data_num] = groupData[group_num].data_list[data_num + 1];
+  }
+
+  if (groupData[group_num].data_list_length > 0)
+    groupData[group_num].data_list_length--;
 
   groupData[group_num].is_param_changed = True;
 }
@@ -253,22 +265,15 @@ uint8_t groupSyncWriteChangeParam(int group_num, uint8_t id, uint32_t data, uint
 void groupSyncWriteClearParam(int group_num)
 {
   int data_num = 0;
-  int port_num = groupData[group_num].port_num;
 
   if (size(group_num) == 0)
     return;
 
   for (data_num = 0; data_num < groupData[group_num].data_list_length; data_num++)
   {
-    free(groupData[group_num].data_list[data_num].data);
-    groupData[group_num].data_list[data_num].data = 0;
+    groupData[group_num].data_list[data_num].id = NOT_USED_ID;
+    groupData[group_num].data_list[data_num].data_end = 0;
   }
-
-  free(groupData[group_num].data_list);
-  groupData[group_num].data_list = 0;
-
-  free(packetData[port_num].data_write);
-  packetData[port_num].data_write = 0;
 
   groupData[group_num].data_list_length = 0;
 

@@ -30,7 +30,7 @@
 typedef struct
 {
   uint8_t     id;
-  uint8_t     *data;
+  uint8_t     data[DXL_MAX_NODE_BUFFER_SIZE];
 }DataList;
 
 typedef struct
@@ -46,23 +46,15 @@ typedef struct
   uint16_t    start_address;
   uint16_t    data_length;
 
-  DataList   *data_list;
+  DataList    data_list[DXL_MAX_NODES];
 }GroupData;
 
-static GroupData *groupData;
+static GroupData groupData[DXL_MAX_GROUPS];
 static int g_used_group_num = 0;
 
 static int size(int group_num)
 {
-  int data_num;
-  int real_size = 0;
-
-  for (data_num = 0; data_num < groupData[group_num].data_list_length; data_num++)
-  {
-    if (groupData[group_num].data_list[data_num].id != NOT_USED_ID)
-      real_size++;
-  }
-  return real_size;
+  return groupData[group_num].data_list_length;
 };
 
 static int find(int group_num, int id)
@@ -97,8 +89,14 @@ int groupSyncRead(int port_num, int protocol_version, uint16_t start_address, ui
 
   if (group_num == g_used_group_num)
   {
-    g_used_group_num++;
-    groupData = (GroupData *)realloc(groupData, g_used_group_num * sizeof(GroupData));
+    if (g_used_group_num < DXL_MAX_GROUPS)
+    {
+      g_used_group_num++;
+    }
+    else
+    {
+      return -1;
+    }
   }
 
   groupData[group_num].port_num = port_num;
@@ -108,7 +106,7 @@ int groupSyncRead(int port_num, int protocol_version, uint16_t start_address, ui
   groupData[group_num].is_param_changed = True;
   groupData[group_num].start_address = start_address;
   groupData[group_num].data_length = data_length;
-  groupData[group_num].data_list = 0;
+  // groupData[group_num].data_list = 0; // Removed
 
   groupSyncReadClearParam(group_num);
 
@@ -126,7 +124,8 @@ void groupSyncReadMakeParam(int group_num)
   if (size(group_num) == 0)
     return;
 
-  packetData[port_num].data_write = (uint8_t*)realloc(packetData[port_num].data_write, size(group_num) * (1) * sizeof(uint8_t)); // ID(1)
+  // [Optimization] Removed realloc. Use pre-allocated buffer.
+  // packetData[port_num].data_write = (uint8_t*)realloc(packetData[port_num].data_write, size(group_num) * (1) * sizeof(uint8_t)); // ID(1)
 
   idx = 0;
   for (data_num = 0; data_num < groupData[group_num].data_list_length; data_num++)
@@ -134,6 +133,7 @@ void groupSyncReadMakeParam(int group_num)
     if (groupData[group_num].data_list[data_num].id == NOT_USED_ID)
       continue;
 
+    if (idx + 1 > DXL_MAX_BUFFER_LEN) break;
     packetData[port_num].data_write[idx++] = groupData[group_num].data_list[data_num].id;
   }
 }
@@ -148,17 +148,18 @@ uint8_t groupSyncReadAddParam(int group_num, uint8_t id)
   if (id == NOT_USED_ID)
     return False;
 
-  if (groupData[group_num].data_list_length != 0)
-    data_num = find(group_num, id);
+  data_num = find(group_num, id);
 
-  if (groupData[group_num].data_list_length == data_num)
+  if (data_num == groupData[group_num].data_list_length)
   {
-    groupData[group_num].data_list_length++;
-    groupData[group_num].data_list = (DataList *)realloc(groupData[group_num].data_list, groupData[group_num].data_list_length * sizeof(DataList));
-
-    groupData[group_num].data_list[data_num].id = id;
-    groupData[group_num].data_list[data_num].data = (uint8_t *)calloc(groupData[group_num].data_length, sizeof(uint8_t));
+    if (groupData[group_num].data_list_length < DXL_MAX_NODES)
+      groupData[group_num].data_list_length++;
+    else
+      return False;
   }
+
+  groupData[group_num].data_list[data_num].id = id;
+  // groupData[group_num].data_list[data_num].data = (uint8_t *)calloc(groupData[group_num].data_length, sizeof(uint8_t)); // Removed
 
   groupData[group_num].is_param_changed = True;
   return True;
@@ -170,20 +171,28 @@ void groupSyncReadRemoveParam(int group_num, uint8_t id)
   if (groupData[group_num].protocol_version == 1)
     return;
 
+  if (data_num == groupData[group_num].data_list_length)
+    return;
+
   if (groupData[group_num].data_list[data_num].id == NOT_USED_ID)  // NOT exist
     return;
 
-  free(groupData[group_num].data_list[data_num].data);
-  groupData[group_num].data_list[data_num].data = 0;
-
   groupData[group_num].data_list[data_num].id = NOT_USED_ID;
+
+  // Shift
+  for (; data_num < groupData[group_num].data_list_length - 1; data_num++)
+  {
+    groupData[group_num].data_list[data_num] = groupData[group_num].data_list[data_num + 1];
+  }
+
+  if (groupData[group_num].data_list_length > 0)
+    groupData[group_num].data_list_length--;
 
   groupData[group_num].is_param_changed = True;
 }
 void groupSyncReadClearParam(int group_num)
 {
   int data_num = 0;
-  int port_num = groupData[group_num].port_num;
 
   if (groupData[group_num].protocol_version == 1)
     return;
@@ -193,15 +202,8 @@ void groupSyncReadClearParam(int group_num)
 
   for (data_num = 0; data_num < groupData[group_num].data_list_length; data_num++)
   {
-    free(groupData[group_num].data_list[data_num].data);
-    groupData[group_num].data_list[data_num].data = 0;
+    groupData[group_num].data_list[data_num].id = NOT_USED_ID;
   }
-
-  free(groupData[group_num].data_list);
-  groupData[group_num].data_list = 0;
-
-  free(packetData[port_num].data_write);
-  packetData[port_num].data_write = 0;
 
   groupData[group_num].data_list_length = 0;
 
@@ -260,15 +262,18 @@ void groupSyncReadRxPacket(int group_num)
     if (groupData[group_num].data_list[data_num].id == NOT_USED_ID)
       continue;
 
-    packetData[port_num].data_read
-      = (uint8_t *)realloc(packetData[port_num].data_read, groupData[group_num].data_length * sizeof(uint8_t));
+    // [Optimization] Removed realloc. Use pre-allocated buffer.
+    // packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, groupData[group_num].data_length * sizeof(uint8_t));
 
     readRx(groupData[group_num].port_num, groupData[group_num].protocol_version, groupData[group_num].data_length);
     if (packetData[port_num].communication_result != COMM_SUCCESS)
       return;
 
     for (c = 0; c < groupData[group_num].data_length; c++)
-      groupData[group_num].data_list[data_num].data[c] = packetData[port_num].data_read[c];
+    {
+      if (c < DXL_MAX_NODE_BUFFER_SIZE)
+        groupData[group_num].data_list[data_num].data[c] = packetData[port_num].data_read[c];
+    }
   }
 
   if (packetData[port_num].communication_result == COMM_SUCCESS)

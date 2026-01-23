@@ -44,11 +44,11 @@ protected:
     PacketHandler *ph_;
 
     std::vector<uint8_t> id_list_;
-    std::map<uint8_t, uint8_t *> data_list_;     // <id, data>
+    std::map<uint8_t, std::vector<uint8_t>> data_list_;     // <id, data>
 
     bool is_param_changed_;
 
-    uint8_t *param_;
+    std::vector<uint8_t> param_;
 };
 
 }

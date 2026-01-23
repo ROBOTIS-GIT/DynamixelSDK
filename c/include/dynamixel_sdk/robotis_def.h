@@ -32,6 +32,27 @@ typedef unsigned int        uint32_t;
 #define True                1
 #define False               0
 
+// Common definitions for Group Bulk/Sync
+#ifndef DXL_MAX_GROUPS
+#define DXL_MAX_GROUPS              16
+#endif
+
+#ifndef DXL_MAX_NODES
+#define DXL_MAX_NODES               253
+#endif
+
+#ifndef DXL_MAX_NODE_BUFFER_SIZE
+#define DXL_MAX_NODE_BUFFER_SIZE    128
+#endif
+
+#ifndef DXL_MAX_PORTS
+#define DXL_MAX_PORTS               16
+#endif
+
 #define NOT_USED_ID         255
+
+#ifndef DXL_MAX_BUFFER_LEN
+#define DXL_MAX_BUFFER_LEN  4096
+#endif
 
 #endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_ROBOTISDEF_C_H_ */

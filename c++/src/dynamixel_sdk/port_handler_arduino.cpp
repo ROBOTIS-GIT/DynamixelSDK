@@ -194,7 +194,7 @@ int PortHandlerArduino::writePort(uint8_t *packet, int length)
 void PortHandlerArduino::setPacketTimeout(uint16_t packet_length)
 {
   packet_start_time_  = getCurrentTime();
-  packet_timeout_     = (tx_time_per_byte * (double)packet_length) + (LATENCY_TIMER * 2.0) + 2.0;
+  packet_timeout_     = (tx_time_per_byte * static_cast<double>(packet_length)) + (LATENCY_TIMER * 2.0) + 2.0;
 }
 
 void PortHandlerArduino::setPacketTimeout(double msec)
@@ -216,7 +216,7 @@ bool PortHandlerArduino::isPacketTimeout()
 
 double PortHandlerArduino::getCurrentTime()
 {
-  return (double)millis();
+  return static_cast<double>(millis());
 }
 
 double PortHandlerArduino::getTimeSinceStart()
@@ -241,7 +241,7 @@ bool PortHandlerArduino::setupPort(int baudrate)
 
   delay(100);
 
-  tx_time_per_byte = (1000.0 / (double)baudrate) * 10.0;
+  tx_time_per_byte = (1000.0 / static_cast<double>(baudrate)) * 10.0;
   return true;
 }
 

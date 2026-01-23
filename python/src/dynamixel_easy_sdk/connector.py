@@ -19,13 +19,15 @@
 
 # Author: Hyungyu Kim
 
-from typing import List
+from typing import List, Union
 import serial
 
 from dynamixel_easy_sdk.dynamixel_error import DxlError
 from dynamixel_easy_sdk.dynamixel_error import DxlRuntimeError
 from dynamixel_easy_sdk.group_executor import GroupExecutor
 from dynamixel_easy_sdk.motor import Motor
+from dynamixel_easy_sdk.smart_group import SmartGroupReader
+from dynamixel_easy_sdk.smart_group import SmartGroupWriter
 from dynamixel_sdk import PacketHandler
 from dynamixel_sdk import PortHandler
 
@@ -71,6 +73,30 @@ class Connector:
 
     def createGroupExecutor(self):
         return GroupExecutor(self)
+
+    def createReader(self, ids: Union[int, List[int]] = None, item_name: str = None, key: Union[str, List[str]] = None) -> SmartGroupReader:
+        reader = SmartGroupReader(self._port_handler, Connector._packet_handler)
+        if ids and item_name:
+            if isinstance(ids, list):
+                # If key is list, map 1:1, else duplicate
+                is_key_list = isinstance(key, list)
+                for idx, i in enumerate(ids):
+                    current_key = key[idx] if is_key_list and idx < len(key) else (key if key else "")
+                    reader.add(i, item_name, current_key)
+            else:
+                current_key = key if isinstance(key, str) else (key[0] if key else "")
+                reader.add(ids, item_name, current_key)
+        return reader
+
+    def createWriter(self, ids: Union[int, List[int]] = None, item_name: str = None, data: int = 0) -> SmartGroupWriter:
+        writer = SmartGroupWriter(self._port_handler, Connector._packet_handler)
+        if ids and item_name:
+             if isinstance(ids, list):
+                 for i in ids:
+                     writer.add(i, item_name, data)
+             else:
+                 writer.add(ids, item_name, data)
+        return writer
 
     def _checkError(self, dxl_comm_result, dxl_error):
         if dxl_comm_result != DxlError.SDK_COMM_SUCCESS:

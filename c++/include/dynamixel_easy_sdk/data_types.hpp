@@ -18,84 +18,76 @@
 #define DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_DATA_TYPES_HPP_
 
 #include <cstdint>
+#include <string>
 #include <vector>
+#include <optional>
 
-namespace dynamixel
-{
+namespace dynamixel {
+
 class Motor;
 
-struct ControlTableItem
-{
-  uint16_t address;
-  uint8_t size;
+struct ControlTableItem {
+    std::string item_name;
+    uint16_t address;
+    uint8_t size;
 };
 
-enum class OperatingMode
-{
-  CURRENT = 0,
-  VELOCITY = 1,
-  POSITION = 3,
-  EXTENDED_POSITION = 4,
-  CURRENT_BASED_POSITION = 5,
-  PWM = 16
+enum class OperatingMode : uint8_t {
+    CURRENT = 0,
+    VELOCITY = 1,
+    POSITION = 3,
+    EXTENDED_POSITION = 4,
+    CURRENT_BASED_POSITION = 5,
+    PWM = 16
 };
 
-enum class Direction
-{
-  NORMAL = 0,
-  REVERSE = 1
+enum class ProfileConfiguration {
+    TIME_BASED,
+    VELOCITY_BASED
 };
 
-enum class ProfileConfiguration
-{
-  VELOCITY_BASED = 0,
-  TIME_BASED = 1
+enum class Direction {
+    NORMAL,
+    REVERSE
 };
 
-enum class CommandType
-{
-  WRITE,
-  READ
+enum class CommandType {
+    READ,
+    WRITE
 };
 
-enum class StatusRequest
-{
-  NONE = 0,
-  CHECK_TORQUE_ON = 1,
-  CHECK_OPERATING_MODE = 2,
-  UPDATE_TORQUE_STATUS = 3
+enum class StatusRequest {
+    UPDATE_TORQUE_STATUS,
+    CHECK_OPERATING_MODE
 };
 
-struct StagedCommand
-{
-  StagedCommand(
-    CommandType _command_type,
-    uint8_t _id,
-    uint16_t _address,
-    uint16_t _length,
-    const std::vector<uint8_t> & _data,
-    const std::vector<StatusRequest> & _status_request = {StatusRequest::NONE},
-    Motor * _motor_ptr = nullptr,
-    const std::vector<OperatingMode> & _allowable_operating_modes = {})
-  : command_type(_command_type),
-    id(_id),
-    address(_address),
-    length(_length),
-    data(_data),
-    status_request(_status_request),
-    motor_ptr(_motor_ptr),
-    allowable_operating_modes(_allowable_operating_modes) {}
+struct StagedCommand {
+    CommandType command_type;
+    uint8_t id;
+    uint16_t address;
+    uint8_t length;
+    std::vector<uint8_t> data;
+    std::vector<StatusRequest> status_check_functions;
+    Motor* motor_ref;
+    std::optional<std::vector<OperatingMode>> operating_mode_check;
 
-  CommandType command_type;
-  uint8_t id;
-  uint16_t address;
-  uint16_t length;
-  std::vector<uint8_t> data;
-  std::vector<StatusRequest> status_request;
-  Motor * motor_ptr;
-  std::vector<OperatingMode> allowable_operating_modes;
+    StagedCommand(
+        CommandType t,
+        uint8_t i,
+        uint16_t addr,
+        uint8_t len,
+        std::vector<uint8_t> d = {},
+        std::vector<StatusRequest> checks = {},
+        Motor* m = nullptr,
+        std::vector<OperatingMode> modes = {}
+    ) : command_type(t), id(i), address(addr), length(len), data(d), status_check_functions(checks), motor_ref(m)
+    {
+        if (!modes.empty()) {
+            operating_mode_check = modes;
+        }
+    }
 };
 
-}  // namespace dynamixel
+} // namespace dynamixel
 
-#endif  // DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_DATA_TYPES_HPP_
+#endif // DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_DATA_TYPES_HPP_

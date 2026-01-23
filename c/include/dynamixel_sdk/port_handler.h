@@ -48,7 +48,7 @@
 static const int DEFAULT_BAUDRATE = 57600;
 
 extern int     g_used_port_num;
-extern uint8_t *g_is_using;
+extern uint8_t g_is_using[DXL_MAX_PORTS];
 
 WINDECLSPEC int     portHandler             (const char *port_name);
 

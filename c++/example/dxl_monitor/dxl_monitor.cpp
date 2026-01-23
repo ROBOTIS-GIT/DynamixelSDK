@@ -279,9 +279,9 @@ void dump(dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetH
 {
   uint8_t  dxl_error       = 0;
   int      dxl_comm_result = COMM_TX_FAIL;
-  uint8_t *data            = (uint8_t*)calloc(len, sizeof(uint8_t));
+  std::vector<uint8_t> data(len);
 
-  dxl_comm_result = packetHandler->readTxRx(portHandler, id, addr, len, data, &dxl_error);
+  dxl_comm_result = packetHandler->readTxRx(portHandler, id, addr, len, data.data(), &dxl_error);
   if (dxl_comm_result == COMM_SUCCESS)
   {
     if (dxl_error != 0)
@@ -300,8 +300,15 @@ void dump(dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetH
     printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
     fprintf(stderr, "\n Fail to read! \n\n");
   }
+}
 
-  free(data);
+// [Add] Helper function to clear input buffer portably
+void clean_stdin(void)
+{
+  int c;
+  do {
+    c = getchar();
+  } while (c != '\n' && c != EOF);
 }
 
 int main(int argc, char *argv[])
@@ -402,10 +409,11 @@ int main(int argc, char *argv[])
   while(1)
   {
     printf("[CMD] ");
-    fgets(input, sizeof(input), stdin);
-    char *p;
-    if ((p = strchr(input, '\n'))!= NULL) *p = '\0';
-    fflush(stdin);
+    if (fgets(input, sizeof(input), stdin) == NULL) break;
+
+    char *p = strchr(input, '\n');
+    if (p != NULL) *p = '\0';
+    else clean_stdin();
 
     if (strlen(input) == 0) continue;
 

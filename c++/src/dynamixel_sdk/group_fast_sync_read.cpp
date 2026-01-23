@@ -46,10 +46,10 @@ int GroupFastSyncRead::txPacket()
     if ((1.0 == ph_->getProtocolVersion()) || (id_list_.empty()))
         return COMM_NOT_AVAILABLE;
 
-    if ((true == is_param_changed_) || (0 == param_))
+    if ((true == is_param_changed_) || (param_.empty()))
         makeParam();
 
-    return ph_->fastSyncReadTx(port_, start_address_, data_length_, param_, (uint16_t)id_list_.size() * 1);
+    return ph_->fastSyncReadTx(port_, start_address_, data_length_, param_.data(), static_cast<uint16_t>(id_list_.size() * 1));
 }
 
 int GroupFastSyncRead::rxPacket()
@@ -61,9 +61,7 @@ int GroupFastSyncRead::rxPacket()
 
     int count = id_list_.size();
     int result = COMM_RX_FAIL;
-    uint8_t *rxpacket = (uint8_t *)malloc(RXPACKET_MAX_LEN);
-    if (NULL == rxpacket)
-        return result;
+    uint8_t rxpacket[RXPACKET_MAX_LEN];
 
     do {
         result = ph_->rxPacket(port_, rxpacket, true);
@@ -73,7 +71,7 @@ int GroupFastSyncRead::rxPacket()
         int index = PKT_PARAMETER0;
         for (int i = 0; i < count; ++i) {
             uint8_t id = id_list_[i];
-            *error_list_[id] = (uint8_t)rxpacket[index];
+            error_list_[id][0] = static_cast<uint8_t>(rxpacket[index]);
             for (uint16_t s = 0; s < data_length_; s++) {
                 data_list_[id][s] = rxpacket[index + 2 + s];
             }
@@ -82,7 +80,6 @@ int GroupFastSyncRead::rxPacket()
         last_result_ = true;
     }
 
-    free(rxpacket);
     return result;
 }
 

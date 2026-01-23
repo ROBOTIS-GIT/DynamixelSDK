@@ -15,6 +15,12 @@
 // Author: Hyungyu Kim
 
 #include "dynamixel_easy_sdk/connector.hpp"
+#include "dynamixel_easy_sdk/group_executor.hpp"
+
+// Legacy Definitions usually available, but we define if missing
+#ifndef COMM_SUCCESS
+#define COMM_SUCCESS 0
+#endif
 
 static constexpr float PROTOCOL_VERSION = 2.0f;
 
@@ -43,7 +49,7 @@ std::unique_ptr<Motor> Connector::createMotor(uint8_t id)
 {
   Result<uint16_t, DxlError> result = ping(id);
   if (!result.isSuccess()) {
-    throw DxlRuntimeError(getErrorMessage(result.error()));
+    throw DxlRuntimeError(result.err().msg);
   }
   return std::make_unique<Motor>(id, result.value(), this);
 }
@@ -56,7 +62,7 @@ std::vector<std::unique_ptr<Motor>> Connector::createAllMotors(int start_id, int
   std::vector<std::unique_ptr<Motor>> motors;
   Result<std::vector<uint8_t>, DxlError> result = broadcastPing();
   if (!result.isSuccess()) {
-    throw DxlRuntimeError(getErrorMessage(result.error()));
+    throw DxlRuntimeError(result.err().msg);
   }
   for (auto & id : result.value()) {
     if (id >= start_id && id <= end_id) {
@@ -81,10 +87,10 @@ Result<uint8_t, DxlError> Connector::read1ByteData(uint8_t id, uint16_t address)
     &data,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return DxlError(static_cast<ErrorCode>(dxl_comm_result));
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return DxlError(static_cast<ErrorCode>(dxl_error));
   }
   return data;
 }
@@ -99,10 +105,10 @@ Result<uint16_t, DxlError> Connector::read2ByteData(uint8_t id, uint16_t address
     &data,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return DxlError(static_cast<ErrorCode>(dxl_comm_result));
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return DxlError(static_cast<ErrorCode>(dxl_error));
   }
   return data;
 }
@@ -117,10 +123,10 @@ Result<uint32_t, DxlError> Connector::read4ByteData(uint8_t id, uint16_t address
     &data,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return DxlError(static_cast<ErrorCode>(dxl_comm_result));
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return DxlError(static_cast<ErrorCode>(dxl_error));
   }
   return data;
 }
@@ -133,10 +139,10 @@ Result<void, DxlError> Connector::write1ByteData(uint8_t id, uint16_t address, u
     id, address, value,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return DxlError(static_cast<ErrorCode>(dxl_comm_result));
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return DxlError(static_cast<ErrorCode>(dxl_error));
   }
   return {};
 }
@@ -150,10 +156,10 @@ Result<void, DxlError> Connector::write2ByteData(uint8_t id, uint16_t address, u
     value,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return DxlError(static_cast<ErrorCode>(dxl_comm_result));
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return DxlError(static_cast<ErrorCode>(dxl_error));
   }
   return {};
 }
@@ -167,10 +173,10 @@ Result<void, DxlError> Connector::write4ByteData(uint8_t id, uint16_t address, u
     value,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return DxlError(static_cast<ErrorCode>(dxl_comm_result));
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return DxlError(static_cast<ErrorCode>(dxl_error));
   }
   return {};
 }
@@ -180,10 +186,10 @@ Result<void, DxlError> Connector::reboot(uint8_t id)
   uint8_t dxl_error = 0;
   int dxl_comm_result = packet_handler_->reboot(port_handler_.get(), id, &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return DxlError(static_cast<ErrorCode>(dxl_comm_result));
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return DxlError(static_cast<ErrorCode>(dxl_error));
   }
   return {};
 }
@@ -194,10 +200,10 @@ Result<uint16_t, DxlError> Connector::ping(uint8_t id)
   uint16_t data = 0;
   int dxl_comm_result = packet_handler_->ping(port_handler_.get(), id, &data, &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return DxlError(static_cast<ErrorCode>(dxl_comm_result));
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return DxlError(static_cast<ErrorCode>(dxl_error));
   }
   return data;
 }
@@ -207,7 +213,7 @@ Result <std::vector<uint8_t>, DxlError> Connector::broadcastPing()
   std::vector<uint8_t> ids;
   int dxl_comm_result = packet_handler_->broadcastPing(port_handler_.get(), ids);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return DxlError(static_cast<ErrorCode>(dxl_comm_result));
   }
   return ids;
 }
@@ -217,10 +223,10 @@ Result<void, DxlError> Connector::factoryReset(uint8_t id, uint8_t option)
   uint8_t dxl_error = 0;
   int dxl_comm_result = packet_handler_->factoryReset(port_handler_.get(), id, option, &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return DxlError(static_cast<ErrorCode>(dxl_comm_result));
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return DxlError(static_cast<ErrorCode>(dxl_error));
   }
   return {};
 }

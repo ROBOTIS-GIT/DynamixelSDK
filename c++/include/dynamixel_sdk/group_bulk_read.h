@@ -38,7 +38,7 @@ class WINDECLSPEC GroupBulkRead : public GroupHandler
 protected:
     std::map<uint8_t, uint16_t> address_list_;  // <id, start_address>
     std::map<uint8_t, uint16_t> length_list_;   // <id, data_length>
-    std::map<uint8_t, uint8_t *> error_list_;   // <id, error>
+    std::map<uint8_t, std::vector<uint8_t>> error_list_;   // <id, error>
 
     bool last_result_;
 

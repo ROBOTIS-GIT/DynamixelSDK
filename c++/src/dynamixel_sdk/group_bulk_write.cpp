@@ -40,33 +40,29 @@ GroupBulkWrite::GroupBulkWrite(PortHandler *port, PacketHandler *ph)
 
 void GroupBulkWrite::makeParam()
 {
-  if (ph_->getProtocolVersion() == 1.0 || id_list_.size() == 0)
+  if (ph_->getProtocolVersion() == 1.0 || id_list_.empty())
     return;
-
-  if (param_ != 0)
-    delete[] param_;
-  param_ = 0;
 
   param_length_ = 0;
   for (unsigned int i = 0; i < id_list_.size(); i++)
     param_length_ += 1 + 2 + 2 + length_list_[id_list_[i]];
 
-  param_ = new uint8_t[param_length_];
+  param_.clear();
+  param_.reserve(param_length_);
 
-  int idx = 0;
   for (unsigned int i = 0; i < id_list_.size(); i++)
   {
     uint8_t id = id_list_[i];
-    if (data_list_[id] == 0)
+    if (data_list_[id].empty())
       return;
 
-    param_[idx++] = id;
-    param_[idx++] = DXL_LOBYTE(address_list_[id]);
-    param_[idx++] = DXL_HIBYTE(address_list_[id]);
-    param_[idx++] = DXL_LOBYTE(length_list_[id]);
-    param_[idx++] = DXL_HIBYTE(length_list_[id]);
+    param_.push_back(id);
+    param_.push_back(DXL_LOBYTE(address_list_[id]));
+    param_.push_back(DXL_HIBYTE(address_list_[id]));
+    param_.push_back(DXL_LOBYTE(length_list_[id]));
+    param_.push_back(DXL_HIBYTE(length_list_[id]));
     for (int c = 0; c < length_list_[id]; c++)
-      param_[idx++] = (data_list_[id])[c];
+      param_.push_back((data_list_[id])[c]);
   }
 }
 
@@ -81,9 +77,7 @@ bool GroupBulkWrite::addParam(uint8_t id, uint16_t start_address, uint16_t data_
   id_list_.push_back(id);
   address_list_[id]   = start_address;
   length_list_[id]    = data_length;
-  data_list_[id]      = new uint8_t[data_length];
-  for (int c = 0; c < data_length; c++)
-    data_list_[id][c] = data[c];
+  data_list_[id].assign(data, data + data_length);
 
   is_param_changed_   = true;
   return true;
@@ -100,7 +94,6 @@ void GroupBulkWrite::removeParam(uint8_t id)
   id_list_.erase(it);
   address_list_.erase(id);
   length_list_.erase(id);
-  delete[] data_list_[id];
   data_list_.erase(id);
 
   is_param_changed_   = true;
@@ -116,37 +109,29 @@ bool GroupBulkWrite::changeParam(uint8_t id, uint16_t start_address, uint16_t da
 
   address_list_[id]   = start_address;
   length_list_[id]    = data_length;
-  delete[] data_list_[id];
-  data_list_[id]      = new uint8_t[data_length];
-  for (int c = 0; c < data_length; c++)
-    data_list_[id][c] = data[c];
+  data_list_[id].assign(data, data + data_length);
 
   is_param_changed_   = true;
   return true;
 }
 void GroupBulkWrite::clearParam()
 {
-  if (ph_->getProtocolVersion() == 1.0 || id_list_.size() == 0)
+  if (ph_->getProtocolVersion() == 1.0 || id_list_.empty())
     return;
-
-  for (unsigned int i = 0; i < id_list_.size(); i++)
-    delete[] data_list_[id_list_[i]];
 
   id_list_.clear();
   address_list_.clear();
   length_list_.clear();
   data_list_.clear();
-  if (param_ != 0)
-    delete[] param_;
-  param_ = 0;
+  param_.clear();
 }
 int GroupBulkWrite::txPacket()
 {
-  if (ph_->getProtocolVersion() == 1.0 || id_list_.size() == 0)
+  if (ph_->getProtocolVersion() == 1.0 || id_list_.empty())
     return COMM_NOT_AVAILABLE;
 
-  if (is_param_changed_ == true || param_ == 0)
+  if (is_param_changed_ == true || param_.empty())
     makeParam();
 
-  return ph_->bulkWriteTxOnly(port_, param_, param_length_);
+  return ph_->bulkWriteTxOnly(port_, param_.data(), param_length_);
 }
