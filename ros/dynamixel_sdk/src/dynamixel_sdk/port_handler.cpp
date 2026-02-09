@@ -17,8 +17,10 @@
 /* Author: zerom, Ryu Woon Jung (Leon) */
 
 #if defined(__linux__)
+#include <string.h>
 #include "port_handler.h"
 #include "port_handler_linux.h"
+#include "port_handler_dxl.h"
 #elif defined(__APPLE__)
 #include "port_handler.h"
 #include "port_handler_mac.h"
@@ -36,6 +38,9 @@ using namespace dynamixel;
 PortHandler *PortHandler::getPortHandler(const char *port_name)
 {
 #if defined(__linux__)
+  /* Use low-latency dxl-uart driver for /dev/dxl* devices */
+  if (strncmp(port_name, "/dev/dxl", 8) == 0)
+    return (PortHandler *)(new PortHandlerDXL(port_name));
   return (PortHandler *)(new PortHandlerLinux(port_name));
 #elif defined(__APPLE__)
   return (PortHandler *)(new PortHandlerMac(port_name));

@@ -31,6 +31,9 @@
 #include "group_fast_bulk_read.h"
 #include "packet_handler.h"
 #include "port_handler.h"
+#if defined(__linux__)
+#include "port_handler_dxl.h"
+#endif
 
 
 #endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_SDK_DYNAMIXELSDK_H_ */
