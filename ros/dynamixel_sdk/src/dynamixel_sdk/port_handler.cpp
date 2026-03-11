@@ -16,9 +16,12 @@
 
 /* Author: zerom, Ryu Woon Jung (Leon) */
 
+#include <cstring>
+
 #if defined(__linux__)
 #include "port_handler.h"
 #include "port_handler_linux.h"
+#include "port_handler_rp1ctrluart_linux.h"
 #elif defined(__APPLE__)
 #include "port_handler.h"
 #include "port_handler_mac.h"
@@ -36,6 +39,8 @@ using namespace dynamixel;
 PortHandler *PortHandler::getPortHandler(const char *port_name)
 {
 #if defined(__linux__)
+  if (strncmp(port_name, "/dev/rp1ctrluart", 16) == 0)
+    return (PortHandler *)(new PortHandlerRp1CtrlUartLinux(port_name));
   return (PortHandler *)(new PortHandlerLinux(port_name));
 #elif defined(__APPLE__)
   return (PortHandler *)(new PortHandlerMac(port_name));

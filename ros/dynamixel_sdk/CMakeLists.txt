@@ -63,6 +63,7 @@ else()
     ${DYNAMIXEL_SDK_SOURCES}
     ${DYNAMIXEL_EASY_SDK_SOURCES}
     src/dynamixel_sdk/port_handler_linux.cpp
+    src/dynamixel_sdk/port_handler_rp1ctrluart_linux.cpp
   )
 endif()
 
