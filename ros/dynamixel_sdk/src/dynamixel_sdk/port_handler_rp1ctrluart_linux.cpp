@@ -79,8 +79,6 @@ bool PortHandlerRp1CtrlUartLinux::openFileDescriptor()
            port_name_, strerror(errno));
     return false;
   }
-
-  is_using_ = true;
   return true;
 }
 
