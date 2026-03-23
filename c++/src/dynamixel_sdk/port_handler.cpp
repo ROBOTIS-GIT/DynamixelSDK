@@ -17,11 +17,15 @@
 /* Author: zerom, Ryu Woon Jung (Leon) */
 
 #if defined(__linux__)
+#include <string.h>
 #include "port_handler.h"
 #include "port_handler_linux.h"
+#include "port_handler_udp.h"
 #elif defined(__APPLE__)
+#include <string.h>
 #include "port_handler.h"
 #include "port_handler_mac.h"
+#include "port_handler_udp.h"
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDLLEXPORT
 #include "port_handler.h"
@@ -36,8 +40,12 @@ using namespace dynamixel;
 PortHandler *PortHandler::getPortHandler(const char *port_name)
 {
 #if defined(__linux__)
+  if (strncmp(port_name, "udp:", 4) == 0)
+    return (PortHandler *)(new PortHandlerUDP(port_name));
   return (PortHandler *)(new PortHandlerLinux(port_name));
 #elif defined(__APPLE__)
+  if (strncmp(port_name, "udp:", 4) == 0)
+    return (PortHandler *)(new PortHandlerUDP(port_name));
   return (PortHandler *)(new PortHandlerMac(port_name));
 #elif defined(_WIN32) || defined(_WIN64)
   return (PortHandler *)(new PortHandlerWindows(port_name));
