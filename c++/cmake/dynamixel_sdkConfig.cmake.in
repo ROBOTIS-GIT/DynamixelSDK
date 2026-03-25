@@ -1,0 +1,4 @@
+@PACKAGE_INIT@
+
+# Imported target: dynamixel_sdk::dynamixel_sdk
+include("${CMAKE_CURRENT_LIST_DIR}/dynamixel_sdkTargets.cmake")
