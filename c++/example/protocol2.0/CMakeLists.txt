@@ -38,7 +38,7 @@ foreach(_dxl_example IN LISTS _dxl_protocol2_examples)
     message(FATAL_ERROR "Missing example source: ${_dxl_src}")
   endif()
 
-  set(_dxl_target "p2_${_dxl_example}")
+  set(_dxl_target "${_dxl_example}")
   add_executable(${_dxl_target} "${_dxl_src}")
   target_include_directories(${_dxl_target} PRIVATE
     ${_dxl_extra_includes}
