@@ -32,8 +32,8 @@ foreach(_dxl_file IN LISTS _dxl_installed_files)
   endif()
 
   # Example:
-  #   ${prefix}/include/dynamixel_sdk_c/dynamixel_sdk/dynamixel_sdk.h
-  if(_dxl_file_stripped MATCHES "^(.*)/@CMAKE_INSTALL_INCLUDEDIR@/dynamixel_sdk_c/dynamixel_sdk/.*$")
+  #   ${prefix}/include/dynamixel_sdk_c/dynamixel_sdk.h
+  if(_dxl_file_stripped MATCHES "^(.*)/@CMAKE_INSTALL_INCLUDEDIR@/dynamixel_sdk_c/.*$")
     set(_dxl_prefix "${CMAKE_MATCH_1}")
     break()
   endif()
