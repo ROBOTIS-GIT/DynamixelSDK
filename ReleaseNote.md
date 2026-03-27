@@ -1,5 +1,10 @@
 # Dynamixel SDK Release Notes
 
+4.0.4 (2026-03-27)
+------------------
+* Added CMakeLists.txt for unified build system in c, c++
+* Contributors: Hyungyu Kim
+
 4.0.3 (2025-12-17)
 ------------------
 * Dynamixel Easy SDK supports Linux SBC environments, Linux 32-bit platforms, and ROS 2 based build and deployment workflows
