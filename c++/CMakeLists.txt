@@ -79,18 +79,6 @@ set_target_properties(dynamixel_sdk PROPERTIES
   OUTPUT_NAME "dxl_cpp"
 )
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND UNIX AND NOT APPLE)
-  if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64|ARM|AARCH64")
-    # Skip -m32/-m64 for typical ARM toolchains.
-  elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    target_compile_options(dynamixel_sdk PRIVATE -m32)
-    target_link_options(dynamixel_sdk PRIVATE -m32)
-  else()
-    target_compile_options(dynamixel_sdk PRIVATE -m64)
-    target_link_options(dynamixel_sdk PRIVATE -m64)
-  endif()
-endif()
-
 if(UNIX AND NOT APPLE)
   target_link_libraries(dynamixel_sdk PRIVATE rt)
 endif()
