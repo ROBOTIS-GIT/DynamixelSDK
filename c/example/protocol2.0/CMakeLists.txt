@@ -5,8 +5,6 @@ project(dynamixel_sdk_c_examples_protocol2 LANGUAGES C)
 
 find_package(dynamixel_sdk_c CONFIG REQUIRED)
 
-set(_dxl_sdk_target dynamixel_sdk_c::dynamixel_sdk_c)
-set(_dxl_extra_includes "")
 set(_dxl_protocol2_examples
   broadcast_ping
   ping
@@ -27,8 +25,5 @@ foreach(_dxl_example IN LISTS _dxl_protocol2_examples)
   endif()
 
   add_executable(${_dxl_example} "${_dxl_src}")
-  if(NOT _dxl_extra_includes STREQUAL "")
-    target_include_directories(${_dxl_example} PRIVATE ${_dxl_extra_includes})
-  endif()
-  target_link_libraries(${_dxl_example} PRIVATE ${_dxl_sdk_target})
+  target_link_libraries(${_dxl_example} PRIVATE dynamixel_sdk_c::dynamixel_sdk_c)
 endforeach()

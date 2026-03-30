@@ -64,6 +64,7 @@ add_library(dynamixel_sdk SHARED ${_dxl_sources})
 target_include_directories(dynamixel_sdk PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
+  $<INSTALL_INTERFACE:include/dynamixel_sdk>
 )
 target_include_directories(dynamixel_sdk PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include/dynamixel_sdk

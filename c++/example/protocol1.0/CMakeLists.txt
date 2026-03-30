@@ -7,16 +7,6 @@ endif()
 
 find_package(dynamixel_sdk CONFIG REQUIRED)
 
-set(_dxl_sdk_target dynamixel_sdk::dynamixel_sdk)
-
-# Examples use `#include "dynamixel_sdk.h"`, so we add include dir that contains it:
-# typically `${prefix}/include/dynamixel_sdk`.
-set(_dxl_extra_includes "")
-get_target_property(_dxl_iface_includes ${_dxl_sdk_target} INTERFACE_INCLUDE_DIRECTORIES)
-foreach(_dxl_inc IN LISTS _dxl_iface_includes)
-  list(APPEND _dxl_extra_includes "${_dxl_inc}/dynamixel_sdk")
-endforeach()
-
 set(_dxl_protocol1_examples
   sync_write
   reset
@@ -34,9 +24,6 @@ foreach(_dxl_example IN LISTS _dxl_protocol1_examples)
 
   set(_dxl_target "${_dxl_example}")
   add_executable(${_dxl_target} "${_dxl_src}")
-  target_include_directories(${_dxl_target} PRIVATE
-    ${_dxl_extra_includes}
-  )
-  target_link_libraries(${_dxl_target} PRIVATE ${_dxl_sdk_target})
+  target_link_libraries(${_dxl_target} PRIVATE dynamixel_sdk::dynamixel_sdk)
 endforeach()
 

@@ -5,8 +5,6 @@ project(dynamixel_sdk_c_examples_protocol1 LANGUAGES C)
 
 find_package(dynamixel_sdk_c CONFIG REQUIRED)
 
-set(_dxl_sdk_target dynamixel_sdk_c::dynamixel_sdk_c)
-
 set(_dxl_protocol1_examples
   sync_write
   read_write
@@ -23,6 +21,6 @@ foreach(_dxl_example IN LISTS _dxl_protocol1_examples)
   endif()
 
   add_executable(${_dxl_example} "${_dxl_src}")
-  target_link_libraries(${_dxl_example} PRIVATE ${_dxl_sdk_target})
+  target_link_libraries(${_dxl_example} PRIVATE dynamixel_sdk_c::dynamixel_sdk_c)
 endforeach()
 
