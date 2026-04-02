@@ -48,6 +48,9 @@ uint8_t isPacketTimeout     (int port_num) { return isPacketTimeoutLinux(port_nu
 #include "port_handler.h"
 #include "port_handler_mac.h"
 
+int     g_used_port_num = 0;
+uint8_t *g_is_using = NULL;
+
 int     portHandler         (const char *port_name) { return portHandlerMac(port_name); }
 
 uint8_t openPort            (int port_num) { return openPortMac(port_num); }
@@ -73,6 +76,9 @@ uint8_t isPacketTimeout     (int port_num) { return isPacketTimeoutMac(port_num)
 #define WINDLLEXPORT
 #include "port_handler.h"
 #include "port_handler_windows.h"
+
+int     g_used_port_num = 0;
+uint8_t *g_is_using = NULL;
 
 int     portHandler         (const char *port_name) { return portHandlerWindows(port_name); }
 
