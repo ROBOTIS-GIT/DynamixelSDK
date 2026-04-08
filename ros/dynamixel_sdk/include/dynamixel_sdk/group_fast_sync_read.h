@@ -37,6 +37,9 @@ public:
     int txPacket();
     int rxPacket();
     int txRxPacket();
+
+private:
+    std::vector<uint8_t> rxpacket_;
 };
 
 }
