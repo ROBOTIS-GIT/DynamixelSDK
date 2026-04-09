@@ -10,7 +10,7 @@ DIR_OBJS    = ./.objects
 
 INSTALL_ROOT = /usr/local
 
-MAJ_VERSION = 2
+MAJ_VERSION = 3
 MIN_VERSION = 0
 REV_VERSION = 0
 
