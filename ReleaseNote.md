@@ -4,6 +4,8 @@
 ------------------
 * Updated the standalone C++ SDK and ROS 2 C++ wrappers to use safer dynamic storage for group and packet buffers
 * Bumped the C++ shared library ABI to SOVERSION 3 due to public C++ class layout changes
+* Added VERSION 5.0.0 and SOVERSION 3 to the ROS 2 shared library target for consistent ABI versioning
+* Changed the C++ uninstall step to remove SDK-owned install paths by name instead of relying on the install manifest
 * Unified package versioning to 5.0.0 across C, C++, Python, and ROS 2 packaging metadata
 * Contributors: Hyungyu Kim
 
