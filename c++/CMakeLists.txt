@@ -159,7 +159,7 @@ if(DYNAMIXEL_SDK_RUN_LDCONFIG AND UNIX AND NOT APPLE)
 endif()
 
 # --------------------------------------------------------
-# 4. Uninstall / Reinstall Targets (name-based; no install_manifest.txt required)
+# 4. Uninstall / Reinstall Targets
 # --------------------------------------------------------
 if(UNIX AND NOT APPLE)
   set(DXL_UNINSTALL_EASY_SDK 1)
