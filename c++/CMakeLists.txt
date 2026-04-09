@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Standalone C++ SDK: configure/build from the c++/ directory (paths below are relative to c++/).
-project(dynamixel_sdk VERSION 4.0.4 LANGUAGES CXX)
+project(dynamixel_sdk VERSION 5.0.0 LANGUAGES CXX)
 
 set(_dxl_pkg "dynamixel_sdk")
 
@@ -73,7 +73,7 @@ target_include_directories(dynamixel_sdk PRIVATE
 
 set_target_properties(dynamixel_sdk PROPERTIES
   VERSION ${PROJECT_VERSION}
-  SOVERSION 2
+  SOVERSION 3
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
   OUTPUT_NAME "dxl_cpp"
@@ -159,12 +159,23 @@ if(DYNAMIXEL_SDK_RUN_LDCONFIG AND UNIX AND NOT APPLE)
 endif()
 
 # --------------------------------------------------------
-# 4. Uninstall / Reinstall Targets
+# 4. Uninstall / Reinstall Targets (name-based; no install_manifest.txt required)
 # --------------------------------------------------------
+if(UNIX AND NOT APPLE)
+  set(DXL_UNINSTALL_EASY_SDK 1)
+else()
+  set(DXL_UNINSTALL_EASY_SDK 0)
+endif()
+if(WIN32)
+  set(DXL_UNINSTALL_WIN32 1)
+else()
+  set(DXL_UNINSTALL_WIN32 0)
+endif()
+
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-  IMMEDIATE @ONLY
+  @ONLY
 )
 
 if(NOT TARGET uninstall)
