@@ -20,9 +20,14 @@
 #include <variant>
 #include <stdexcept>
 #include <string>
+#include <cstdint>
 
 namespace dynamixel
 {
+// Integer layout must stay aligned with DynamixelSDK:
+//   - SDK_COMM_*  == packet_handler.h COMM_* (tx/rx layer, <= 0 and distinct negatives).
+//   - SDK_ERRNUM_* == protocol 2 status packet error field (device error bits 1..7).
+//   - EASY_SDK_*   == Easy-only; must not reuse any COMM_* or SDK_ERRNUM_* value.
 enum class DxlError
 {
   SDK_COMM_SUCCESS = 0,                      // tx or rx packet communication success
@@ -140,6 +145,8 @@ public:
 };
 
 std::string getErrorMessage(DxlError error_code);
+DxlError commResultToDxlError(int comm_result);
+DxlError packetErrorToDxlError(uint8_t packet_error);
 }  // namespace dynamixel
 
 #endif /* DYNAMIXEL_SDK_INCLUDE_DYNAMIXEL_EASY_SDK_DYNAMIXEL_ERROR_HPP_ */

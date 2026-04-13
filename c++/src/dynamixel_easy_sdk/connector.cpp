@@ -81,10 +81,10 @@ Result<uint8_t, DxlError> Connector::read1ByteData(uint8_t id, uint16_t address)
     &data,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return packetErrorToDxlError(dxl_error);
   }
   return data;
 }
@@ -99,10 +99,10 @@ Result<uint16_t, DxlError> Connector::read2ByteData(uint8_t id, uint16_t address
     &data,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return packetErrorToDxlError(dxl_error);
   }
   return data;
 }
@@ -117,10 +117,10 @@ Result<uint32_t, DxlError> Connector::read4ByteData(uint8_t id, uint16_t address
     &data,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return packetErrorToDxlError(dxl_error);
   }
   return data;
 }
@@ -133,10 +133,10 @@ Result<void, DxlError> Connector::write1ByteData(uint8_t id, uint16_t address, u
     id, address, value,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return packetErrorToDxlError(dxl_error);
   }
   return {};
 }
@@ -150,10 +150,10 @@ Result<void, DxlError> Connector::write2ByteData(uint8_t id, uint16_t address, u
     value,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return packetErrorToDxlError(dxl_error);
   }
   return {};
 }
@@ -167,10 +167,10 @@ Result<void, DxlError> Connector::write4ByteData(uint8_t id, uint16_t address, u
     value,
     &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return packetErrorToDxlError(dxl_error);
   }
   return {};
 }
@@ -180,10 +180,10 @@ Result<void, DxlError> Connector::reboot(uint8_t id)
   uint8_t dxl_error = 0;
   int dxl_comm_result = packet_handler_->reboot(port_handler_.get(), id, &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return packetErrorToDxlError(dxl_error);
   }
   return {};
 }
@@ -194,10 +194,10 @@ Result<uint16_t, DxlError> Connector::ping(uint8_t id)
   uint16_t data = 0;
   int dxl_comm_result = packet_handler_->ping(port_handler_.get(), id, &data, &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return packetErrorToDxlError(dxl_error);
   }
   return data;
 }
@@ -207,7 +207,7 @@ Result <std::vector<uint8_t>, DxlError> Connector::broadcastPing()
   std::vector<uint8_t> ids;
   int dxl_comm_result = packet_handler_->broadcastPing(port_handler_.get(), ids);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   return ids;
 }
@@ -217,10 +217,10 @@ Result<void, DxlError> Connector::factoryReset(uint8_t id, uint8_t option)
   uint8_t dxl_error = 0;
   int dxl_comm_result = packet_handler_->factoryReset(port_handler_.get(), id, option, &dxl_error);
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   if (dxl_error != 0) {
-    return static_cast<DxlError>(dxl_error);
+    return packetErrorToDxlError(dxl_error);
   }
   return {};
 }

@@ -108,7 +108,7 @@ Result<void, DxlError> GroupExecutor::executeSyncWrite(uint16_t address, uint16_
   }
   int dxl_comm_result = group_sync_write.txPacket();
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   return {};
 }
@@ -134,7 +134,7 @@ Result<void, DxlError> GroupExecutor::executeBulkWrite()
 
   int dxl_comm_result = group_bulk_write_.txPacket();
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   return {};
 }
@@ -152,7 +152,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeS
 
   int dxl_comm_result = group_sync_read.txRxPacket();
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
   std::vector<Result<int32_t, DxlError>> result_list;
   for (auto & command : staged_read_command_list_) {
@@ -193,7 +193,7 @@ Result<std::vector<Result<int32_t, DxlError>>, DxlError> GroupExecutor::executeB
 
   int dxl_comm_result = group_bulk_read_.txRxPacket();
   if (dxl_comm_result != COMM_SUCCESS) {
-    return static_cast<DxlError>(dxl_comm_result);
+    return commResultToDxlError(dxl_comm_result);
   }
 
   std::vector<Result<int32_t, DxlError>> result_list;
