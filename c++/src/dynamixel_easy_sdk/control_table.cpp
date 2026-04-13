@@ -61,6 +61,16 @@ std::string missingControlTableMessage(const std::string & file_name)
 
   return message;
 }
+
+std::runtime_error malformedControlTableError(
+  const std::string & file_name,
+  size_t line_number,
+  const std::string & line)
+{
+  return std::runtime_error(
+    "Malformed control table entry in " + file_name +
+    " at line " + std::to_string(line_number) + ": " + line);
+}
 }  // namespace
 
 const std::map<uint16_t, std::string> ControlTable::ParsingModelList()
@@ -130,17 +140,22 @@ const std::map<std::string, ControlTableItem> & ControlTable::getControlTable(ui
   }
 
   std::string line;
+  size_t line_number = 0;
   bool in_section = false;
+  bool found_control_table_section = false;
 
   while (std::getline(infile, line)) {
+    ++line_number;
     if (line.empty()) {
       continue;
     }
     if (line == "[control table]") {
       in_section = true;
+      found_control_table_section = true;
       if (!std::getline(infile, line)) {
         break;
       }
+      ++line_number;
       continue;
     }
 
@@ -148,21 +163,33 @@ const std::map<std::string, ControlTableItem> & ControlTable::getControlTable(ui
       std::stringstream ss(line);
       std::string address_str, size_str, name;
 
-      if (std::getline(ss, address_str, '\t') &&
+      if (!(std::getline(ss, address_str, '\t') &&
         std::getline(ss, size_str, '\t') &&
-        std::getline(ss, name))
+        std::getline(ss, name)))
       {
-        try {
-          ControlTableItem item;
-          item.address = std::stoi(address_str);
-          item.size = std::stoi(size_str);
-          control_table[name] = item;
-        } catch (const std::exception & e) {
-          throw std::runtime_error("Error parsing control table item: " + line + " - " + e.what());
-        }
+        throw malformedControlTableError(full_path, line_number, line);
+      }
+
+      try {
+        ControlTableItem item;
+        item.address = std::stoi(address_str);
+        item.size = std::stoi(size_str);
+        control_table[name] = item;
+      } catch (const std::exception & e) {
+        throw std::runtime_error(
+                "Error parsing control table item in " + full_path +
+                " at line " + std::to_string(line_number) + ": " + line + " - " + e.what());
       }
     }
   }
+
+  if (!found_control_table_section) {
+    throw std::runtime_error("Missing [control table] section in " + full_path);
+  }
+  if (control_table.empty()) {
+    throw std::runtime_error("Control table is empty in " + full_path);
+  }
+
   auto result = control_tables_cache_.emplace(model_number, std::move(control_table));
   return result.first->second;
 }
