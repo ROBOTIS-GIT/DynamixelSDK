@@ -33,11 +33,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-namespace {
-  thread_local std::vector<uint8_t> g_txpacket_buffer;
-  thread_local std::vector<uint8_t> g_rxpacket_buffer;
-}
-
 #define TXPACKET_MAX_LEN    (250)
 #define RXPACKET_MAX_LEN    (250)
 
@@ -422,11 +417,7 @@ int Protocol1PacketHandler::readTx(PortHandler *port, uint8_t id, uint16_t addre
 int Protocol1PacketHandler::readRx(PortHandler *port, uint8_t id, uint16_t length, uint8_t *data, uint8_t *error)
 {
   int result                  = COMM_TX_FAIL;
-
-  if (g_rxpacket_buffer.capacity() < RXPACKET_MAX_LEN)
-    g_rxpacket_buffer.reserve(RXPACKET_MAX_LEN);
-  g_rxpacket_buffer.resize(RXPACKET_MAX_LEN);
-  std::vector<uint8_t>& rxpacket = g_rxpacket_buffer;
+  std::vector<uint8_t> rxpacket(RXPACKET_MAX_LEN);
 
   do {
     result = rxPacket(port, rxpacket.data());
@@ -453,11 +444,7 @@ int Protocol1PacketHandler::readTxRx(PortHandler *port, uint8_t id, uint16_t add
   int result = COMM_TX_FAIL;
 
   uint8_t txpacket[8]         = {0};
-
-  if (g_rxpacket_buffer.capacity() < RXPACKET_MAX_LEN)
-    g_rxpacket_buffer.reserve(RXPACKET_MAX_LEN);
-  g_rxpacket_buffer.resize(RXPACKET_MAX_LEN);
-  std::vector<uint8_t>& rxpacket = g_rxpacket_buffer;
+  std::vector<uint8_t> rxpacket(RXPACKET_MAX_LEN);
 
   if (id >= BROADCAST_ID)
   {
@@ -553,11 +540,7 @@ int Protocol1PacketHandler::read4ByteTxRx(PortHandler *port, uint8_t id, uint16_
 int Protocol1PacketHandler::writeTxOnly(PortHandler *port, uint8_t id, uint16_t address, uint16_t length, uint8_t *data)
 {
   int result                 = COMM_TX_FAIL;
-
-  if (g_txpacket_buffer.capacity() < static_cast<size_t>(length + 7))
-    g_txpacket_buffer.reserve(length + 7);
-  g_txpacket_buffer.resize(length + 7);
-  std::vector<uint8_t>& txpacket = g_txpacket_buffer;
+  std::vector<uint8_t> txpacket(length + 7);
 
   txpacket[PKT_ID]            = id;
   txpacket[PKT_LENGTH]        = length+3;
@@ -577,11 +560,7 @@ int Protocol1PacketHandler::writeTxOnly(PortHandler *port, uint8_t id, uint16_t 
 int Protocol1PacketHandler::writeTxRx(PortHandler *port, uint8_t id, uint16_t address, uint16_t length, uint8_t *data, uint8_t *error)
 {
   int result                 = COMM_TX_FAIL;
-
-  if (g_txpacket_buffer.capacity() < static_cast<size_t>(length + 7))
-    g_txpacket_buffer.reserve(length + 7);
-  g_txpacket_buffer.resize(length + 7);
-  std::vector<uint8_t>& txpacket = g_txpacket_buffer;
+  std::vector<uint8_t> txpacket(length + 7);
   uint8_t rxpacket[6]         = {0};
 
   txpacket[PKT_ID]            = id;
@@ -634,11 +613,7 @@ int Protocol1PacketHandler::write4ByteTxRx(PortHandler *port, uint8_t id, uint16
 int Protocol1PacketHandler::regWriteTxOnly(PortHandler *port, uint8_t id, uint16_t address, uint16_t length, uint8_t *data)
 {
   int result                 = COMM_TX_FAIL;
-
-  if (g_txpacket_buffer.capacity() < static_cast<size_t>(length + 6))
-    g_txpacket_buffer.reserve(length + 6);
-  g_txpacket_buffer.resize(length + 6);
-  std::vector<uint8_t>& txpacket = g_txpacket_buffer;
+  std::vector<uint8_t> txpacket(length + 6);
 
   txpacket[PKT_ID]            = id;
   txpacket[PKT_LENGTH]        = length+3;
@@ -658,11 +633,7 @@ int Protocol1PacketHandler::regWriteTxOnly(PortHandler *port, uint8_t id, uint16
 int Protocol1PacketHandler::regWriteTxRx(PortHandler *port, uint8_t id, uint16_t address, uint16_t length, uint8_t *data, uint8_t *error)
 {
   int result                 = COMM_TX_FAIL;
-
-  if (g_txpacket_buffer.capacity() < static_cast<size_t>(length + 6))
-    g_txpacket_buffer.reserve(length + 6);
-  g_txpacket_buffer.resize(length + 6);
-  std::vector<uint8_t>& txpacket = g_txpacket_buffer;
+  std::vector<uint8_t> txpacket(length + 6);
   uint8_t rxpacket[6]         = {0};
 
   txpacket[PKT_ID]            = id;
@@ -689,10 +660,7 @@ int Protocol1PacketHandler::syncWriteTxOnly(PortHandler *port, uint16_t start_ad
   int result                 = COMM_TX_FAIL;
 
   // 8: HEADER0 HEADER1 ID LEN INST START_ADDR DATA_LEN ... CHKSUM
-  if (g_txpacket_buffer.capacity() < static_cast<size_t>(param_length + 8))
-    g_txpacket_buffer.reserve(param_length + 8);
-  g_txpacket_buffer.resize(param_length + 8);
-  std::vector<uint8_t>& txpacket = g_txpacket_buffer;
+  std::vector<uint8_t> txpacket(param_length + 8);
 
   txpacket[PKT_ID]            = BROADCAST_ID;
   txpacket[PKT_LENGTH]        = param_length + 4; // 4: INST START_ADDR DATA_LEN ... CHKSUM
@@ -714,10 +682,7 @@ int Protocol1PacketHandler::bulkReadTx(PortHandler *port, uint8_t *param, uint16
   int result                 = COMM_TX_FAIL;
 
   // 7: HEADER0 HEADER1 ID LEN INST 0x00 ... CHKSUM
-  if (g_txpacket_buffer.capacity() < static_cast<size_t>(param_length + 7))
-    g_txpacket_buffer.reserve(param_length + 7);
-  g_txpacket_buffer.resize(param_length + 7);
-  std::vector<uint8_t>& txpacket = g_txpacket_buffer;
+  std::vector<uint8_t> txpacket(param_length + 7);
 
   txpacket[PKT_ID]            = BROADCAST_ID;
   txpacket[PKT_LENGTH]        = param_length + 3; // 3: INST 0x00 ... CHKSUM
