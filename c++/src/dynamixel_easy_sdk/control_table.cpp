@@ -14,19 +14,63 @@
 //
 // Author: Hyungyu Kim
 
+#include <cstdlib>
 #include <stdexcept>
 
 #include "dynamixel_easy_sdk/control_table.hpp"
 
 namespace dynamixel
 {
+namespace
+{
+std::string configuredControlTableRootDir()
+{
+  if (const char * env = std::getenv("CONTROL_TABLE_PATH")) {
+    if (env[0] != '\0') {
+      return std::string(env);
+    }
+  }
+  return "";
+}
+
+bool hasDynamixelModel(const std::string & dir)
+{
+  std::ifstream in(dir + "/dynamixel.model");
+  return in.is_open();
+}
+
+std::string controlTableRootDir()
+{
+  const std::string candidate = configuredControlTableRootDir();
+  if (!candidate.empty() && hasDynamixelModel(candidate)) {
+    return candidate;
+  }
+  return std::string(CONTROL_TABLE_PATH);
+}
+
+std::string missingControlTableMessage(const std::string & file_name)
+{
+  std::string message =
+    "Error: Could not open file " + file_name +
+    ". Install DynamixelSDK (control_table data) or set CONTROL_TABLE_PATH to that directory.";
+
+  const std::string configured_dir = configuredControlTableRootDir();
+  if (!configured_dir.empty() && !hasDynamixelModel(configured_dir)) {
+    message += " CONTROL_TABLE_PATH is set but invalid: " + configured_dir;
+  }
+
+  return message;
+}
+}  // namespace
+
 const std::map<uint16_t, std::string> ControlTable::ParsingModelList()
 {
   std::map<uint16_t, std::string> tmp_model_list;
-  std::string file_name = std::string(CONTROL_TABLE_PATH) + "/dynamixel.model";
+  const std::string root_dir = controlTableRootDir();
+  std::string file_name = root_dir + "/dynamixel.model";
   std::ifstream infile(file_name);
   if (!infile.is_open()) {
-    throw std::runtime_error("Error: Could not open file " + file_name);
+    throw std::runtime_error(missingControlTableMessage(file_name));
   }
 
   std::string line;
@@ -75,13 +119,14 @@ const std::map<std::string, ControlTableItem> & ControlTable::getControlTable(ui
   }
 
   const std::string & model_filename = getModelName(model_number);
-  std::string full_path = std::string(CONTROL_TABLE_PATH) + "/" + model_filename;
+  const std::string root_dir = controlTableRootDir();
+  std::string full_path = root_dir + "/" + model_filename;
 
   std::map<std::string, ControlTableItem> control_table;
   std::ifstream infile(full_path);
 
   if (!infile.is_open()) {
-    throw std::runtime_error("Error: Could not open model file: " + full_path);
+    throw std::runtime_error(missingControlTableMessage(full_path));
   }
 
   std::string line;
