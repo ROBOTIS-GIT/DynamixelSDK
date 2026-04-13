@@ -15,9 +15,12 @@
 // Author: Hyungyu Kim
 
 #include <cstdlib>
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
 
 #include "dynamixel_easy_sdk/control_table.hpp"
+#include "dynamixel_easy_sdk/dynamixel_error.hpp"
 
 namespace dynamixel
 {
