@@ -112,5 +112,11 @@ int GroupSyncWrite::txPacket()
   if (is_param_changed_ == true || param_.empty())
     makeParam();
 
-  return ph_->syncWriteTxOnly(port_, start_address_, data_length_, param_.data(), id_list_.size() * (1 + data_length_));
+  if (param_.size() != id_list_.size() * (1 + data_length_) ||
+      param_.size() > 0xFFFFu)
+    return COMM_TX_ERROR;
+
+  return ph_->syncWriteTxOnly(
+      port_, start_address_, data_length_, param_.data(),
+      static_cast<uint16_t>(param_.size()));
 }

@@ -133,5 +133,10 @@ int GroupBulkWrite::txPacket()
   if (is_param_changed_ == true || param_.empty())
     makeParam();
 
-  return ph_->bulkWriteTxOnly(port_, param_.data(), param_length_);
+  if (param_.size() != static_cast<size_t>(param_length_) ||
+      param_.size() > 0xFFFFu)
+    return COMM_TX_ERROR;
+
+  return ph_->bulkWriteTxOnly(
+      port_, param_.data(), static_cast<uint16_t>(param_.size()));
 }
