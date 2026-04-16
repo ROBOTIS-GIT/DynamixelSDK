@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Standalone C SDK: configure/build from the c/ directory (paths below are relative to c/).
-project(dynamixel_sdk_c VERSION 5.0.0 LANGUAGES C)
+project(dynamixel_sdk_c VERSION 4.1.0 LANGUAGES C)
 
 # --------------------------------------------------------
 # 1. Build Environment Configuration

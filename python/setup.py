@@ -14,7 +14,7 @@ author_emails = ', '.join(email for _, email in authors_info)
 
 setup(
     name='dynamixel_sdk',
-    version='5.0.0',
+    version='4.1.0',
     packages=['dynamixel_sdk'],
     package_dir={'': 'src'},
     license='Apache 2.0',

@@ -2,9 +2,9 @@
 Changelog for package dynamixel_sdk_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-5.0.0 (2026-04-09)
+4.1.0 (2026-04-14)
 ------------------
-* Updated package versioning to 5.0.0 to align with the Dynamixel SDK 5.0.0 release
+* Updated package versioning to 4.1.0 to align with the Dynamixel SDK 4.1.0 release
 * Contributors: Hyungyu Kim
 
 4.0.4 (2026-03-27)
