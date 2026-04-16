@@ -36,7 +36,7 @@ namespace dynamixel
 class WINDECLSPEC GroupSyncRead : public GroupHandler
 {
 protected:
-    std::map<uint8_t, uint8_t *> error_list_; // <id, error>
+    std::map<uint8_t, std::vector<uint8_t>> error_list_; // <id, error>
 
     bool last_result_;
 
@@ -140,7 +140,7 @@ public:
   /// @error error of Dynamixel
   /// @return true
   /// @return   when Dynamixel returned specific error byte
-  /// @return or false 
+  /// @return or false
   ////////////////////////////////////////////////////////////////////////////////
   bool        getError    (uint8_t id, uint8_t* error);
 };

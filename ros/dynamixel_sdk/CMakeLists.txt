@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(dynamixel_sdk)
+project(dynamixel_sdk VERSION 4.1.0)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
@@ -65,6 +65,11 @@ else()
     src/dynamixel_sdk/port_handler_linux.cpp
   )
 endif()
+
+set_target_properties(dynamixel_sdk PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  SOVERSION 3
+)
 
 ################################################################################
 # Install

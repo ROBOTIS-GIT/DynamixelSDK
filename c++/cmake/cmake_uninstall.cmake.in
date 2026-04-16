@@ -1,53 +1,56 @@
-# Uninstall files listed in install_manifest.txt (created by cmake --install).
-# Configured from cmake_uninstall.cmake.in via configure_file(... IMMEDIATE @ONLY).
+# Name-based uninstall for Dynamixel SDK (C++), under CMAKE_INSTALL_PREFIX.
+# Removes the same layout as install(): headers, libdxl_cpp.*, CMake package config,
+# share/dynamixel_sdk (incl. control_table), and dynamixel_easy_sdk headers on Linux.
 
-if(NOT EXISTS "@CMAKE_BINARY_DIR@/install_manifest.txt")
-  message(FATAL_ERROR
-    "Cannot find @CMAKE_BINARY_DIR@/install_manifest.txt\n"
-    "Run: cmake --install <build-dir> (or make install) at least once so the manifest exists."
-  )
+set(_dxl_prefix "@CMAKE_INSTALL_PREFIX@")
+string(REGEX REPLACE "/+$" "" _dxl_prefix "${_dxl_prefix}")
+
+set(_dxl_inc "@CMAKE_INSTALL_INCLUDEDIR@")
+set(_dxl_lib "@CMAKE_INSTALL_LIBDIR@")
+set(_dxl_share "@CMAKE_INSTALL_DATAROOTDIR@")
+set(_dxl_bin "@CMAKE_INSTALL_BINDIR@")
+
+message(STATUS "Dynamixel SDK (C++) uninstall from prefix: ${_dxl_prefix}")
+
+macro(_dxl_remove_tree _path)
+  if(EXISTS "${_path}")
+    file(REMOVE_RECURSE "${_path}")
+    message(STATUS "Removed ${_path}")
+  endif()
+endmacro()
+
+# Headers: dynamixel_sdk (all platforms)
+_dxl_remove_tree("${_dxl_prefix}/${_dxl_inc}/dynamixel_sdk")
+
+# dynamixel_easy_sdk: same condition as install() (Linux, not Apple)
+if(@DXL_UNINSTALL_EASY_SDK@)
+  _dxl_remove_tree("${_dxl_prefix}/${_dxl_inc}/dynamixel_easy_sdk")
 endif()
 
-file(STRINGS "@CMAKE_BINARY_DIR@/install_manifest.txt" _dxl_installed_files)
-
-foreach(_dxl_file IN LISTS _dxl_installed_files)
-  string(STRIP "${_dxl_file}" _dxl_file)
-  if(_dxl_file STREQUAL "")
-    continue()
-  endif()
-  message(STATUS "Uninstalling: ${_dxl_file}")
-  # EXISTS is false for broken symlinks, so also check IS_SYMLINK.
-  if(EXISTS "${_dxl_file}" OR IS_SYMLINK "${_dxl_file}")
-    file(REMOVE "${_dxl_file}")
-  endif()
-endforeach()
-
-# Remove installed directories (manifest only removes files).
-# Derive prefix from install_manifest.txt paths so --prefix overrides work.
-set(_dxl_prefix "")
-foreach(_dxl_file IN LISTS _dxl_installed_files)
-  string(STRIP "${_dxl_file}" _dxl_file_stripped)
-  if(_dxl_file_stripped STREQUAL "")
-    continue()
-  endif()
-
-  # Example:
-  #   ${prefix}/include/dynamixel_sdk/dynamixel_sdk.h
-  if(_dxl_file_stripped MATCHES "^(.*)/@CMAKE_INSTALL_INCLUDEDIR@/dynamixel_sdk/.*$")
-    set(_dxl_prefix "${CMAKE_MATCH_1}")
-    break()
-  endif()
-endforeach()
-
-if(NOT _dxl_prefix STREQUAL "")
-  file(REMOVE_RECURSE "${_dxl_prefix}/@CMAKE_INSTALL_INCLUDEDIR@/dynamixel_sdk")
-  if(NOT APPLE)
-    file(REMOVE_RECURSE "${_dxl_prefix}/@CMAKE_INSTALL_INCLUDEDIR@/dynamixel_easy_sdk")
-  endif()
-
-  if(NOT APPLE)
-    file(REMOVE_RECURSE "${_dxl_prefix}/@CMAKE_INSTALL_DATAROOTDIR@/dynamixel_sdk/control_table")
-  endif()
-
-  file(REMOVE_RECURSE "${_dxl_prefix}/@CMAKE_INSTALL_LIBDIR@/cmake/dynamixel_sdk")
+# Shared library / import lib
+if(@DXL_UNINSTALL_WIN32@)
+  file(GLOB _dxl_dlls LIST_DIRECTORIES false "${_dxl_prefix}/${_dxl_bin}/dxl_cpp.dll")
+  foreach(_f IN LISTS _dxl_dlls)
+    message(STATUS "Uninstalling: ${_f}")
+    file(REMOVE "${_f}")
+  endforeach()
+  foreach(_name "dxl_cpp.lib" "dxl_cpp.exp")
+    set(_f "${_dxl_prefix}/${_dxl_lib}/${_name}")
+    if(EXISTS "${_f}")
+      message(STATUS "Uninstalling: ${_f}")
+      file(REMOVE "${_f}")
+    endif()
+  endforeach()
+else()
+  file(GLOB _dxl_libs LIST_DIRECTORIES false "${_dxl_prefix}/${_dxl_lib}/libdxl_cpp.*")
+  foreach(_f IN LISTS _dxl_libs)
+    message(STATUS "Uninstalling: ${_f}")
+    file(REMOVE "${_f}")
+  endforeach()
 endif()
+
+# CMake package files
+_dxl_remove_tree("${_dxl_prefix}/${_dxl_lib}/cmake/dynamixel_sdk")
+
+# share (e.g. control_table)
+_dxl_remove_tree("${_dxl_prefix}/${_dxl_share}/dynamixel_sdk")
