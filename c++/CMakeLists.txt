@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Standalone C++ SDK: configure/build from the c++/ directory (paths below are relative to c++/).
-project(dynamixel_sdk VERSION 4.0.4 LANGUAGES CXX)
+project(dynamixel_sdk VERSION 4.0.5 LANGUAGES CXX)
 
 set(_dxl_pkg "dynamixel_sdk")
 
