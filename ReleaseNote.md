@@ -1,5 +1,10 @@
 # Dynamixel SDK Release Notes
 
+4.0.5 (2026-05-06)
+------------------
+* Fix clearPort() in Python PortHandler to use reset_input_buffer() instead of flush()
+* Contributors: Hyungyu Kim
+
 4.0.4 (2026-03-27)
 ------------------
 * Added CMakeLists.txt for unified build system in c, c++
