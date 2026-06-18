@@ -16,6 +16,9 @@
 
 /* Author: zerom, Ryu Woon Jung (Leon) */
 
+#include <vector>
+#include <algorithm>
+
 #if defined(__linux__)
 #include <unistd.h>
 #include "protocol2_packet_handler.h"
@@ -184,7 +187,7 @@ unsigned short Protocol2PacketHandler::updateCRC(uint16_t crc_accum, uint8_t *da
 
   for (uint16_t j = 0; j < data_blk_size; j++)
   {
-    i = ((uint16_t)(crc_accum >> 8) ^ *data_blk_ptr++) & 0xFF;
+    i = (static_cast<uint16_t>(crc_accum >> 8) ^ *data_blk_ptr++) & 0xFF;
     crc_accum = (crc_accum << 8) ^ crc_table[i];
   }
 
@@ -444,15 +447,15 @@ int Protocol2PacketHandler::txRxPacket(PortHandler *port, uint8_t *txpacket, uin
   // set packet timeout
   if (txpacket[PKT_INSTRUCTION] == INST_READ)
   {
-    port->setPacketTimeout((uint16_t)(DXL_MAKEWORD(txpacket[PKT_PARAMETER0+2], txpacket[PKT_PARAMETER0+3]) + 11));
+    port->setPacketTimeout(static_cast<uint16_t>(DXL_MAKEWORD(txpacket[PKT_PARAMETER0+2], txpacket[PKT_PARAMETER0+3]) + 11));
   }
   else if (txpacket[PKT_INSTRUCTION] == INST_CLEAR)
   {
-    port->setPacketTimeout((double)10000);
+    port->setPacketTimeout(10000.0);
   }
   else
   {
-    port->setPacketTimeout((uint16_t)11);
+    port->setPacketTimeout(static_cast<uint16_t>(11));
     // HEADER0 HEADER1 HEADER2 RESERVED ID LENGTH_L LENGTH_H INST ERROR CRC16_L CRC16_H
   }
 
@@ -464,7 +467,7 @@ int Protocol2PacketHandler::txRxPacket(PortHandler *port, uint8_t *txpacket, uin
   if (result == COMM_SUCCESS && txpacket[PKT_ID] == rxpacket[PKT_ID])
   {
     if (error != 0)
-      *error = (uint8_t)rxpacket[PKT_ERROR];
+      *error = rxpacket[PKT_ERROR];
   }
 
   return result;
@@ -510,7 +513,7 @@ int Protocol2PacketHandler::broadcastPing(PortHandler *port, std::vector<uint8_t
   uint8_t txpacket[10]        = {0};
   uint8_t rxpacket[STATUS_LENGTH * MAX_ID] = {0};
 
-  double tx_time_per_byte = (1000.0 / (double)port->getBaudRate()) * 10.0;
+  double tx_time_per_byte = (1000.0 / static_cast<double>(port->getBaudRate())) * 10.0;
 
   txpacket[PKT_ID]            = BROADCAST_ID;
   txpacket[PKT_LENGTH_L]      = 3;
@@ -526,7 +529,7 @@ int Protocol2PacketHandler::broadcastPing(PortHandler *port, std::vector<uint8_t
 
   // set rx timeout
   //port->setPacketTimeout((uint16_t)(wait_length * 30));
-  port->setPacketTimeout(((double)wait_length * tx_time_per_byte) + (3.0 * (double)MAX_ID) + 16.0);
+  port->setPacketTimeout((static_cast<double>(wait_length) * tx_time_per_byte) + (3.0 * static_cast<double>(MAX_ID)) + 16.0);
 
   while(1)
   {
@@ -682,16 +685,16 @@ int Protocol2PacketHandler::readTx(PortHandler *port, uint8_t id, uint16_t addre
   txpacket[PKT_LENGTH_L]      = 7;
   txpacket[PKT_LENGTH_H]      = 0;
   txpacket[PKT_INSTRUCTION]   = INST_READ;
-  txpacket[PKT_PARAMETER0+0]  = (uint8_t)DXL_LOBYTE(address);
-  txpacket[PKT_PARAMETER0+1]  = (uint8_t)DXL_HIBYTE(address);
-  txpacket[PKT_PARAMETER0+2]  = (uint8_t)DXL_LOBYTE(length);
-  txpacket[PKT_PARAMETER0+3]  = (uint8_t)DXL_HIBYTE(length);
+  txpacket[PKT_PARAMETER0+0]  = DXL_LOBYTE(address);
+  txpacket[PKT_PARAMETER0+1]  = DXL_HIBYTE(address);
+  txpacket[PKT_PARAMETER0+2]  = DXL_LOBYTE(length);
+  txpacket[PKT_PARAMETER0+3]  = DXL_HIBYTE(length);
 
   result = txPacket(port, txpacket);
 
   // set packet timeout
   if (result == COMM_SUCCESS)
-    port->setPacketTimeout((uint16_t)(length + 11));
+    port->setPacketTimeout(static_cast<uint16_t>(length + 11));
 
   return result;
 }
@@ -699,20 +702,16 @@ int Protocol2PacketHandler::readTx(PortHandler *port, uint8_t id, uint16_t addre
 int Protocol2PacketHandler::readRx(PortHandler *port, uint8_t id, uint16_t length, uint8_t *data, uint8_t *error)
 {
   int result                  = COMM_TX_FAIL;
-  uint8_t *rxpacket           = (uint8_t *)malloc(RXPACKET_MAX_LEN);
-  //(length + 11 + (length/3));  // (length/3): consider stuffing
-  
-  if (rxpacket == NULL)
-    return result;
+  std::vector<uint8_t> rxpacket(RXPACKET_MAX_LEN);
   
   do {
-    result = rxPacket(port, rxpacket);
+    result = rxPacket(port, rxpacket.data());
   } while (result == COMM_SUCCESS && rxpacket[PKT_ID] != id);
 
   if (result == COMM_SUCCESS && rxpacket[PKT_ID] == id)
   {
     if (error != 0)
-      *error = (uint8_t)rxpacket[PKT_ERROR];
+      *error = rxpacket[PKT_ERROR];
 
     for (uint16_t s = 0; s < length; s++)
     {
@@ -721,8 +720,6 @@ int Protocol2PacketHandler::readRx(PortHandler *port, uint8_t id, uint16_t lengt
     //memcpy(data, &rxpacket[PKT_PARAMETER0+1], length);
   }
 
-  free(rxpacket);
-  //delete[] rxpacket;
   return result;
 }
 
@@ -731,15 +728,10 @@ int Protocol2PacketHandler::readTxRx(PortHandler *port, uint8_t id, uint16_t add
   int result                  = COMM_TX_FAIL;
 
   uint8_t txpacket[14]        = {0};
-  uint8_t *rxpacket           = (uint8_t *)malloc(RXPACKET_MAX_LEN);
-  //(length + 11 + (length/3));  // (length/3): consider stuffing
+  std::vector<uint8_t> rxpacket(RXPACKET_MAX_LEN);
 
-  if (rxpacket == NULL)
-    return result;
-  
   if (id >= BROADCAST_ID)
   {
-    free(rxpacket);
     return COMM_NOT_AVAILABLE;
   }
 
@@ -747,16 +739,16 @@ int Protocol2PacketHandler::readTxRx(PortHandler *port, uint8_t id, uint16_t add
   txpacket[PKT_LENGTH_L]      = 7;
   txpacket[PKT_LENGTH_H]      = 0;
   txpacket[PKT_INSTRUCTION]   = INST_READ;
-  txpacket[PKT_PARAMETER0+0]  = (uint8_t)DXL_LOBYTE(address);
-  txpacket[PKT_PARAMETER0+1]  = (uint8_t)DXL_HIBYTE(address);
-  txpacket[PKT_PARAMETER0+2]  = (uint8_t)DXL_LOBYTE(length);
-  txpacket[PKT_PARAMETER0+3]  = (uint8_t)DXL_HIBYTE(length);
+  txpacket[PKT_PARAMETER0+0]  = DXL_LOBYTE(address);
+  txpacket[PKT_PARAMETER0+1]  = DXL_HIBYTE(address);
+  txpacket[PKT_PARAMETER0+2]  = DXL_LOBYTE(length);
+  txpacket[PKT_PARAMETER0+3]  = DXL_HIBYTE(length);
 
-  result = txRxPacket(port, txpacket, rxpacket, error);
+  result = txRxPacket(port, txpacket, rxpacket.data(), error);
   if (result == COMM_SUCCESS)
   {
     if (error != 0)
-      *error = (uint8_t)rxpacket[PKT_ERROR];
+      *error = rxpacket[PKT_ERROR];
 
     for (uint16_t s = 0; s < length; s++)
     {
@@ -765,8 +757,6 @@ int Protocol2PacketHandler::readTxRx(PortHandler *port, uint8_t id, uint16_t add
     //memcpy(data, &rxpacket[PKT_PARAMETER0+1], length);
   }
 
-  free(rxpacket);
-  //delete[] rxpacket;
   return result;
 }
 
@@ -837,56 +827,44 @@ int Protocol2PacketHandler::read4ByteTxRx(PortHandler *port, uint8_t id, uint16_
 int Protocol2PacketHandler::writeTxOnly(PortHandler *port, uint8_t id, uint16_t address, uint16_t length, uint8_t *data)
 {
   int result                  = COMM_TX_FAIL;
-
-  uint8_t *txpacket           = (uint8_t *)malloc(length + 12 + (length / 3));
-  
-  if (txpacket == NULL)
-    return result;
+  std::vector<uint8_t> txpacket(length + 12 + (length / 3));
 
   txpacket[PKT_ID]            = id;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(length+5);
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(length+5);
   txpacket[PKT_INSTRUCTION]   = INST_WRITE;
-  txpacket[PKT_PARAMETER0+0]  = (uint8_t)DXL_LOBYTE(address);
-  txpacket[PKT_PARAMETER0+1]  = (uint8_t)DXL_HIBYTE(address);
+  txpacket[PKT_PARAMETER0+0]  = DXL_LOBYTE(address);
+  txpacket[PKT_PARAMETER0+1]  = DXL_HIBYTE(address);
 
   for (uint16_t s = 0; s < length; s++)
     txpacket[PKT_PARAMETER0+2+s] = data[s];
   //memcpy(&txpacket[PKT_PARAMETER0+2], data, length);
 
-  result = txPacket(port, txpacket);
+  result = txPacket(port, txpacket.data());
   port->is_using_ = false;
 
-  free(txpacket);
-  //delete[] txpacket;
   return result;
 }
 
 int Protocol2PacketHandler::writeTxRx(PortHandler *port, uint8_t id, uint16_t address, uint16_t length, uint8_t *data, uint8_t *error)
 {
   int result                  = COMM_TX_FAIL;
-
-  uint8_t *txpacket           = (uint8_t *)malloc(length + 12 + (length / 3));
+  std::vector<uint8_t> txpacket(length + 12 + (length / 3));
   uint8_t rxpacket[11]        = {0};
 
-  if (txpacket == NULL)
-    return result;
-  
   txpacket[PKT_ID]            = id;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(length+5);
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(length+5);
   txpacket[PKT_INSTRUCTION]   = INST_WRITE;
-  txpacket[PKT_PARAMETER0+0]  = (uint8_t)DXL_LOBYTE(address);
-  txpacket[PKT_PARAMETER0+1]  = (uint8_t)DXL_HIBYTE(address);
+  txpacket[PKT_PARAMETER0+0]  = DXL_LOBYTE(address);
+  txpacket[PKT_PARAMETER0+1]  = DXL_HIBYTE(address);
 
   for (uint16_t s = 0; s < length; s++)
     txpacket[PKT_PARAMETER0+2+s] = data[s];
   //memcpy(&txpacket[PKT_PARAMETER0+2], data, length);
 
-  result = txRxPacket(port, txpacket, rxpacket, error);
+  result = txRxPacket(port, txpacket.data(), rxpacket, error);
 
-  free(txpacket);
-  //delete[] txpacket;
   return result;
 }
 
@@ -926,56 +904,44 @@ int Protocol2PacketHandler::write4ByteTxRx(PortHandler *port, uint8_t id, uint16
 int Protocol2PacketHandler::regWriteTxOnly(PortHandler *port, uint8_t id, uint16_t address, uint16_t length, uint8_t *data)
 {
   int result                  = COMM_TX_FAIL;
-
-  uint8_t *txpacket           = (uint8_t *)malloc(length + 12 + (length / 3));
-
-  if (txpacket == NULL)
-    return result;
+  std::vector<uint8_t> txpacket(length + 12 + (length / 3));
   
   txpacket[PKT_ID]            = id;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(length+5);
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(length+5);
   txpacket[PKT_INSTRUCTION]   = INST_REG_WRITE;
-  txpacket[PKT_PARAMETER0+0]  = (uint8_t)DXL_LOBYTE(address);
-  txpacket[PKT_PARAMETER0+1]  = (uint8_t)DXL_HIBYTE(address);
+  txpacket[PKT_PARAMETER0+0]  = DXL_LOBYTE(address);
+  txpacket[PKT_PARAMETER0+1]  = DXL_HIBYTE(address);
 
   for (uint16_t s = 0; s < length; s++)
     txpacket[PKT_PARAMETER0+2+s] = data[s];
   //memcpy(&txpacket[PKT_PARAMETER0+2], data, length);
 
-  result = txPacket(port, txpacket);
+  result = txPacket(port, txpacket.data());
   port->is_using_ = false;
 
-  free(txpacket);
-  //delete[] txpacket;
   return result;
 }
 
 int Protocol2PacketHandler::regWriteTxRx(PortHandler *port, uint8_t id, uint16_t address, uint16_t length, uint8_t *data, uint8_t *error)
 {
   int result                  = COMM_TX_FAIL;
-
-  uint8_t *txpacket           = (uint8_t *)malloc(length + 12 + (length / 3));
+  std::vector<uint8_t> txpacket(length + 12 + (length / 3));
   uint8_t rxpacket[11]        = {0};
 
-  if (txpacket == NULL)
-    return result;
-  
   txpacket[PKT_ID]            = id;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(length+5);
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(length+5);
   txpacket[PKT_INSTRUCTION]   = INST_REG_WRITE;
-  txpacket[PKT_PARAMETER0+0]  = (uint8_t)DXL_LOBYTE(address);
-  txpacket[PKT_PARAMETER0+1]  = (uint8_t)DXL_HIBYTE(address);
+  txpacket[PKT_PARAMETER0+0]  = DXL_LOBYTE(address);
+  txpacket[PKT_PARAMETER0+1]  = DXL_HIBYTE(address);
 
   for (uint16_t s = 0; s < length; s++)
     txpacket[PKT_PARAMETER0+2+s] = data[s];
   //memcpy(&txpacket[PKT_PARAMETER0+2], data, length);
 
-  result = txRxPacket(port, txpacket, rxpacket, error);
+  result = txRxPacket(port, txpacket.data(), rxpacket, error);
 
-  free(txpacket);
-  //delete[] txpacket;
   return result;
 }
 
@@ -983,12 +949,9 @@ int Protocol2PacketHandler::syncReadTx(PortHandler *port, uint16_t start_address
 {
   int result                  = COMM_TX_FAIL;
 
-  uint8_t *txpacket           = (uint8_t *)malloc(param_length + 14 + (param_length / 3));
   // 14: HEADER0 HEADER1 HEADER2 RESERVED ID LEN_L LEN_H INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
+  std::vector<uint8_t> txpacket(param_length + 14 + (param_length / 3));
 
-  if (txpacket == NULL)
-    return result;
-  
   txpacket[PKT_ID]            = BROADCAST_ID;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(param_length + 7); // 7: INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(param_length + 7); // 7: INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
@@ -1002,11 +965,10 @@ int Protocol2PacketHandler::syncReadTx(PortHandler *port, uint16_t start_address
     txpacket[PKT_PARAMETER0+4+s] = param[s];
   //memcpy(&txpacket[PKT_PARAMETER0+4], param, param_length);
 
-  result = txPacket(port, txpacket);
+  result = txPacket(port, txpacket.data());
   if (result == COMM_SUCCESS)
-    port->setPacketTimeout((uint16_t)((11 + data_length) * param_length));
+    port->setPacketTimeout(static_cast<uint16_t>((11 + data_length) * param_length));
 
-  free(txpacket);
   return result;
 }
 
@@ -1014,12 +976,9 @@ int Protocol2PacketHandler::syncWriteTxOnly(PortHandler *port, uint16_t start_ad
 {
   int result                  = COMM_TX_FAIL;
 
-  uint8_t *txpacket           = (uint8_t *)malloc(param_length + 14 + (param_length / 3));
   // 14: HEADER0 HEADER1 HEADER2 RESERVED ID LEN_L LEN_H INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
+  std::vector<uint8_t> txpacket(param_length + 14 + (param_length / 3));
 
-  if (txpacket == NULL)
-    return result;
-  
   txpacket[PKT_ID]            = BROADCAST_ID;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(param_length + 7); // 7: INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(param_length + 7); // 7: INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
@@ -1033,10 +992,8 @@ int Protocol2PacketHandler::syncWriteTxOnly(PortHandler *port, uint16_t start_ad
     txpacket[PKT_PARAMETER0+4+s] = param[s];
   //memcpy(&txpacket[PKT_PARAMETER0+4], param, param_length);
 
-  result = txRxPacket(port, txpacket, 0, 0);
+  result = txRxPacket(port, txpacket.data(), 0, 0);
 
-  free(txpacket);
-  //delete[] txpacket;
   return result;
 }
 
@@ -1044,12 +1001,9 @@ int Protocol2PacketHandler::bulkReadTx(PortHandler *port, uint8_t *param, uint16
 {
   int result                  = COMM_TX_FAIL;
 
-  uint8_t *txpacket           = (uint8_t *)malloc(param_length + 10 + (param_length / 3));
   // 10: HEADER0 HEADER1 HEADER2 RESERVED ID LEN_L LEN_H INST CRC16_L CRC16_H
+  std::vector<uint8_t> txpacket(param_length + 10 + (param_length / 3));
 
-  if (txpacket == NULL)
-    return result;
-  
   txpacket[PKT_ID]            = BROADCAST_ID;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(param_length + 3); // 3: INST CRC16_L CRC16_H
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(param_length + 3); // 3: INST CRC16_L CRC16_H
@@ -1059,17 +1013,15 @@ int Protocol2PacketHandler::bulkReadTx(PortHandler *port, uint8_t *param, uint16
     txpacket[PKT_PARAMETER0+s] = param[s];
   //memcpy(&txpacket[PKT_PARAMETER0], param, param_length);
 
-  result = txPacket(port, txpacket);
+  result = txPacket(port, txpacket.data());
   if (result == COMM_SUCCESS)
   {
     int wait_length = 0;
     for (uint16_t i = 0; i < param_length; i += 5)
       wait_length += DXL_MAKEWORD(param[i+3], param[i+4]) + 10;
-    port->setPacketTimeout((uint16_t)wait_length);
+    port->setPacketTimeout(static_cast<uint16_t>(wait_length));
   }
 
-  free(txpacket);
-  //delete[] txpacket;
   return result;
 }
 
@@ -1077,12 +1029,9 @@ int Protocol2PacketHandler::bulkWriteTxOnly(PortHandler *port, uint8_t *param, u
 {
   int result                  = COMM_TX_FAIL;
 
-  uint8_t *txpacket           = (uint8_t *)malloc(param_length + 10 + (param_length / 3));
   // 10: HEADER0 HEADER1 HEADER2 RESERVED ID LEN_L LEN_H INST CRC16_L CRC16_H
+  std::vector<uint8_t> txpacket(param_length + 10 + (param_length / 3));
 
-  if (txpacket == NULL)
-    return result;
-  
   txpacket[PKT_ID]            = BROADCAST_ID;
   txpacket[PKT_LENGTH_L]      = DXL_LOBYTE(param_length + 3); // 3: INST CRC16_L CRC16_H
   txpacket[PKT_LENGTH_H]      = DXL_HIBYTE(param_length + 3); // 3: INST CRC16_L CRC16_H
@@ -1092,10 +1041,8 @@ int Protocol2PacketHandler::bulkWriteTxOnly(PortHandler *port, uint8_t *param, u
     txpacket[PKT_PARAMETER0+s] = param[s];
   //memcpy(&txpacket[PKT_PARAMETER0], param, param_length);
 
-  result = txRxPacket(port, txpacket, 0, 0);
+  result = txRxPacket(port, txpacket.data(), 0, 0);
 
-  free(txpacket);
-  //delete[] txpacket;
   return result;
 }
 
@@ -1103,11 +1050,8 @@ int Protocol2PacketHandler::fastSyncReadTx(PortHandler *port, uint16_t start_add
 {
     int result = COMM_TX_FAIL;
 
-    uint8_t *txpacket = (uint8_t *)malloc(param_length + 14 + (param_length / 3));
     // 14: HEADER0 HEADER1 HEADER2 RESERVED ID LEN_L LEN_H INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
-
-    if (NULL == txpacket)
-        return result;
+    std::vector<uint8_t> txpacket(param_length + 14 + (param_length / 3));
 
     txpacket[PKT_ID]             = BROADCAST_ID;
     txpacket[PKT_LENGTH_L]       = DXL_LOBYTE(param_length + 7); // 7: INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
@@ -1122,11 +1066,10 @@ int Protocol2PacketHandler::fastSyncReadTx(PortHandler *port, uint16_t start_add
         txpacket[PKT_PARAMETER0 + 4 + s] = param[s];
     //memcpy(&txpacket[PKT_PARAMETER0+4], param, param_length);
 
-    result = txPacket(port, txpacket);
+    result = txPacket(port, txpacket.data());
     if (COMM_SUCCESS == result)
-        port->setPacketTimeout((uint16_t)((11 + data_length) * param_length));
+        port->setPacketTimeout(static_cast<uint16_t>((11 + data_length) * param_length));
 
-    free(txpacket);
     return result;
 }
 
@@ -1134,11 +1077,8 @@ int Protocol2PacketHandler::fastBulkReadTx(PortHandler *port, uint8_t *param, ui
 {
     int result = COMM_TX_FAIL;
 
-    uint8_t *txpacket = (uint8_t *)malloc(param_length + 10 + (param_length / 3));
     // 10: HEADER0 HEADER1 HEADER2 RESERVED ID LEN_L LEN_H INST CRC16_L CRC16_H
-
-    if (NULL == txpacket)
-        return result;
+    std::vector<uint8_t> txpacket(param_length + 10 + (param_length / 3));
 
     txpacket[PKT_ID]          = BROADCAST_ID;
     txpacket[PKT_LENGTH_L]    = DXL_LOBYTE(param_length + 3); // 3: INST CRC16_L CRC16_H
@@ -1149,15 +1089,13 @@ int Protocol2PacketHandler::fastBulkReadTx(PortHandler *port, uint8_t *param, ui
         txpacket[PKT_PARAMETER0 + s] = param[s];
     //memcpy(&txpacket[PKT_PARAMETER0], param, param_length);
 
-    result = txPacket(port, txpacket);
+    result = txPacket(port, txpacket.data());
     if (result == COMM_SUCCESS) {
         int wait_length = 0;
         for (uint16_t i = 0; i < param_length; i += 5)
             wait_length += DXL_MAKEWORD(param[i + 3], param[i + 4]) + 10;
-        port->setPacketTimeout((uint16_t)wait_length);
+        port->setPacketTimeout(static_cast<uint16_t>(wait_length));
     }
 
-    free(txpacket);
-    //delete[] txpacket;
     return result;
 }

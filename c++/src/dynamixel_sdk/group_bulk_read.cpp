@@ -41,39 +41,36 @@ GroupBulkRead::GroupBulkRead(PortHandler *port, PacketHandler *ph)
 
 void GroupBulkRead::makeParam()
 {
-  if (id_list_.size() == 0)
+  if (id_list_.empty())
     return;
 
-  if (param_ != 0)
-    delete[] param_;
-  param_ = 0;
+  param_.clear();
 
   if (ph_->getProtocolVersion() == 1.0)
   {
-    param_ = new uint8_t[id_list_.size() * 3];  // ID(1) + ADDR(1) + LENGTH(1)
+    param_.reserve(id_list_.size() * 3);  // ID(1) + ADDR(1) + LENGTH(1)
   }
   else    // 2.0
   {
-    param_ = new uint8_t[id_list_.size() * 5];  // ID(1) + ADDR(2) + LENGTH(2)
+    param_.reserve(id_list_.size() * 5);  // ID(1) + ADDR(2) + LENGTH(2)
   }
 
-  int idx = 0;
   for (unsigned int i = 0; i < id_list_.size(); i++)
   {
     uint8_t id = id_list_[i];
     if (ph_->getProtocolVersion() == 1.0)
     {
-      param_[idx++] = (uint8_t)length_list_[id];    // LEN
-      param_[idx++] = id;                           // ID
-      param_[idx++] = (uint8_t)address_list_[id];   // ADDR
+      param_.push_back(static_cast<uint8_t>(length_list_[id]));    // LEN
+      param_.push_back(id);                           // ID
+      param_.push_back(static_cast<uint8_t>(address_list_[id]));   // ADDR
     }
     else    // 2.0
     {
-      param_[idx++] = id;                               // ID
-      param_[idx++] = DXL_LOBYTE(address_list_[id]);    // ADDR_L
-      param_[idx++] = DXL_HIBYTE(address_list_[id]);    // ADDR_H
-      param_[idx++] = DXL_LOBYTE(length_list_[id]);     // LEN_L
-      param_[idx++] = DXL_HIBYTE(length_list_[id]);     // LEN_H
+      param_.push_back(id);                               // ID
+      param_.push_back(DXL_LOBYTE(address_list_[id]));    // ADDR_L
+      param_.push_back(DXL_HIBYTE(address_list_[id]));    // ADDR_H
+      param_.push_back(DXL_LOBYTE(length_list_[id]));     // LEN_L
+      param_.push_back(DXL_HIBYTE(length_list_[id]));     // LEN_H
     }
   }
 }
@@ -86,8 +83,8 @@ bool GroupBulkRead::addParam(uint8_t id, uint16_t start_address, uint16_t data_l
   id_list_.push_back(id);
   length_list_[id]    = data_length;
   address_list_[id]   = start_address;
-  data_list_[id]      = new uint8_t[data_length];
-  error_list_[id]     = new uint8_t[1];
+  data_list_[id]      = std::vector<uint8_t>(data_length);
+  error_list_[id]     = std::vector<uint8_t>(1);
 
   is_param_changed_   = true;
   return true;
@@ -102,8 +99,6 @@ void GroupBulkRead::removeParam(uint8_t id)
   id_list_.erase(it);
   address_list_.erase(id);
   length_list_.erase(id);
-  delete[] data_list_[id];
-  delete[] error_list_[id];
   data_list_.erase(id);
   error_list_.erase(id);
 
@@ -115,20 +110,12 @@ void GroupBulkRead::clearParam()
   if (id_list_.size() == 0)
     return;
 
-  for (unsigned int i = 0; i < id_list_.size(); i++)
-  {
-    delete[] data_list_[id_list_[i]];
-    delete[] error_list_[id_list_[i]];
-  }
-
   id_list_.clear();
   address_list_.clear();
   length_list_.clear();
   data_list_.clear();
   error_list_.clear();
-  if (param_ != 0)
-    delete[] param_;
-  param_ = 0;
+  param_.clear();
 }
 
 int GroupBulkRead::txPacket()
@@ -136,16 +123,16 @@ int GroupBulkRead::txPacket()
   if (id_list_.size() == 0)
     return COMM_NOT_AVAILABLE;
 
-  if (is_param_changed_ == true || param_ == 0)
+  if (is_param_changed_ == true || param_.empty())
     makeParam();
 
   if (ph_->getProtocolVersion() == 1.0)
   {
-    return ph_->bulkReadTx(port_, param_, id_list_.size() * 3);
+    return ph_->bulkReadTx(port_, param_.data(), id_list_.size() * 3);
   }
   else    // 2.0
   {
-    return ph_->bulkReadTx(port_, param_, id_list_.size() * 5);
+    return ph_->bulkReadTx(port_, param_.data(), id_list_.size() * 5);
   }
 }
 
@@ -163,7 +150,7 @@ int GroupBulkRead::rxPacket()
   {
     uint8_t id = id_list_[i];
 
-    result = ph_->readRx(port_, id, length_list_[id], data_list_[id], error_list_[id]);
+    result = ph_->readRx(port_, id, length_list_[id], data_list_[id].data(), error_list_[id].data());
     if (result != COMM_SUCCESS)
       return result;
   }

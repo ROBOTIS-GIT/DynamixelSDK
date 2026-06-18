@@ -4,7 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dynamixel-sdk"
+<<<<<<< HEAD
+version = "4.1.0"
+=======
 version = "4.0.5"
+>>>>>>> 2ded684dff05a40ac78d6a16105c6ddc1b3b9930
 description = "Dynamixel SDK 4. python package"
 readme = "README.txt"
 license = { text = "Apache 2.0" }

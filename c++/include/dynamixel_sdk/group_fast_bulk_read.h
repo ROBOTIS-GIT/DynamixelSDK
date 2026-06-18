@@ -40,6 +40,7 @@ public:
 
 private:
     void makeParam();
+    std::vector<uint8_t> rxpacket_;
 };
 
 }

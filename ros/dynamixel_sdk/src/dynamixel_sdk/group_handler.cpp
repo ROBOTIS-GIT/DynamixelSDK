@@ -32,8 +32,7 @@ using namespace dynamixel;
 GroupHandler::GroupHandler(PortHandler *port, PacketHandler *ph)
  : port_(port),
    ph_(ph),
-   is_param_changed_(false),
-   param_(0)
+   is_param_changed_(false)
 {
-
+  param_.clear();
 }
