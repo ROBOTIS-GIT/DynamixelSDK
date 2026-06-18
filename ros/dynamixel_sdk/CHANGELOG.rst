@@ -8,6 +8,10 @@ Changelog for package dynamixel_sdk
 * Bumped the C++ shared library ABI to SOVERSION 3 due to public C++ class layout changes
 * Added VERSION 4.1.0 and SOVERSION 3 to the ROS 2 shared library target for consistent ABI versioning
 * Unified package versioning to 4.1.0
+
+4.0.5 (2026-05-06)
+------------------
+* Fix clearPort() in Python PortHandler to use reset_input_buffer() instead of flush()
 * Contributors: Hyungyu Kim
 
 4.0.4 (2026-03-27)

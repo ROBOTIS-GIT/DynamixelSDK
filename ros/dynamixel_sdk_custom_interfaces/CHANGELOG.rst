@@ -7,6 +7,10 @@ Changelog for package dynamixel_sdk_custom_interfaces
 * Updated package versioning to 4.1.0 to align with the Dynamixel SDK 4.1.0 release
 * Contributors: Hyungyu Kim
 
+4.0.5 (2026-05-06)
+------------------
+* None
+
 4.0.4 (2026-03-27)
 ------------------
 * None
