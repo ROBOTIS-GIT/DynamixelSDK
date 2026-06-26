@@ -96,8 +96,21 @@ target_compile_definitions(dynamixel_sdk
 ################################################################################
 # Install Python Package
 ################################################################################
-ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR "src/dynamixel_sdk")
-ament_python_install_package(dynamixel_easy_sdk PACKAGE_DIR "src/dynamixel_easy_sdk")
+_ament_cmake_python_register_environment_hook()
+
+install(
+  DIRECTORY src/dynamixel_sdk/
+  DESTINATION "${PYTHON_INSTALL_DIR}/dynamixel_sdk"
+  PATTERN "*.pyc" EXCLUDE
+  PATTERN "__pycache__" EXCLUDE
+)
+
+install(
+  DIRECTORY src/dynamixel_easy_sdk/
+  DESTINATION "${PYTHON_INSTALL_DIR}/dynamixel_easy_sdk"
+  PATTERN "*.pyc" EXCLUDE
+  PATTERN "__pycache__" EXCLUDE
+)
 
 ################################################################################
 # Macro for ament package
