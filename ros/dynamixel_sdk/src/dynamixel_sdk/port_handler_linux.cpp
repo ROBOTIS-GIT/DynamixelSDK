@@ -209,18 +209,31 @@ bool PortHandlerLinux::setupPort(int cflag_baud)
     return false;
   }
 
-  bzero(&newtio, sizeof(newtio)); // clear struct for new port settings
+  if (tcgetattr(socket_fd_, &newtio) != 0)
+  {
+    printf("[PortHandlerLinux::SetupPort] Error getting serial port attributes!\n");
+    closePort();
+    return false;
+  }
 
-  newtio.c_cflag = cflag_baud | CS8 | CLOCAL | CREAD;
+  newtio.c_cflag &= ~(PARENB | CSTOPB | CSIZE | CRTSCTS);
+  newtio.c_cflag |= CS8 | CLOCAL | CREAD;
   newtio.c_iflag = IGNPAR;
   newtio.c_oflag      = 0;
   newtio.c_lflag      = 0;
   newtio.c_cc[VTIME]  = 0;
   newtio.c_cc[VMIN]   = 0;
+  cfsetispeed(&newtio, cflag_baud);
+  cfsetospeed(&newtio, cflag_baud);
 
   // clean the buffer and activate the settings for the port
-  tcflush(socket_fd_, TCIFLUSH);
-  tcsetattr(socket_fd_, TCSANOW, &newtio);
+  tcflush(socket_fd_, TCIOFLUSH);
+  if (tcsetattr(socket_fd_, TCSANOW, &newtio) != 0)
+  {
+    printf("[PortHandlerLinux::SetupPort] Error setting serial port attributes!\n");
+    closePort();
+    return false;
+  }
 
   tx_time_per_byte = (1000.0 / (double)baudrate_) * 10.0;
   return true;
