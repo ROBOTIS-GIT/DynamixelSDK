@@ -80,7 +80,7 @@ int portHandlerMac(const char *port_name)
     {
       for (port_num = 0; port_num < g_used_port_num; port_num++)
       {
-        if (portData[port_num].socket_fd != -1)
+        if (portData[port_num].socket_fd == -1)
           break;
       }
 
