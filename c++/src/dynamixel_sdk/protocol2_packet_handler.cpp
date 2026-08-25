@@ -549,6 +549,9 @@ int Protocol2PacketHandler::broadcastPing(PortHandler *port, std::vector<uint8_t
 
   port->is_using_ = false;
 
+  if (result == COMM_RX_FAIL)
+    return result;
+
   if (rx_length == 0)
     return COMM_RX_TIMEOUT;
 
