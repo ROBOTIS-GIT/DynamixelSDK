@@ -26,6 +26,8 @@
 #include <termios.h>
 #include <time.h>
 #include <sys/time.h>
+#include <errno.h>
+#include <poll.h>
 #include <sys/ioctl.h>
 #include <linux/serial.h>
 
@@ -205,7 +207,34 @@ int getBytesAvailableLinux(int port_num)
 
 int readPortLinux(int port_num, uint8_t *packet, int length)
 {
-  return read(portData[port_num].socket_fd, packet, length);
+  struct pollfd pfd;
+  int ready;
+  int read_length;
+
+  if (length <= 0)
+    return 0;
+
+  pfd.fd = portData[port_num].socket_fd;
+  pfd.events = POLLIN;
+  pfd.revents = 0;
+
+  ready = poll(&pfd, 1, 1);
+  if (ready <= 0)
+  {
+    if (ready == 0 || errno == EINTR)
+      return 0;
+
+    return -1;
+  }
+
+  read_length = read(portData[port_num].socket_fd, packet, length);
+  if (read_length >= 0)
+    return read_length;
+
+  if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+    return 0;
+
+  return -1;
 }
 
 int writePortLinux(int port_num, uint8_t *packet, int length)
