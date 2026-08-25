@@ -108,7 +108,7 @@ class PortHandlerMac : public PortHandler
   ////////////////////////////////////////////////////////////////////////////////
   /// @brief The function that returns current baudrate set into the port handler
   /// @description The function returns current baudrate set into the port handler.
-  /// @warning Mac OS doesn't support over 230400 bps
+  /// @warning Baud rates over 230400 bps require IOSSIOSPEED (USB serial driver dependent)
   /// @return Baudrate
   ////////////////////////////////////////////////////////////////////////////////
   int     getBaudRate();

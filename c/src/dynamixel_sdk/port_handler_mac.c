@@ -26,11 +26,13 @@
 #include <termios.h>
 #include <time.h>
 #include <sys/time.h>
+#include <errno.h>
 #include <sys/ioctl.h>
 
 #ifdef __MACH__
 #include <mach/clock.h>
 #include <mach/mach.h>
+#include <IOKit/serial/ioss.h>
 #endif
 
 #include "port_handler_mac.h"
@@ -263,8 +265,16 @@ uint8_t setupPortMac(int port_num, int cflag_baud)
 
 uint8_t setCustomBaudrateMac(int port_num, int speed)
 {
-  printf("[PortHandlerMac::SetCustomBaudrate] Not supported on Mac!\n");
-  return False;
+  speed_t baud = (speed_t)speed;
+
+  if (ioctl(portData[port_num].socket_fd, IOSSIOSPEED, &baud) == -1)
+  {
+    printf("[PortHandlerMac::SetCustomBaudrate] IOSSIOSPEED failed! errno=%d\n", errno);
+    return False;
+  }
+
+  portData[port_num].tx_time_per_byte = (1000.0 / (double)speed) * 10.0;
+  return True;
 }
 
 int getCFlagBaud(int baudrate)
@@ -283,7 +293,7 @@ int getCFlagBaud(int baudrate)
       return B115200;
     case 230400:
       return B230400;
-    // Mac OS doesn't support over B230400
+    // Baud rates over 230400 are set via IOSSIOSPEED in setCustomBaudrate()
     // case 460800:
     //   return B460800;
     // case 500000:
