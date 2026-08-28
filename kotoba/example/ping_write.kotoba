@@ -1,0 +1,45 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Copyright 2017 ROBOTIS CO., LTD.
+;;
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
+;;
+;;     http://www.apache.org/licenses/LICENSE-2.0
+;;
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Builds a Protocol 2.0 ping and a 1-byte write (torque enable at addr 64).
+;; No device, no UART. kotoba-wasm v0.7.2 traps if two CRC folds run in one
+;; module, so this example checks both packet bodies and the ping CRC only.
+;; Write CRC is covered by tests/cases/write1.kotoba.
+
+(ns dynamixel-sdk.example.ping-write (:export [main]))
+
+(defn main [] :i64
+  (if (= (ping-byte 1 0) 255)
+    (if (= (ping-byte 1 2) 253)
+      (if (= (ping-byte 1 4) 1)
+        (if (= (ping-byte 1 7) 1)
+          (if (= (ping-byte 1 8) 25)
+            (if (= (ping-byte 1 9) 78)
+              (if (= (write1-byte 1 64 1 0) 255)
+                (if (= (write1-byte 1 64 1 7) 3)
+                  (if (= (write1-byte 1 64 1 8) 64)
+                    (if (= (write1-byte 1 64 1 10) 1)
+                      0
+                      10)
+                    9)
+                  8)
+                7)
+              6)
+            5)
+          4)
+        3)
+      2)
+    1))

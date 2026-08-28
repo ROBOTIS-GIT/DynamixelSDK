@@ -1,0 +1,11 @@
+(ns dynamixel-sdk.tests.write1-body (:export [main]))
+(defn main [] :i64
+  (if (= (write1-len) 13)
+    (if (= (write1-byte 1 64 1 7) 3)
+      (if (= (write1-byte 1 64 1 8) 64)
+        (if (= (write1-byte 1 64 1 10) 1)
+          0
+          4)
+        3)
+      2)
+    1))

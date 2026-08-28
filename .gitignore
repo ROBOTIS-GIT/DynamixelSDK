@@ -54,3 +54,6 @@
 python/build/
 python/dist/
 python/src/dynamixel_sdk.egg-info/
+
+# Kotoba compile output
+kotoba/.build/

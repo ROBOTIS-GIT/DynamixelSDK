@@ -1,0 +1,11 @@
+(ns dynamixel-sdk.tests.read-body (:export [main]))
+(defn main [] :i64
+  (if (= (read-len) 14)
+    (if (= (read-byte 1 132 4 7) 2)
+      (if (= (read-byte 1 132 4 8) 132)
+        (if (= (read-byte 1 132 4 10) 4)
+          0
+          4)
+        3)
+      2)
+    1))

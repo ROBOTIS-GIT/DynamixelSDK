@@ -10,6 +10,7 @@ DynamixelSDK supports various programming languages.
 - **C#** / **Java** / **MATLAB** / **LabVIEW**: Support based on dynamic library using C language
 - **C++**: *Dynamic library and source code of this library and examples
 - **Python**: Python module and examples
+- **Kotoba**: In-language Protocol 2.0 packet codec and examples (serial/USB I/O is a host capability; this is not a C dynamic-library wrap)
 (* Dynamic library (*.dll, *.so, and *.dylib files) / .dll: dynamic-link library on Windows / .so: shared object on Linux / .dylib: dynamic library on MacOS)
 
 For more information on ROS Packages for Dynamixel SDK, please refer to the ROS wiki pages below.

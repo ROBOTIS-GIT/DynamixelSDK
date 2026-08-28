@@ -1,0 +1,5 @@
+(ns dynamixel-sdk.tests.write2 (:export [main]))
+(defn main [] :i64
+  (if (= (write2-crc 1 112 200) 44354)
+    0
+    1))

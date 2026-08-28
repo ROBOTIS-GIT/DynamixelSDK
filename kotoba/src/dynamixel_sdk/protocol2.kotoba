@@ -1,0 +1,474 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Copyright 2017 ROBOTIS CO., LTD.
+;;
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
+;;
+;;     http://www.apache.org/licenses/LICENSE-2.0
+;;
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; In-language Dynamixel Protocol 2.0 packet codec for Kotoba.
+;;
+;; Guest code cannot load the C dylib (no-interop / no ambient FFI). This module
+;; therefore mirrors the Python binding: it builds and checks packets in-language.
+;; Serial / USB I/O is a host capability. Callers take bytes out (instruction
+;; packets) and pass bytes in (status packets). Tests use a mock byte pipe.
+
+;; Packet field offsets (Protocol 2.0)
+(defn PKT_HEADER0 [] 0)
+(defn PKT_HEADER1 [] 1)
+(defn PKT_HEADER2 [] 2)
+(defn PKT_RESERVED [] 3)
+(defn PKT_ID [] 4)
+(defn PKT_LENGTH_L [] 5)
+(defn PKT_LENGTH_H [] 6)
+(defn PKT_INSTRUCTION [] 7)
+(defn PKT_ERROR [] 8)
+(defn PKT_PARAMETER0 [] 8)
+
+(defn TXPACKET_MAX_LEN [] 1024)
+(defn RXPACKET_MAX_LEN [] 1024)
+
+;; Protocol 2.0 status error bits
+(defn ERRNUM_RESULT_FAIL [] 1)
+(defn ERRNUM_INSTRUCTION [] 2)
+(defn ERRNUM_CRC [] 3)
+(defn ERRNUM_DATA_RANGE [] 4)
+(defn ERRNUM_DATA_LENGTH [] 5)
+(defn ERRNUM_DATA_LIMIT [] 6)
+(defn ERRNUM_ACCESS [] 7)
+(defn ERRBIT_ALERT [] 128)
+
+(defn protocol-version [] 2)
+
+(defn low8 [x] (bit-and x 255))
+(defn low16 [x] (bit-and x 65535))
+(defn shl1 [x] (* x 2))
+
+;; CRC-16 (poly 0x8005), same as python Protocol2PacketHandler.updateCRC.
+;; Bit-by-bit: a 256-entry table exceeds the portable vector-literal bound (128).
+(defn crc-bit [crc]
+  (if (= (bit-and crc 32768) 32768)
+    (low16 (bit-xor (shl1 crc) 32773))
+    (low16 (shl1 crc))))
+
+(defn crc-byte [crc b]
+  (let [c (bit-xor crc (* (low8 b) 256))]
+    (crc-bit (crc-bit (crc-bit (crc-bit (crc-bit (crc-bit (crc-bit (crc-bit c))))))))))
+
+;; Unrolled folds: `loop` plus captured params exceeds the arity-5 wasm ABI.
+(defn crc2 [crc b0 b1]
+  (crc-byte (crc-byte crc b0) b1))
+
+(defn crc4 [crc b0 b1 b2 b3]
+  (crc2 (crc2 crc b0 b1) b2 b3))
+
+(defn header-byte [i]
+  (cond
+    (= i 0) 255
+    (= i 1) 255
+    (= i 2) 253
+    (= i 3) 0
+    :else 0))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Instruction packets with no parameters: ping / action / reboot
+;; Layout: FF FF FD 00 ID 03 00 INST CRC_L CRC_H
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn instr3-len [] 10)
+
+(defn instr3-body [dxl-id inst i]
+  (cond
+    (< i 4) (header-byte i)
+    (= i 4) dxl-id
+    (= i 5) 3
+    (= i 6) 0
+    (= i 7) inst
+    :else 0))
+
+(defn instr3-crc [dxl-id inst]
+  (crc4 (crc4 0 255 255 253 0) dxl-id 3 0 inst))
+
+(defn instr3-byte [dxl-id inst i]
+  (cond
+    (< i 8) (instr3-body dxl-id inst i)
+    (= i 8) (low8 (instr3-crc dxl-id inst))
+    (= i 9) (DXL_HIBYTE (instr3-crc dxl-id inst))
+    :else 0))
+
+(defn ping-len [] 10)
+(defn ping-byte [dxl-id i] (instr3-byte dxl-id (INST_PING) i))
+(defn ping-crc [dxl-id] (instr3-crc dxl-id (INST_PING)))
+
+(defn action-len [] 10)
+(defn action-byte [dxl-id i] (instr3-byte dxl-id (INST_ACTION) i))
+(defn action-crc [dxl-id] (instr3-crc dxl-id (INST_ACTION)))
+
+(defn reboot-len [] 10)
+(defn reboot-byte [dxl-id i] (instr3-byte dxl-id (INST_REBOOT) i))
+(defn reboot-crc [dxl-id] (instr3-crc dxl-id (INST_REBOOT)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; READ: FF FF FD 00 ID 07 00 02 ADDR_L ADDR_H LEN_L LEN_H CRC_L CRC_H
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn read-len [] 14)
+
+(defn read-body [dxl-id address length i]
+  (cond
+    (< i 4) (header-byte i)
+    (= i 4) dxl-id
+    (= i 5) 7
+    (= i 6) 0
+    (= i 7) (INST_READ)
+    (= i 8) (DXL_LOBYTE address)
+    (= i 9) (DXL_HIBYTE address)
+    (= i 10) (DXL_LOBYTE length)
+    (= i 11) (DXL_HIBYTE length)
+    :else 0))
+
+(defn read-crc [dxl-id address length]
+  (crc4 (crc4 (crc4 0 255 255 253 0) dxl-id 7 0 (INST_READ))
+        (DXL_LOBYTE address)
+        (DXL_HIBYTE address)
+        (DXL_LOBYTE length)
+        (DXL_HIBYTE length)))
+
+(defn read-byte [dxl-id address length i]
+  (cond
+    (< i 12) (read-body dxl-id address length i)
+    (= i 12) (DXL_LOBYTE (read-crc dxl-id address length))
+    (= i 13) (DXL_HIBYTE (read-crc dxl-id address length))
+    :else 0))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; WRITE / REG_WRITE of 1, 2, or 4 data bytes (unstuffed common path)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn write1-len [] 13)
+
+(defn write1-body [dxl-id address data i]
+  (cond
+    (< i 4) (header-byte i)
+    (= i 4) dxl-id
+    (= i 5) 6
+    (= i 6) 0
+    (= i 7) (INST_WRITE)
+    (= i 8) (DXL_LOBYTE address)
+    (= i 9) (DXL_HIBYTE address)
+    (= i 10) (DXL_LOBYTE data)
+    :else 0))
+
+(defn write1-crc [dxl-id address data]
+  (crc-byte (crc4 (crc4 (crc2 0 255 255) 253 0 dxl-id 6)
+                 0 (INST_WRITE) (DXL_LOBYTE address) (DXL_HIBYTE address))
+            (DXL_LOBYTE data)))
+
+(defn write1-byte [dxl-id address data i]
+  (cond
+    (< i 11) (write1-body dxl-id address data i)
+    (= i 11) (DXL_LOBYTE (write1-crc dxl-id address data))
+    (= i 12) (DXL_HIBYTE (write1-crc dxl-id address data))
+    :else 0))
+
+(defn write2-len [] 14)
+
+(defn write2-body [dxl-id address data i]
+  (cond
+    (< i 4) (header-byte i)
+    (= i 4) dxl-id
+    (= i 5) 7
+    (= i 6) 0
+    (= i 7) (INST_WRITE)
+    (= i 8) (DXL_LOBYTE address)
+    (= i 9) (DXL_HIBYTE address)
+    (= i 10) (DXL_LOBYTE data)
+    (= i 11) (DXL_HIBYTE data)
+    :else 0))
+
+(defn write2-crc [dxl-id address data]
+  (crc4 (crc4 (crc4 0 255 255 253 0) dxl-id 7 0 (INST_WRITE))
+        (DXL_LOBYTE address)
+        (DXL_HIBYTE address)
+        (DXL_LOBYTE data)
+        (DXL_HIBYTE data)))
+
+(defn write2-byte [dxl-id address data i]
+  (cond
+    (< i 12) (write2-body dxl-id address data i)
+    (= i 12) (DXL_LOBYTE (write2-crc dxl-id address data))
+    (= i 13) (DXL_HIBYTE (write2-crc dxl-id address data))
+    :else 0))
+
+(defn write4-len [] 16)
+
+(defn write4-body [dxl-id address data i]
+  (cond
+    (< i 4) (header-byte i)
+    (= i 4) dxl-id
+    (= i 5) 9
+    (= i 6) 0
+    (= i 7) (INST_WRITE)
+    (= i 8) (DXL_LOBYTE address)
+    (= i 9) (DXL_HIBYTE address)
+    (= i 10) (DXL_LOBYTE (DXL_LOWORD data))
+    (= i 11) (DXL_HIBYTE (DXL_LOWORD data))
+    (= i 12) (DXL_LOBYTE (DXL_HIWORD data))
+    (= i 13) (DXL_HIBYTE (DXL_HIWORD data))
+    :else 0))
+
+(defn write4-crc [dxl-id address data]
+  (crc2 (crc4 (crc4 (crc4 0 255 255 253 0) dxl-id 9 0 (INST_WRITE))
+              (DXL_LOBYTE address)
+              (DXL_HIBYTE address)
+              (DXL_LOBYTE (DXL_LOWORD data))
+              (DXL_HIBYTE (DXL_LOWORD data)))
+        (DXL_LOBYTE (DXL_HIWORD data))
+        (DXL_HIBYTE (DXL_HIWORD data))))
+
+(defn write4-byte [dxl-id address data i]
+  (cond
+    (< i 14) (write4-body dxl-id address data i)
+    (= i 14) (DXL_LOBYTE (write4-crc dxl-id address data))
+    (= i 15) (DXL_HIBYTE (write4-crc dxl-id address data))
+    :else 0))
+
+(defn reg-write1-len [] 13)
+
+(defn reg-write1-body [dxl-id address data i]
+  (cond
+    (< i 4) (header-byte i)
+    (= i 4) dxl-id
+    (= i 5) 6
+    (= i 6) 0
+    (= i 7) (INST_REG_WRITE)
+    (= i 8) (DXL_LOBYTE address)
+    (= i 9) (DXL_HIBYTE address)
+    (= i 10) (DXL_LOBYTE data)
+    :else 0))
+
+(defn reg-write1-crc [dxl-id address data]
+  (crc-byte (crc4 (crc4 (crc2 0 255 255) 253 0 dxl-id 6)
+                 0 (INST_REG_WRITE) (DXL_LOBYTE address) (DXL_HIBYTE address))
+            (DXL_LOBYTE data)))
+
+(defn reg-write1-byte [dxl-id address data i]
+  (cond
+    (< i 11) (reg-write1-body dxl-id address data i)
+    (= i 11) (DXL_LOBYTE (reg-write1-crc dxl-id address data))
+    (= i 12) (DXL_HIBYTE (reg-write1-crc dxl-id address data))
+    :else 0))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Byte stuffing: after 0xFF 0xFF 0xFD in the instruction/parameter region,
+;; insert an extra 0xFD and increase LEN. CRC is computed after stuffing.
+;;
+;; write3 of [FF FF FD] at address 0 is the vendored stuffing fixture.
+;; Unstuffed length field is 8; stuffed length field is 9; on-wire size is 16.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn write3-nostuff-len [] 15)
+
+(defn write3-nostuff-body [dxl-id d0 d1 d2 i]
+  (cond
+    (< i 4) (header-byte i)
+    (= i 4) dxl-id
+    (= i 5) 8
+    (= i 6) 0
+    (= i 7) (INST_WRITE)
+    (= i 8) 0
+    (= i 9) 0
+    (= i 10) (low8 d0)
+    (= i 11) (low8 d1)
+    (= i 12) (low8 d2)
+    :else 0))
+
+(defn write3-nostuff-crc [dxl-id d0 d1 d2]
+  (crc-byte (crc4 (crc4 (crc4 0 255 255 253 0) dxl-id 8 0 (INST_WRITE))
+                 0 0 (low8 d0) (low8 d1))
+            (low8 d2)))
+
+(defn write3-nostuff-byte [dxl-id d0 d1 d2 i]
+  (cond
+    (< i 13) (write3-nostuff-body dxl-id d0 d1 d2 i)
+    (= i 13) (DXL_LOBYTE (write3-nostuff-crc dxl-id d0 d1 d2))
+    (= i 14) (DXL_HIBYTE (write3-nostuff-crc dxl-id d0 d1 d2))
+    :else 0))
+
+(defn write3-stuff-fffffd-len [] 16)
+
+(defn write3-stuff-fffffd-body [dxl-id i]
+  (cond
+    (< i 4) (header-byte i)
+    (= i 4) dxl-id
+    (= i 5) 9
+    (= i 6) 0
+    (= i 7) (INST_WRITE)
+    (= i 8) 0
+    (= i 9) 0
+    (= i 10) 255
+    (= i 11) 255
+    (= i 12) 253
+    (= i 13) 253
+    :else 0))
+
+(defn write3-stuff-fffffd-crc [dxl-id]
+  (crc2 (crc4 (crc4 (crc4 0 255 255 253 0) dxl-id 9 0 (INST_WRITE))
+              0 0 255 255)
+        253 253))
+
+(defn write3-stuff-fffffd-byte [dxl-id i]
+  (cond
+    (< i 14) (write3-stuff-fffffd-body dxl-id i)
+    (= i 14) (DXL_LOBYTE (write3-stuff-fffffd-crc dxl-id))
+    (= i 15) (DXL_HIBYTE (write3-stuff-fffffd-crc dxl-id))
+    :else 0))
+
+;; True when three consecutive instruction/parameter bytes are FF FF FD.
+(defn stuffing-triplet? [b0 b1 b2]
+  (if (and (= b0 255) (and (= b1 255) (= b2 253))) 1 0))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SYNC READ (two IDs) / SYNC WRITE (one ID, 4 data bytes)
+;; Always addressed to BROADCAST_ID (0xFE).
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn sync-read2-len [] 16)
+
+(defn sync-read2-body [start-addr data-length id0 id1 i]
+  (cond
+    (< i 4) (header-byte i)
+    (= i 4) (BROADCAST_ID)
+    (= i 5) 9
+    (= i 6) 0
+    (= i 7) (INST_SYNC_READ)
+    (= i 8) (DXL_LOBYTE start-addr)
+    (= i 9) (DXL_HIBYTE start-addr)
+    (= i 10) (DXL_LOBYTE data-length)
+    (= i 11) (DXL_HIBYTE data-length)
+    (= i 12) id0
+    (= i 13) id1
+    :else 0))
+
+(defn sync-read2-crc [start-addr data-length id0 id1]
+  (crc2 (crc4 (crc4 (crc4 0 255 255 253 0) (BROADCAST_ID) 9 0 (INST_SYNC_READ))
+              (DXL_LOBYTE start-addr)
+              (DXL_HIBYTE start-addr)
+              (DXL_LOBYTE data-length)
+              (DXL_HIBYTE data-length))
+        id0 id1))
+
+(defn sync-read2-byte [start-addr data-length id0 id1 i]
+  (cond
+    (< i 14) (sync-read2-body start-addr data-length id0 id1 i)
+    (= i 14) (DXL_LOBYTE (sync-read2-crc start-addr data-length id0 id1))
+    (= i 15) (DXL_HIBYTE (sync-read2-crc start-addr data-length id0 id1))
+    :else 0))
+
+(defn sync-write1-4-len [] 19)
+
+(defn sync-write1-4-body [start-addr dxl-id data i]
+  (cond
+    (< i 4) (header-byte i)
+    (= i 4) (BROADCAST_ID)
+    (= i 5) 12
+    (= i 6) 0
+    (= i 7) (INST_SYNC_WRITE)
+    (= i 8) (DXL_LOBYTE start-addr)
+    (= i 9) (DXL_HIBYTE start-addr)
+    (= i 10) 4
+    (= i 11) 0
+    (= i 12) dxl-id
+    (= i 13) (DXL_LOBYTE (DXL_LOWORD data))
+    (= i 14) (DXL_HIBYTE (DXL_LOWORD data))
+    (= i 15) (DXL_LOBYTE (DXL_HIWORD data))
+    (= i 16) (DXL_HIBYTE (DXL_HIWORD data))
+    :else 0))
+
+(defn sync-write1-4-crc [start-addr dxl-id data]
+  (crc-byte (crc4 (crc4 (crc4 (crc4 0 255 255 253 0)
+                             (BROADCAST_ID) 12 0 (INST_SYNC_WRITE))
+                       (DXL_LOBYTE start-addr)
+                       (DXL_HIBYTE start-addr)
+                       4
+                       0)
+                 dxl-id
+                 (DXL_LOBYTE (DXL_LOWORD data))
+                 (DXL_HIBYTE (DXL_LOWORD data))
+                 (DXL_LOBYTE (DXL_HIWORD data)))
+            (DXL_HIBYTE (DXL_HIWORD data))))
+
+(defn sync-write1-4-byte [start-addr dxl-id data i]
+  (cond
+    (< i 17) (sync-write1-4-body start-addr dxl-id data i)
+    (= i 17) (DXL_LOBYTE (sync-write1-4-crc start-addr dxl-id data))
+    (= i 18) (DXL_HIBYTE (sync-write1-4-crc start-addr dxl-id data))
+    :else 0))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Status packet decode (bytes in, fields out). No UART.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn status-header-ok? [b0 b1 b2 b3]
+  (if (and (= b0 255) (and (= b1 255) (and (= b2 253) (= b3 0)))) 1 0))
+
+(defn status-instruction-ok? [b7]
+  (if (= b7 (INST_STATUS)) 1 0))
+
+(defn error-alert? [err]
+  (if (= (bit-and err 128) 128) 1 0))
+
+(defn error-number [err]
+  (bit-and err 127))
+
+(defn getRxPacketError [err]
+  (if (= (error-alert? err) 1)
+    (ERRBIT_ALERT)
+    (error-number err)))
+
+(defn getTxRxResult [result]
+  result)
+
+;; CRC over the first (n-2) bytes of a status packet supplied as a byte getter
+;; specialized per fixture. verify-status-crc compares the trailing CRC pair.
+
+(defn packet-crc-ok? [computed b-crc-l b-crc-h]
+  (if (and (= (DXL_LOBYTE computed) b-crc-l) (= (DXL_HIBYTE computed) b-crc-h))
+    (COMM_SUCCESS)
+    (COMM_RX_CORRUPT)))
+
+;; Ping status payload: model number is params[0..1], firmware is params[2].
+(defn status-ping-model [param0 param1]
+  (DXL_MAKEWORD param0 param1))
+
+(defn status-ping-firmware [param2]
+  param2)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mock byte pipe: host would write tx bytes and feed rx bytes back.
+;; These helpers only compose encode + decode; they never open a serial port.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn tx-available? [dxl-id]
+  (if (>= dxl-id (BROADCAST_ID))
+    (COMM_NOT_AVAILABLE)
+    (COMM_SUCCESS)))
+
+;; Decode helpers stay at arity <= 5 (Kotoba's admitted function bound).
+(defn decode-status-header [b0 b1 b2 b3]
+  (if (= (status-header-ok? b0 b1 b2 b3) 1)
+    (COMM_SUCCESS)
+    (COMM_RX_CORRUPT)))
+
+(defn decode-status-inst-id [b4 b7]
+  (if (and (= (status-instruction-ok? b7) 1) (> b4 0))
+    (COMM_SUCCESS)
+    (COMM_RX_CORRUPT)))

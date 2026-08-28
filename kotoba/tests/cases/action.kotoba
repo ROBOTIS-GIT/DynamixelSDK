@@ -1,0 +1,9 @@
+(ns dynamixel-sdk.tests.action (:export [main]))
+(defn main [] :i64
+  (if (= (action-byte 1 7) 5)
+    (if (= (action-byte 1 8) 2)
+      (if (= (action-byte 1 9) 206)
+        0
+        3)
+      2)
+    1))

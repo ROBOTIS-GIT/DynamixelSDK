@@ -1,0 +1,7 @@
+(ns dynamixel-sdk.tests.stuff (:export [main]))
+(defn main [] :i64
+  (if (= (write3-stuff-fffffd-crc 1) 58806)
+    (if (= (stuffing-triplet? 255 255 253) 1)
+      0
+      2)
+    1))

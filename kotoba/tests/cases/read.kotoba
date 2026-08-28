@@ -1,0 +1,5 @@
+(ns dynamixel-sdk.tests.read (:export [main]))
+(defn main [] :i64
+  (if (= (read-crc 1 132 4) 5405)
+    0
+    1))

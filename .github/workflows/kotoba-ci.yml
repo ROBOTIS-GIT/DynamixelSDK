@@ -1,0 +1,32 @@
+# Compile the Kotoba Protocol 2.0 codec and run fixture tests.
+# No hardware, no UART, no C dylib.
+name: Kotoba CI
+
+on:
+  push:
+    paths:
+      - "kotoba/**"
+      - ".github/workflows/kotoba-ci.yml"
+  pull_request:
+    paths:
+      - "kotoba/**"
+      - ".github/workflows/kotoba-ci.yml"
+
+jobs:
+  fixtures:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Kotoba CLI v0.7.2
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/kotoba-linux-amd64.tar.gz \
+            https://github.com/kotoba-lang/kotoba/releases/download/v0.7.2/kotoba-linux-amd64.tar.gz
+          tar -xzf /tmp/kotoba-linux-amd64.tar.gz -C /tmp
+          sudo install -m 0755 /tmp/kotoba /usr/local/bin/kotoba
+          kotoba selfhost check --json
+
+      - name: Compile and run fixture tests
+        run: bash kotoba/tests/run_fixtures.sh

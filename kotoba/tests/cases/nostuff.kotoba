@@ -1,0 +1,5 @@
+(ns dynamixel-sdk.tests.nostuff (:export [main]))
+(defn main [] :i64
+  (if (= (write3-nostuff-crc 1 1 2 3) 9457)
+    0
+    1))

@@ -1,0 +1,9 @@
+(ns dynamixel-sdk.tests.reboot (:export [main]))
+(defn main [] :i64
+  (if (= (reboot-byte 1 7) 8)
+    (if (= (reboot-byte 1 8) 47)
+      (if (= (reboot-byte 1 9) 78)
+        0
+        3)
+      2)
+    1))

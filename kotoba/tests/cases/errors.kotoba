@@ -1,0 +1,17 @@
+(ns dynamixel-sdk.tests.errors (:export [main]))
+(defn main [] :i64
+  (if (= (error-alert? 131) 1)
+    (if (= (error-number 131) 3)
+      (if (= (getRxPacketError 131) 128)
+        (if (= (getRxPacketError 7) 7)
+          (if (= (error-alert? 7) 0)
+            (if (= (packet-crc-ok? 1 0 0) (COMM_RX_CORRUPT))
+              (if (= (tx-available? 254) (COMM_NOT_AVAILABLE))
+                0
+                7)
+              6)
+            5)
+          4)
+        3)
+      2)
+    1))

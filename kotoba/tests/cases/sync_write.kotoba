@@ -1,0 +1,5 @@
+(ns dynamixel-sdk.tests.sync-write (:export [main]))
+(defn main [] :i64
+  (if (= (sync-write1-4-crc 116 1 2048) 9087)
+    0
+    1))

@@ -1,0 +1,5 @@
+(ns dynamixel-sdk.tests.sync-read (:export [main]))
+(defn main [] :i64
+  (if (= (sync-read2-crc 132 4 1 2) 64206)
+    0
+    1))

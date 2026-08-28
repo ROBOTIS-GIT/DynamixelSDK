@@ -1,0 +1,53 @@
+Protocol 2.0 golden packets
+===========================
+
+Derived 2026-08-28 from this repository's Python Protocol2PacketHandler
+(addStuffing, header FF FF FD 00, CRC-16 poly 0x8005). No device was used.
+
+ping id=1
+  FF FF FD 00 01 03 00 01 19 4E
+
+ping id=2
+  FF FF FD 00 02 03 00 01 19 72
+
+action id=1
+  FF FF FD 00 01 03 00 05 02 CE
+
+reboot id=1
+  FF FF FD 00 01 03 00 08 2F 4E
+
+read id=1 addr=132 len=4
+  FF FF FD 00 01 07 00 02 84 00 04 00 1D 15
+
+write1 id=1 addr=64 data=1
+  FF FF FD 00 01 06 00 03 40 00 01 DB 66
+
+write2 id=1 addr=112 data=200
+  FF FF FD 00 01 07 00 03 70 00 C8 00 42 AD
+
+write4 id=1 addr=116 data=2048
+  FF FF FD 00 01 09 00 03 74 00 00 08 00 00 42 89
+
+reg_write1 id=1 addr=64 data=1
+  FF FF FD 00 01 06 00 04 40 00 01 D8 8A
+
+sync_read ids=1,2 addr=132 len=4
+  FF FF FD 00 FE 09 00 82 84 00 04 00 01 02 CE FA
+
+sync_write id=1 addr=116 data=2048
+  FF FF FD 00 FE 0C 00 83 74 00 04 00 01 00 08 00 00 7F 23
+
+write3 no stuffing data=01 02 03
+  FF FF FD 00 01 08 00 03 00 00 01 02 03 F1 24
+
+write3 stuffing data=FF FF FD (extra FD inserted; LEN becomes 09)
+  FF FF FD 00 01 09 00 03 00 00 FF FF FD FD B6 E5
+
+status ping id=1 model=1020 firmware=46
+  FF FF FD 00 01 07 00 55 00 FC 03 2E 1D 43
+
+status error CRC+ALERT id=1
+  FF FF FD 00 01 04 00 55 83 A8 8F
+
+status error ACCESS id=2
+  FF FF FD 00 02 04 00 55 07 38 8C

@@ -1,0 +1,50 @@
+(ns dynamixel-sdk.tests.status (:export [main]))
+
+;; Vendored ping status: FF FF FD 00 01 07 00 55 00 FC 03 2E 1D 43
+(defn status-ping-rx [i]
+  (cond
+    (= i 0) 255
+    (= i 1) 255
+    (= i 2) 253
+    (= i 3) 0
+    (= i 4) 1
+    (= i 5) 7
+    (= i 6) 0
+    (= i 7) 85
+    (= i 8) 0
+    (= i 9) 252
+    (= i 10) 3
+    (= i 11) 46
+    (= i 12) 29
+    (= i 13) 67
+    :else 0))
+
+(defn status-ping-crc []
+  (crc4 (crc4 (crc4 0
+                    (status-ping-rx 0)
+                    (status-ping-rx 1)
+                    (status-ping-rx 2)
+                    (status-ping-rx 3))
+              (status-ping-rx 4)
+              (status-ping-rx 5)
+              (status-ping-rx 6)
+              (status-ping-rx 7))
+        (status-ping-rx 8)
+        (status-ping-rx 9)
+        (status-ping-rx 10)
+        (status-ping-rx 11)))
+
+(defn main [] :i64
+  (if (= (decode-status-header (status-ping-rx 0) (status-ping-rx 1) (status-ping-rx 2) (status-ping-rx 3)) 0)
+    (if (= (decode-status-inst-id (status-ping-rx 4) (status-ping-rx 7)) 0)
+      (if (= (status-ping-model (status-ping-rx 9) (status-ping-rx 10)) 1020)
+        (if (= (status-ping-firmware (status-ping-rx 11)) 46)
+          (if (= (packet-crc-ok? (status-ping-crc) (status-ping-rx 12) (status-ping-rx 13)) 0)
+            (if (= (status-ping-rx 8) 0)
+              0
+              6)
+            5)
+          4)
+        3)
+      2)
+    1))

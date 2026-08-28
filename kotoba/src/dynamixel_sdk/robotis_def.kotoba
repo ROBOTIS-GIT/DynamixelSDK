@@ -1,0 +1,55 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Copyright 2017 ROBOTIS CO., LTD.
+;;
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
+;;
+;;     http://www.apache.org/licenses/LICENSE-2.0
+;;
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Kotoba Protocol 2.0 constants, mirrored from python/src/dynamixel_sdk/robotis_def.py.
+;; Values are zero-argument functions: Kotoba's portable wasm profile does not
+;; admit cross-file `def` bindings, and this file is concatenated before an entry.
+
+(defn BROADCAST_ID [] 254)
+(defn MAX_ID [] 252)
+
+(defn INST_PING [] 1)
+(defn INST_READ [] 2)
+(defn INST_WRITE [] 3)
+(defn INST_REG_WRITE [] 4)
+(defn INST_ACTION [] 5)
+(defn INST_FACTORY_RESET [] 6)
+(defn INST_REBOOT [] 8)
+(defn INST_CLEAR [] 16)
+(defn INST_STATUS [] 85)
+(defn INST_SYNC_READ [] 130)
+(defn INST_SYNC_WRITE [] 131)
+(defn INST_BULK_READ [] 146)
+(defn INST_BULK_WRITE [] 147)
+(defn INST_FAST_SYNC_READ [] 138)
+(defn INST_FAST_BULK_READ [] 154)
+
+(defn COMM_SUCCESS [] 0)
+(defn COMM_PORT_BUSY [] -1000)
+(defn COMM_TX_FAIL [] -1001)
+(defn COMM_RX_FAIL [] -1002)
+(defn COMM_TX_ERROR [] -2000)
+(defn COMM_RX_WAITING [] -3000)
+(defn COMM_RX_TIMEOUT [] -3001)
+(defn COMM_RX_CORRUPT [] -3002)
+(defn COMM_NOT_AVAILABLE [] -9000)
+
+(defn DXL_LOBYTE [w] (bit-and w 255))
+(defn DXL_HIBYTE [w] (bit-and (quot w 256) 255))
+(defn DXL_LOWORD [l] (bit-and l 65535))
+(defn DXL_HIWORD [l] (bit-and (quot l 65536) 65535))
+(defn DXL_MAKEWORD [a b] (bit-or (bit-and a 255) (* (bit-and b 255) 256)))
+(defn DXL_MAKEDWORD [a b] (bit-or (bit-and a 65535) (* (bit-and b 65535) 65536)))

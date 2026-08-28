@@ -1,0 +1,13 @@
+(ns dynamixel-sdk.tests.ping (:export [main]))
+(defn main [] :i64
+  (if (= (ping-len) 10)
+    (if (= (ping-byte 1 4) 1)
+      (if (= (ping-byte 1 7) 1)
+        (if (= (ping-byte 1 8) 25)
+          (if (= (ping-byte 1 9) 78)
+            0
+            5)
+          4)
+        3)
+      2)
+    1))
