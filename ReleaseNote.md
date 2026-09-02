@@ -4,6 +4,7 @@
 ------------------
 * Added custom baud rate support on macOS via IOSSIOSPEED for rates over 230400 bps
 * Used poll() in Linux/macOS PortHandler readPort() to avoid busy-wait loops, and report hard read errors as COMM_RX_FAIL
+* Restored Python 3.6 and 3.7 compatibility in GroupSyncRead.txRxPacket()
 * Contributors: Hyungyu Kim
 
 4.0.5 (2026-05-06)
