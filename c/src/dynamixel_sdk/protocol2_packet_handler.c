@@ -373,6 +373,7 @@ void rxPacket2(int port_num)
 {
   uint16_t s;
   uint16_t idx;
+  int read_length;
   uint16_t rx_length = 0;
   uint16_t wait_length = 11;
   // minimum length ( HEADER0 HEADER1 HEADER2 RESERVED ID LENGTH_L LENGTH_H INST ERROR CRC16_L CRC16_H )
@@ -382,7 +383,13 @@ void rxPacket2(int port_num)
 
   while (True)
   {
-    rx_length += readPort(port_num, &packetData[port_num].rx_packet[rx_length], wait_length - rx_length);
+    read_length = readPort(port_num, &packetData[port_num].rx_packet[rx_length], wait_length - rx_length);
+    if (read_length < 0)
+    {
+      packetData[port_num].communication_result = COMM_RX_FAIL;
+      break;
+    }
+    rx_length += read_length;
     if (rx_length >= wait_length)
     {
       idx = 0;
@@ -571,6 +578,7 @@ void broadcastPing2(int port_num)
   uint16_t s;
   int id;
   uint16_t idx;
+  int read_length;
   const int STATUS_LENGTH     = 14;
   int result = COMM_TX_FAIL;
 
@@ -617,12 +625,21 @@ void broadcastPing2(int port_num)
 
   while (1)
   {
-    rx_length += readPort(port_num, &packetData[port_num].rx_packet[rx_length], wait_length - rx_length);
+    read_length = readPort(port_num, &packetData[port_num].rx_packet[rx_length], wait_length - rx_length);
+    if (read_length < 0)
+    {
+      packetData[port_num].communication_result = COMM_RX_FAIL;
+      break;
+    }
+    rx_length += read_length;
     if (isPacketTimeout(port_num) == True)// || rx_length >= wait_length)
       break;
   }
 
   g_is_using[port_num] = False;
+
+  if (packetData[port_num].communication_result == COMM_RX_FAIL)
+    return;
 
   if (rx_length == 0)
   {
