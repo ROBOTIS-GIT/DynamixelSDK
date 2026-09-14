@@ -19,7 +19,9 @@
 #if defined(__linux__)
 
 #include <stdio.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <string.h>
 #include <unistd.h>
 #include <termios.h>
@@ -150,7 +152,31 @@ int PortHandlerLinux::getBytesAvailable()
 
 int PortHandlerLinux::readPort(uint8_t *packet, int length)
 {
-  return read(socket_fd_, packet, length);
+  if (length <= 0)
+    return 0;
+
+  struct pollfd pfd;
+  pfd.fd = socket_fd_;
+  pfd.events = POLLIN;
+  pfd.revents = 0;
+
+  int ready = poll(&pfd, 1, 1);
+  if (ready <= 0)
+  {
+    if (ready == 0 || errno == EINTR)
+      return 0;
+
+    return -1;
+  }
+
+  int read_length = read(socket_fd_, packet, length);
+  if (read_length >= 0)
+    return read_length;
+
+  if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+    return 0;
+
+  return -1;
 }
 
 int PortHandlerLinux::writePort(uint8_t *packet, int length)
