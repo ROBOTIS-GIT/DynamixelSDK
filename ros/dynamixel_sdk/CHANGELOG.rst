@@ -2,7 +2,7 @@
 Changelog for package dynamixel_sdk
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-4.1.0 (2026-08-25)
+4.1.0 (2026-09-14)
 ------------------
 * Added custom baud rate support on macOS via IOSSIOSPEED for rates over 230400 bps
 * Used poll() in Linux/macOS PortHandler readPort() to avoid busy-wait loops, and report hard read errors as COMM_RX_FAIL
