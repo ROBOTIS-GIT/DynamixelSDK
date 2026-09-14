@@ -165,7 +165,8 @@ class GroupSyncRead:
         if self.ph.getProtocolVersion() == 1.0:
             return COMM_NOT_AVAILABLE
 
-        if (result := self.txPacket()) != COMM_SUCCESS:
+        result = self.txPacket()
+        if result != COMM_SUCCESS:
             return result
 
         return self.rxPacket()

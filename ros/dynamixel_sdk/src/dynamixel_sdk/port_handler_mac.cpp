@@ -19,17 +19,21 @@
 #if defined(__APPLE__)
 
 #include <stdio.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <string.h>
 #include <unistd.h>
 #include <termios.h>
 #include <time.h>
 #include <sys/time.h>
+#include <errno.h>
 #include <sys/ioctl.h>
 
 #ifdef __MACH__
 #include <mach/clock.h>
 #include <mach/mach.h>
+#include <IOKit/serial/ioss.h>
 #endif
 
 #include "port_handler_mac.h"
@@ -117,7 +121,31 @@ int PortHandlerMac::getBytesAvailable()
 
 int PortHandlerMac::readPort(uint8_t *packet, int length)
 {
-  return read(socket_fd_, packet, length);
+  if (length <= 0)
+    return 0;
+
+  struct pollfd pfd;
+  pfd.fd = socket_fd_;
+  pfd.events = POLLIN;
+  pfd.revents = 0;
+
+  int ready = poll(&pfd, 1, 1);
+  if (ready <= 0)
+  {
+    if (ready == 0 || errno == EINTR)
+      return 0;
+
+    return -1;
+  }
+
+  int read_length = read(socket_fd_, packet, length);
+  if (read_length >= 0)
+    return read_length;
+
+  if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+    return 0;
+
+  return -1;
 }
 
 int PortHandlerMac::writePort(uint8_t *packet, int length)
@@ -218,8 +246,16 @@ bool PortHandlerMac::setupPort(int cflag_baud)
 
 bool PortHandlerMac::setCustomBaudrate(int speed)
 {
-  printf("[PortHandlerMac::SetCustomBaudrate] Not supported on Mac!\n");
-  return false;
+  speed_t baud = (speed_t)speed;
+
+  if (ioctl(socket_fd_, IOSSIOSPEED, &baud) == -1)
+  {
+    printf("[PortHandlerMac::SetCustomBaudrate] IOSSIOSPEED failed! errno=%d\n", errno);
+    return false;
+  }
+
+  tx_time_per_byte = (1000.0 / (double)speed) * 10.0;
+  return true;
 }
 
 int PortHandlerMac::getCFlagBaud(int baudrate)
@@ -238,7 +274,7 @@ int PortHandlerMac::getCFlagBaud(int baudrate)
       return B115200;
     case 230400:
       return B230400;
-    // Mac OS doesn't support over B230400
+    // Baud rates over 230400 are set via IOSSIOSPEED in setCustomBaudrate()
     // case 460800:
     //   return B460800;
     // case 500000:

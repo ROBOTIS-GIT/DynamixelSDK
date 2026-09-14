@@ -208,6 +208,7 @@ void rxPacket1(int port_num)
 {
   uint16_t idx, s;
   int i;
+  int read_length;
   uint8_t checksum;
   uint8_t rx_length;
   uint8_t wait_length;
@@ -220,7 +221,13 @@ void rxPacket1(int port_num)
 
   while (True)
   {
-    rx_length += readPort(port_num, &packetData[port_num].rx_packet[rx_length], wait_length - rx_length);
+    read_length = readPort(port_num, &packetData[port_num].rx_packet[rx_length], wait_length - rx_length);
+    if (read_length < 0)
+    {
+      packetData[port_num].communication_result = COMM_RX_FAIL;
+      break;
+    }
+    rx_length += read_length;
     if (rx_length >= wait_length)
     {
       idx = 0;
