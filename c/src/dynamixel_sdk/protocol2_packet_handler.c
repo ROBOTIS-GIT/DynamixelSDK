@@ -786,7 +786,7 @@ void readTx2(int port_num, uint8_t id, uint16_t address, uint16_t length)
 {
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)malloc(14);
+  packetData[port_num].tx_packet = (uint8_t *)malloc(14 + 4);
   if (packetData[port_num].tx_packet == NULL)
   {
     printf("[ReadTx] memory allocation failed..\n");
@@ -811,6 +811,7 @@ void readTx2(int port_num, uint8_t id, uint16_t address, uint16_t length)
   txPacket2(port_num);
 
   free(packetData[port_num].tx_packet);
+  packetData[port_num].tx_packet = NULL;
 
   // set packet timeout
   if (packetData[port_num].communication_result == COMM_SUCCESS)
@@ -847,7 +848,7 @@ void readTxRx2(int port_num, uint8_t id, uint16_t address, uint16_t length)
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 14);
+  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, 14 + 4);
   packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, RXPACKET_MAX_LEN);  //(length + 11 + (length/3));  // (length/3): consider stuffing
   if (packetData[port_num].tx_packet == NULL || packetData[port_num].rx_packet == NULL)
   {
@@ -996,7 +997,7 @@ void writeTxOnly2(int port_num, uint8_t id, uint16_t address, uint16_t length)
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 12);
+  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 12 + (length / 3) + 4);
   if (packetData[port_num].tx_packet == NULL)
   {
     printf("[WriteTxOnly] memory allocation failed..\n");
@@ -1025,7 +1026,7 @@ void writeTxRx2(int port_num, uint8_t id, uint16_t address, uint16_t length)
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 12);
+  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 12 + (length / 3) + 4);
   packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, 11);
   if (packetData[port_num].tx_packet == NULL || packetData[port_num].rx_packet == NULL)
   {
@@ -1131,7 +1132,7 @@ void regWriteTxOnly2(int port_num, uint8_t id, uint16_t address, uint16_t length
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 12);
+  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 12 + (length / 3) + 4);
   if (packetData[port_num].tx_packet == NULL)
   {
     printf("[RegWriteTxOnly] memory allocation failed..\n");
@@ -1160,7 +1161,7 @@ void regWriteTxRx2(int port_num, uint8_t id, uint16_t address, uint16_t length)
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 12);
+  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, length + 12 + (length / 3) + 4);
   packetData[port_num].rx_packet = (uint8_t *)realloc(packetData[port_num].rx_packet, 11);
   if (packetData[port_num].tx_packet == NULL || packetData[port_num].rx_packet == NULL)
   {
@@ -1189,7 +1190,7 @@ void syncReadTx2(int port_num, uint16_t start_address, uint16_t data_length, uin
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 14);
+  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 14 + (param_length / 3) + 4);
   // 14: HEADER0 HEADER1 HEADER2 RESERVED ID LEN_L LEN_H INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
   if (packetData[port_num].tx_packet == NULL)
   {
@@ -1223,7 +1224,7 @@ void syncWriteTxOnly2(int port_num, uint16_t start_address, uint16_t data_length
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 14);
+  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 14 + (param_length / 3) + 4);
   // 14: HEADER0 HEADER1 HEADER2 RESERVED ID LEN_L LEN_H INST START_ADDR_L START_ADDR_H DATA_LEN_L DATA_LEN_H CRC16_L CRC16_H
   if (packetData[port_num].tx_packet == NULL)
   {
@@ -1255,7 +1256,7 @@ void bulkReadTx2(int port_num, uint16_t param_length)
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 10);
+  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 10 + (param_length / 3) + 4);
   // 10: HEADER0 HEADER1 HEADER2 RESERVED ID LEN_L LEN_H INST CRC16_L CRC16_H
   if (packetData[port_num].tx_packet == NULL)
   {
@@ -1291,7 +1292,7 @@ void bulkWriteTxOnly2(int port_num, uint16_t param_length)
 
   packetData[port_num].communication_result = COMM_TX_FAIL;
 
-  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 10);
+  packetData[port_num].tx_packet = (uint8_t *)realloc(packetData[port_num].tx_packet, param_length + 10 + (param_length / 3) + 4);
   // 10: HEADER0 HEADER1 HEADER2 RESERVED ID LEN_L LEN_H INST CRC16_L CRC16_H
   if (packetData[port_num].tx_packet == NULL)
   {
