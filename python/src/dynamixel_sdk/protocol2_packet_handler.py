@@ -177,10 +177,9 @@ class Protocol2PacketHandler(object):
         temp[index + 1] = packet[PKT_INSTRUCTION + packet_length_in - 1]
         index = index + 2
 
-        if packet_length_in != packet_length_out:
-            packet = [0] * index
-
-        packet[0: index] = temp[0: index]
+        # update the caller's packet in place: txPacket() discards the return
+        # value, so a rebound list would silently drop the stuffing
+        packet[:] = temp[0: index]
 
         packet[PKT_LENGTH_L] = DXL_LOBYTE(packet_length_out)
         packet[PKT_LENGTH_H] = DXL_HIBYTE(packet_length_out)
