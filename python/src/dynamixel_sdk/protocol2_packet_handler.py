@@ -574,6 +574,11 @@ class Protocol2PacketHandler(object):
         if result != COMM_SUCCESS:
             return {}, result
 
+        # param: ID, ADDR_L, ADDR_H, LEN_L, LEN_H for each device
+        data_lengths = {}
+        for i in range(0, len(param) - 4, 5):
+            data_lengths[param[i]] = DXL_MAKEWORD(param[i + 3], param[i + 4])
+
         data_dict = {}
         idx = PKT_PARAMETER0
         packet_length = len(rxpacket)
@@ -582,11 +587,9 @@ class Protocol2PacketHandler(object):
             error = rxpacket[idx]
             dxl_id = rxpacket[idx + 1]
 
-            try:
-                param_idx = param.index(dxl_id)
-                data_length = DXL_MAKEWORD(param[param_idx + 3], param[param_idx + 4])
-            except ValueError:
+            if dxl_id not in data_lengths:
                 break
+            data_length = data_lengths[dxl_id]
 
             data_segment = rxpacket[idx + 2 : idx + 2 + data_length]
             data_dict[dxl_id] = data_segment
