@@ -549,6 +549,10 @@ class Protocol2PacketHandler(object):
 
             data.extend(rxpacket[PKT_PARAMETER0 + 1: PKT_PARAMETER0 + 1 + length])
 
+            if len(data) != length:
+                result = COMM_RX_CORRUPT
+                return data, result, error
+
         return data, result, error
 
     def fastSyncReadRx(self, port, dxl_id, length):
@@ -618,6 +622,10 @@ class Protocol2PacketHandler(object):
             error = rxpacket[PKT_ERROR]
 
             data.extend(rxpacket[PKT_PARAMETER0 + 1: PKT_PARAMETER0 + 1 + length])
+
+            if len(data) != length:
+                result = COMM_RX_CORRUPT
+                return data, result, error
 
         return data, result, error
 
