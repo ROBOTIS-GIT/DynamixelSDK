@@ -75,7 +75,7 @@ int portHandlerWindows(const char *port_name)
     {
       for (port_num = 0; port_num < g_used_port_num; port_num++)
       {
-        if (portData[port_num].serial_handle != INVALID_HANDLE_VALUE)
+        if (portData[port_num].serial_handle == INVALID_HANDLE_VALUE)
           break;
       }
 
