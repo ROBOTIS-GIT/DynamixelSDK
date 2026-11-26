@@ -98,14 +98,24 @@ class PortHandler(object):
         return False
 
     def getCurrentTime(self):
-        return round(time.time() * 1000000000) / 1000000.0
+        """Return monotonic time in milliseconds (unaffected by system clock changes).
+
+        Note:
+            time.monotonic() requires Python >= 3.3.
+            time.monotonic_ns() requires Python >= 3.7.
+            The oldest supported ROS2 distro is Humble.
+            The oldest Python version among its targets is 3.6.8 (RHEL 8),
+            which leads to a choice of time.monotonic().
+        """
+        return time.monotonic() * 1000.0
 
     def getTimeSinceStart(self):
-        time_since = self.getCurrentTime() - self.packet_start_time
-        if time_since < 0.0:
-            self.packet_start_time = self.getCurrentTime()
+        """Return milliseconds elapsed since the packet timeout was last set.
 
-        return time_since
+        Note:
+            getCurrentTime() is monotonic, so the result is never negative.
+        """
+        return self.getCurrentTime() - self.packet_start_time
 
     def setupPort(self, cflag_baud):
         if self.is_open:
